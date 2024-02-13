@@ -336,20 +336,16 @@ version = "1.0.6"
 description = "playwright stealth"
 optional = false
 python-versions = ">=3, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-files = []
-develop = false
+files = [
+    {file = "playwright-stealth-1.0.6.tar.gz", hash = "sha256:b504d951d00fac755c7d13665a29611d415180510bd7d23f14ebc89439ba2043"},
+    {file = "playwright_stealth-1.0.6-py3-none-any.whl", hash = "sha256:b1b2bcf58eb6859aa53d42c49b91c4e27b74a6d13fc3d0c85eea513dd55efda3"},
+]
 
 [package.dependencies]
 playwright = "*"
 
 [package.extras]
 test = ["pytest"]
-
-[package.source]
-type = "git"
-url = "https://github.com/AtuboDad/playwright_stealth.git"
-reference = "HEAD"
-resolved_reference = "43f7433057906945b1648179304d7dbd8eb10874"
 
 [[package]]
 name = "pluggy"
@@ -561,4 +557,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "9f05ccff8b1f65d0eec20e7cc3e7b587129f141b00988fa07c79632ccd028d90"
+content-hash = "34aaab4972134c30ff6ac3dc3399a1376c566afe9828c011fdcb79a357203b49"

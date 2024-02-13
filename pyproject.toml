@@ -1,18 +1,21 @@
 [tool.poetry]
-name = "harambe"
+name = "harambe-sdk"
 version = "0.5.2"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = ["awtkns <hello@awtkns.com>"]
 readme = "README.md"
+packages = [
+    { include = "harambe", from = "." },
+]
 
 
 [tool.poetry.dependencies]
 python = "^3.11"
 playwright = "^1.39.0"
-playwright-stealth = { git = "https://github.com/AtuboDad/playwright_stealth.git" }
 setuptools = "^69.0.2"
 beautifulsoup4 = "^4.12.2"
 requests = "^2.31.0"
+playwright-stealth = "^1.0.6" # TODO: self host this package
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.2.1"
