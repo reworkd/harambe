@@ -66,12 +66,12 @@ def test_url_to_netloc(url, expected):
     [
         (ast.Call(func=ast.Attribute(value=ast.Name(id="SDK"), attr="scraper")), True),
         (
-                ast.Call(func=ast.Attribute(value=ast.Name(id="NotSDK"), attr="scraper")),
-                False,
+            ast.Call(func=ast.Attribute(value=ast.Name(id="NotSDK"), attr="scraper")),
+            False,
         ),
         (
-                ast.Call(func=ast.Attribute(value=ast.Name(id="SDK"), attr="not_scraper")),
-                False,
+            ast.Call(func=ast.Attribute(value=ast.Name(id="SDK"), attr="not_scraper")),
+            False,
         ),
         (ast.Call(func=ast.Attribute(value=ast.Num(n=123), attr="scraper")), False),
         (ast.Num(n=123), False),

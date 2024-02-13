@@ -17,11 +17,11 @@ class DecoratedScraper(TypedDict):
 
 def is_sdk_scraper_decorator(node: ast.expr) -> bool:
     return (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr == "scraper"
-            and isinstance(node.func.value, ast.Name)
-            and node.func.value.id == "SDK"
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "scraper"
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "SDK"
     )
 
 
@@ -51,7 +51,11 @@ def find_decorated_scrapers(file_path: Path) -> List[DecoratedScraper]:
 
 
 def walk_package_for_decorators(path: Path) -> List[DecoratedScraper]:
-    files = [path] if path.is_file() else [p for p in path.rglob("*.py") if not p.name.startswith("_")]
+    files = (
+        [path]
+        if path.is_file()
+        else [p for p in path.rglob("*.py") if not p.name.startswith("_")]
+    )
 
     decorated_methods_in_package = []
     for file in files:
