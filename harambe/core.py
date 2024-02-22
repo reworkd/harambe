@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from functools import wraps
-from typing import Callable, List, Optional, Protocol, Union
+from typing import Callable, List, Optional, Protocol, Union, Awaitable
 
 from playwright.async_api import Page, ProxySettings, async_playwright
 from playwright_stealth import stealth_async
@@ -37,17 +37,21 @@ class SDK:
     """
 
     def __init__(
-        self,
-        page: Page,
-        run_id: Optional[str] = None,
-        domain: Optional[str] = None,
-        stage: Optional[Stage] = None,
-        observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
+            self,
+            page: Page,
+            run_id: Optional[str] = None,
+            domain: Optional[str] = None,
+            stage: Optional[Stage] = None,
+            observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
+            scaper: Optional[AsyncScraperType] = None,
+            context: Optional[Context] = None,
     ):
         self.page = page
         self._id = run_id or uuid.uuid4()
         self._domain = domain
         self._stage = stage
+        self._scaper = scaper
+        self._context = context or {}
 
         if not observer:
             observer = [LoggingObserver()]
@@ -86,13 +90,31 @@ class SDK:
                 *[o.on_queue_url(url, context) for o in self._observers]
             )
 
+    async def paginate(self, next_url: Callable[..., Awaitable[URL]]) -> None:
+        """
+        Navigate to the next page of a listing.
+
+        :param next_url: the url of the next page
+        """
+        try:
+            next_url = await next_url()
+
+            if next_url.startswith("?"):
+                # TODO: merge query params
+                next_url = self.page.url.split("?")[0] + next_url
+
+            await self.page.goto(next_url)
+            await self._scaper(self, next_url, self._context)
+        except:  # noqa: E722
+            return
+
     @staticmethod
     async def run(
-        scraper: AsyncScraperType,
-        url: Optional[str] = None,
-        context: Optional[Context] = None,
-        headless: bool = False,
-        proxy: Optional[bool] = False,
+            scraper: AsyncScraperType,
+            url: Optional[str] = None,
+            context: Optional[Context] = None,
+            headless: bool = False,
+            proxy: Optional[bool] = False,
     ) -> None:
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -104,7 +126,6 @@ class SDK:
         :param proxy: use a proxy or not
         :return none: everything should be saved to the database or file
         """
-        context = context or {}
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
@@ -121,7 +142,14 @@ class SDK:
             try:
                 await page.goto(url)
                 await scraper(
-                    SDK(page, domain=domain, stage=stage, observer=observer),
+                    SDK(
+                        page,
+                        domain=domain,
+                        stage=stage,
+                        observer=observer,
+                        scaper=scraper,
+                        context=context,
+                    ),
                     url,
                     context,
                 )
@@ -135,7 +163,7 @@ class SDK:
 
     @staticmethod
     async def run_from_file(
-        scraper: AsyncScraperType, headless: bool = False, proxy: Optional[bool] = False
+            scraper: AsyncScraperType, headless: bool = False, proxy: Optional[bool] = False
     ) -> None:
         """
         Convenience method for running a detail scraper from file. This will load
@@ -176,7 +204,13 @@ class SDK:
 
             for listing in listing_data:
                 await scraper(
-                    SDK(page, domain=domain, stage=stage, observer=observer),
+                    SDK(
+                        page,
+                        domain=domain,
+                        stage=stage,
+                        observer=observer,
+                        scaper=scraper,
+                    ),
                     listing["url"],
                     listing["context"],
                 )
@@ -185,7 +219,7 @@ class SDK:
 
     @staticmethod
     def scraper(
-        domain: str, stage: Stage
+            domain: str, stage: Stage
     ) -> Callable[[AsyncScraperType], AsyncScraperType]:
         """
         Decorator for scrapers. This will add the domain and stage to the function.
