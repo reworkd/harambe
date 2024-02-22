@@ -119,6 +119,7 @@ class SDK:
             await stealth_async(page)
 
             try:
+                await page.goto(url)
                 await scraper(
                     SDK(page, domain=domain, stage=stage, observer=observer),
                     url,
