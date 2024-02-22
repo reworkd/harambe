@@ -37,14 +37,14 @@ class SDK:
     """
 
     def __init__(
-            self,
-            page: Page,
-            run_id: Optional[str] = None,
-            domain: Optional[str] = None,
-            stage: Optional[Stage] = None,
-            observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
-            scaper: Optional[AsyncScraperType] = None,
-            context: Optional[Context] = None,
+        self,
+        page: Page,
+        run_id: Optional[str] = None,
+        domain: Optional[str] = None,
+        stage: Optional[Stage] = None,
+        observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
+        scaper: Optional[AsyncScraperType] = None,
+        context: Optional[Context] = None,
     ):
         self.page = page
         self._id = run_id or uuid.uuid4()
@@ -110,11 +110,11 @@ class SDK:
 
     @staticmethod
     async def run(
-            scraper: AsyncScraperType,
-            url: Optional[str] = None,
-            context: Optional[Context] = None,
-            headless: bool = False,
-            proxy: Optional[bool] = False,
+        scraper: AsyncScraperType,
+        url: Optional[str] = None,
+        context: Optional[Context] = None,
+        headless: bool = False,
+        proxy: Optional[bool] = False,
     ) -> None:
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -163,7 +163,7 @@ class SDK:
 
     @staticmethod
     async def run_from_file(
-            scraper: AsyncScraperType, headless: bool = False, proxy: Optional[bool] = False
+        scraper: AsyncScraperType, headless: bool = False, proxy: Optional[bool] = False
     ) -> None:
         """
         Convenience method for running a detail scraper from file. This will load
@@ -219,7 +219,7 @@ class SDK:
 
     @staticmethod
     def scraper(
-            domain: str, stage: Stage
+        domain: str, stage: Stage
     ) -> Callable[[AsyncScraperType], AsyncScraperType]:
         """
         Decorator for scrapers. This will add the domain and stage to the function.
