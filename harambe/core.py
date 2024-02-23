@@ -43,14 +43,14 @@ class SDK:
         domain: Optional[str] = None,
         stage: Optional[Stage] = None,
         observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
-        scaper: Optional[AsyncScraperType] = None,
+        scraper: Optional[AsyncScraperType] = None,
         context: Optional[Context] = None,
     ):
         self.page = page
         self._id = run_id or uuid.uuid4()
         self._domain = domain
         self._stage = stage
-        self._scaper = scaper
+        self._scraper = scraper
         self._context = context or {}
 
         if not observer:
@@ -104,7 +104,7 @@ class SDK:
                 next_url = self.page.url.split("?")[0] + next_url
 
             await self.page.goto(next_url)
-            await self._scaper(self, next_url, self._context)
+            await self._scraper(self, next_url, self._context)
         except:  # noqa: E722
             return
 
@@ -147,7 +147,7 @@ class SDK:
                         domain=domain,
                         stage=stage,
                         observer=observer,
-                        scaper=scraper,
+                        scraper=scraper,
                         context=context,
                     ),
                     url,
@@ -209,7 +209,7 @@ class SDK:
                         domain=domain,
                         stage=stage,
                         observer=observer,
-                        scaper=scraper,
+                        scraper=scraper,
                     ),
                     listing["url"],
                     listing["context"],
