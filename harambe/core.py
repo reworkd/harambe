@@ -3,7 +3,7 @@ import uuid
 from functools import wraps
 from typing import Callable, List, Optional, Protocol, Union, Awaitable
 
-from playwright.async_api import Page, ProxySettings, async_playwright
+from playwright.async_api import Page, ProxySettings, async_playwright, ElementHandle
 from playwright_stealth import stealth_async
 
 from harambe.observer import LocalStorageObserver, LoggingObserver, OutputObserver
@@ -90,21 +90,31 @@ class SDK:
                 *[o.on_queue_url(url, context) for o in self._observers]
             )
 
-    async def paginate(self, next_url: Callable[..., Awaitable[URL]]) -> None:
+    async def paginate(self, next_page: Callable[..., Awaitable[URL | ElementHandle | None]]) -> None:
         """
         Navigate to the next page of a listing.
 
-        :param next_url: the url of the next page
+        :param next_page: the url or ElementHandle of the next page
         """
         try:
-            next_url = await next_url()
+            next_page = await next_page()
+            if not next_page:
+                return
 
-            if next_url.startswith("?"):
-                # TODO: merge query params
-                next_url = self.page.url.split("?")[0] + next_url
+            next_url = ""
+            if isinstance(next_page, ElementHandle):
+                await next_page.click(timeout=1000)
+                next_url = self.page.url
 
-            await self.page.goto(next_url)
-            await self._scraper(self, next_url, self._context)
+            elif isinstance(next_page, str):
+                next_url = next_page
+                if next_url.startswith("?"):
+                    # TODO: merge query params
+                    next_url = self.page.url.split("?")[0] + next_url
+                    await self.page.goto(next_url)
+
+            if next_url:
+                await self._scraper(self, next_url, self._context)
         except:  # noqa: E722
             return
 
