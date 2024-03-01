@@ -3,18 +3,21 @@ import uuid
 from functools import wraps
 from typing import Callable, List, Optional, Protocol, Union, Awaitable
 
-from playwright.async_api import Page, ProxySettings, async_playwright, ElementHandle
+from playwright.async_api import (
+    Page,
+    async_playwright,
+    ElementHandle,
+)
 from playwright_stealth import stealth_async
 
+from harambe.handlers import (
+    ResourceRequestHandler,
+    ResourceType,
+    UnnecessaryResourceHandler,
+)
 from harambe.observer import LocalStorageObserver, LoggingObserver, OutputObserver
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
-
-IP_ROYAL: ProxySettings = {
-    "server": "premium.residential.proxyrack.net:9000",
-    "username": "asimshrestha-country-US-city-LosAngeles",
-    "password": "e2c5e6-795d31-0e5ed2-fb28ea-3bf6d1",
-}
 
 
 class AsyncScraper(Protocol):
@@ -90,7 +93,9 @@ class SDK:
                 *[o.on_queue_url(url, context) for o in self._observers]
             )
 
-    async def paginate(self, next_page: Callable[..., Awaitable[URL | ElementHandle | None]]) -> None:
+    async def paginate(
+        self, next_page: Callable[..., Awaitable[URL | ElementHandle | None]]
+    ) -> None:
         """
         Navigate to the next page of a listing.
 
@@ -118,13 +123,43 @@ class SDK:
         except:  # noqa: E722
             return
 
+    async def capture_url(
+        self,
+        clickable: ElementHandle,
+        resource_type: ResourceType = "document",
+        abort_on_match: bool = True,
+    ) -> URL | None:
+        """
+        Capture the url of a click event. This will click the element and return the url
+        via network request interception. This is useful for capturing urls that are
+        generated dynamically (eg: redirects to document downloads).
+
+        :param clickable: the element to click
+        :param resource_type: the type of resource to capture
+        :param abort_on_match: whether to abort the request once a match is found
+        :return url: the url of the captured resource or None if no match was found
+        :raises ValueError: if more than one request matches
+        """
+
+        current_url = self.page.url
+
+        async with ResourceRequestHandler(
+            self.page, resource_type, abort_on_match
+        ) as handler:
+            await clickable.click()
+
+        for page in self.page.context.pages:
+            if page.url != current_url:
+                await page.close()
+
+        return handler.matched_url
+
     @staticmethod
     async def run(
         scraper: AsyncScraperType,
         url: Optional[str] = None,
         context: Optional[Context] = None,
         headless: bool = False,
-        proxy: Optional[bool] = False,
     ) -> None:
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -133,17 +168,17 @@ class SDK:
         :param url: starting url to run the scraper on
         :param context: additional context to pass to the scraper
         :param headless: whether to run the browser headless
-        :param proxy: use a proxy or not
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
-        proxy = IP_ROYAL if proxy else None
 
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=headless, proxy=proxy)
+            browser = await p.chromium.launch(headless=headless)
             ctx = await browser.new_context()
+
+            await ctx.route("**/*", UnnecessaryResourceHandler().handle)
 
             await ctx.tracing.start(screenshots=True, snapshots=True, sources=True)
             page = await ctx.new_page()
@@ -165,28 +200,26 @@ class SDK:
                 )
             except Exception as e:
                 await ctx.tracing.stop(
-                    path="/Users/awtkns/PycharmProjects/harambe/scrapers/trace.zip"
+                    path="/Users/awtkns/PycharmProjects/harambe-public/trace.zip"
                 )
+                await browser.close()
                 raise e
-
-            await browser.close()
+            else:
+                await ctx.tracing.stop(
+                    path="/Users/awtkns/PycharmProjects/harambe-public/trace.zip"
+                )
+                await browser.close()
 
     @staticmethod
-    async def run_from_file(
-        scraper: AsyncScraperType, headless: bool = False, proxy: Optional[bool] = False
-    ) -> None:
+    async def run_from_file(scraper: AsyncScraperType, headless: bool = False) -> None:
         """
         Convenience method for running a detail scraper from file. This will load
         the listing data from file and pass it to the scraper.
 
         :param scraper: the scraper to run (function)
         :param headless: whether to run the browser headless
-        :param proxy: use a proxy or not
         :return: None: the scraper should save data to the database or file
         """
-
-        proxy = IP_ROYAL if proxy else None
-
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
         observer: Optional[OutputObserver] = getattr(scraper, "observer", None)
@@ -207,7 +240,7 @@ class SDK:
 
         listing_data = tracker.load_data(domain, prev)
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=headless, proxy=proxy)
+            browser = await p.chromium.launch(headless=headless)
             ctx = await browser.new_context()
             page = await ctx.new_page()
             await stealth_async(page)
