@@ -94,11 +94,14 @@ class SDK:
             )
 
     async def paginate(
-        self, next_page: Callable[..., Awaitable[URL | ElementHandle | None]]
+        self,
+        next_page: Callable[..., Awaitable[URL | ElementHandle | None]],
+        sleep: int = 0,
     ) -> None:
         """
         Navigate to the next page of a listing.
 
+        :param sleep: seconds to sleep for before continuing
         :param next_page: the url or ElementHandle of the next page
         """
         try:
@@ -119,15 +122,14 @@ class SDK:
                     await self.page.goto(next_url)
 
             if next_url:
+                if sleep > 0:
+                    await asyncio.sleep(sleep)
                 await self._scraper(self, next_url, self._context)
         except:  # noqa: E722
             return
 
     async def capture_url(
-        self,
-        clickable: ElementHandle,
-        resource_type: ResourceType = "document",
-        abort_on_match: bool = True,
+        self, clickable: ElementHandle, resource_type: ResourceType = "document"
     ) -> URL | None:
         """
         Capture the url of a click event. This will click the element and return the url
@@ -136,23 +138,15 @@ class SDK:
 
         :param clickable: the element to click
         :param resource_type: the type of resource to capture
-        :param abort_on_match: whether to abort the request once a match is found
         :return url: the url of the captured resource or None if no match was found
         :raises ValueError: if more than one request matches
         """
-
-        current_url = self.page.url
-
         async with ResourceRequestHandler(
-            self.page, resource_type, abort_on_match
+            self.page, resource_type=resource_type
         ) as handler:
             await clickable.click()
 
-        for page in self.page.context.pages:
-            if page.url != current_url:
-                await page.close()
-
-        return handler.matched_url
+        return handler.captured_url()
 
     @staticmethod
     async def run(

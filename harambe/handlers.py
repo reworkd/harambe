@@ -18,6 +18,7 @@ ResourceType = Literal[
     "websocket",
     "manifest",
     "other",
+    "*",
 ]
 
 
@@ -31,14 +32,14 @@ class ResourceRequestHandler(AbstractHandler):
         self,
         page: Page,
         resource_type: ResourceType,
-        abort_on_match: bool,
         url_pattern: str = "**/*",
     ):
         self.page = page
-        self.resource_type = resource_type
-        self.abort_on_match = abort_on_match
         self.url_pattern = url_pattern
-        self.matched_requests = []
+        self.resource_type = resource_type
+
+        self._initial_pages = [p.url for p in page.context.pages]
+        self._new_pages = []
 
     async def __aenter__(self):
         await self.page.context.route(self.url_pattern, self.handle)
@@ -47,22 +48,30 @@ class ResourceRequestHandler(AbstractHandler):
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.page.context.unroute(self.url_pattern, self.handle)
         await self.page.bring_to_front()
+        for page in self.page.context.pages:
+            if page.url not in self._initial_pages:
+                self._new_pages.append(page.url)
+                await page.close()
 
     async def handle(self, route: Route) -> None:
-        if self.resource_type in route.request.resource_type:
-            self.matched_requests.append(route.request)
-            if self.abort_on_match:
-                await route.abort("blockedbyclient")
-                return
+        if (
+            self.resource_type == "*"
+            or self.resource_type in route.request.resource_type
+        ):
+            await route.fulfill(
+                status=200,
+                content_type="text/plain",
+                body="Intercepted by the handler",
+            )
+            return
 
         await route.fallback()
 
-    @property
-    def matched_url(self) -> str | None:
-        if len(self.matched_requests) > 1:
-            raise ValueError("More than one request matched")
+    def captured_url(self) -> str | None:
+        if len(self._new_pages) > 1:
+            raise ValueError("More than one page matched")
 
-        return self.matched_requests[0].url if self.matched_requests else None
+        return self._new_pages[0] if self._new_pages else None
 
 
 class UnnecessaryResourceHandler(AbstractHandler):
