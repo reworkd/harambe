@@ -16,4 +16,7 @@ class Downloader(Protocol):
 class LoggingDownloader(Downloader):
     async def on_download(self, download: Download) -> DownloadMeta:
         print("on_download", download)  # TODO: use logger
-        return {"url": str(await download.path()), "filename": download.suggested_filename}
+        return {
+            "url": str(await download.path()),
+            "filename": download.suggested_filename,
+        }

@@ -166,7 +166,7 @@ class SDK:
         async with self.page.expect_download() as download_info:
             await clickable.click()
         download = await download_info.value
-        await download.path()   # This will wait for the download to complete
+        await download.path()  # This will wait for the download to complete
 
         return await self._downloader.on_download(download)
 
@@ -196,7 +196,7 @@ class SDK:
                 viewport={"width": 1280, "height": 1024},
                 ignore_https_errors=True,
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-                           " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+                " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
             )
             ctx.set_default_timeout(60000)
 
