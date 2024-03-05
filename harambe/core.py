@@ -160,7 +160,7 @@ class SDK:
     ) -> DownloadMeta:
         """
         Capture the download of a click event. This will click the element, download the resulting file
-        and apply some download handling logic from the download_handler
+        and apply some download handling logic from the downloader
         """
 
         async with self.page.expect_download() as download_info:
