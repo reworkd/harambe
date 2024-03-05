@@ -10,6 +10,7 @@ from playwright.async_api import (
 )
 from playwright_stealth import stealth_async
 
+from harambe.downloader import LoggingDownloader, DownloadMeta, Downloader
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
@@ -48,6 +49,7 @@ class SDK:
         observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
         scraper: Optional[AsyncScraperType] = None,
         context: Optional[Context] = None,
+        downloader: Optional[Downloader] = None,
     ):
         self.page = page
         self._id = run_id or uuid.uuid4()
@@ -63,6 +65,10 @@ class SDK:
             observer = [observer]
 
         self._observers = observer
+
+        if not downloader:
+            downloader = LoggingDownloader()
+        self._downloader = downloader
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
@@ -148,6 +154,22 @@ class SDK:
 
         return handler.captured_url()
 
+    async def capture_download(
+        self,
+        clickable: ElementHandle,
+    ) -> DownloadMeta:
+        """
+        Capture the download of a click event. This will click the element, download the resulting file
+        and apply some download handling logic from the download_handler
+        """
+
+        async with self.page.expect_download() as download_info:
+            await clickable.click()
+        download = await download_info.value
+        await download.path()   # This will wait for the download to complete
+
+        return await self._downloader.on_download(download)
+
     @staticmethod
     async def run(
         scraper: AsyncScraperType,
@@ -199,6 +221,7 @@ class SDK:
                     context,
                 )
             except Exception as e:
+                # TODO: Fix path for non Mr. Watkins
                 await ctx.tracing.stop(
                     path="/Users/awtkns/PycharmProjects/harambe-public/trace.zip"
                 )
