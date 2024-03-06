@@ -1,4 +1,5 @@
 import asyncio
+import tempfile
 import uuid
 from functools import wraps
 from typing import Callable, List, Optional, Protocol, Union, Awaitable
@@ -15,7 +16,12 @@ from harambe.handlers import (
     ResourceType,
     UnnecessaryResourceHandler,
 )
-from harambe.observer import LocalStorageObserver, LoggingObserver, OutputObserver
+from harambe.observer import (
+    LocalStorageObserver,
+    LoggingObserver,
+    OutputObserver,
+    DownloadMeta,
+)
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
 
@@ -148,6 +154,47 @@ class SDK:
 
         return handler.captured_url()
 
+    async def capture_download(
+        self,
+        clickable: ElementHandle,
+    ) -> DownloadMeta:
+        """
+        Capture the download of a click event. This will click the element, download the resulting file
+        and apply some download handling logic from the observer to transform to a usable URL
+        """
+
+        async with self.page.expect_download() as download_info:
+            await clickable.click()
+        download = await download_info.value
+
+        # Create a temporary file to save the download
+        with tempfile.NamedTemporaryFile() as temp_file:
+            await download.save_as(temp_file.name)
+            with open(temp_file.name, "rb") as f:
+                content = f.read()
+
+        res = await asyncio.gather(
+            *[
+                o.on_download(download.suggested_filename, content)
+                for o in self._observers
+            ]
+        )
+        return res[0]
+
+    async def capture_pdf(
+        self,
+    ) -> DownloadMeta:
+        """
+        Capture the current page as a pdf and then apply some download handling logic
+        from the observer to transform to a usable URL
+        """
+        pdf_content = await self.page.pdf()
+        file_name = f"{self.page.url}-screen.pdf"
+        res = await asyncio.gather(
+            *[o.on_download(file_name, pdf_content) for o in self._observers]
+        )
+        return res[0]
+
     @staticmethod
     async def run(
         scraper: AsyncScraperType,
@@ -174,7 +221,7 @@ class SDK:
                 viewport={"width": 1280, "height": 1024},
                 ignore_https_errors=True,
                 user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-                           " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+                " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
             )
             ctx.set_default_timeout(60000)
 
@@ -199,6 +246,7 @@ class SDK:
                     context,
                 )
             except Exception as e:
+                # TODO: Fix path for non Mr. Watkins
                 await ctx.tracing.stop(
                     path="/Users/awtkns/PycharmProjects/harambe-public/trace.zip"
                 )
