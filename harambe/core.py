@@ -1,4 +1,5 @@
 import asyncio
+import tempfile
 import uuid
 from functools import wraps
 from typing import Callable, List, Optional, Protocol, Union, Awaitable
@@ -10,13 +11,12 @@ from playwright.async_api import (
 )
 from playwright_stealth import stealth_async
 
-from harambe.downloader import LoggingDownloader, DownloadMeta, Downloader
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
     UnnecessaryResourceHandler,
 )
-from harambe.observer import LocalStorageObserver, LoggingObserver, OutputObserver
+from harambe.observer import LocalStorageObserver, LoggingObserver, OutputObserver, DownloadMeta
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
 
@@ -49,7 +49,6 @@ class SDK:
         observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
         scraper: Optional[AsyncScraperType] = None,
         context: Optional[Context] = None,
-        downloader: Optional[Downloader] = None,
     ):
         self.page = page
         self._id = run_id or uuid.uuid4()
@@ -65,10 +64,6 @@ class SDK:
             observer = [observer]
 
         self._observers = observer
-
-        if not downloader:
-            downloader = LoggingDownloader()
-        self._downloader = downloader
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
@@ -166,9 +161,26 @@ class SDK:
         async with self.page.expect_download() as download_info:
             await clickable.click()
         download = await download_info.value
-        await download.path()  # This will wait for the download to complete
 
-        return await self._downloader.on_download(download)
+        # Create a temporary file to save the download
+        with tempfile.NamedTemporaryFile() as temp_file:
+            await download.save_as(temp_file.name)
+            with open(temp_file.name, 'rb') as f:
+                content = f.read()
+
+        res = await asyncio.gather(*[o.on_download(download.suggested_filename, content) for o in self._observers])
+        return res[0]
+
+    async def capture_pdf(
+        self,
+    ) -> DownloadMeta:
+        """
+        Capture the current page as a pdf and then apply some download handling logic from the downloader
+        """
+        pdf_content = await self.page.pdf()
+        file_name = f"{self.page.url}-screen.pdf"
+        res = await asyncio.gather(*[o.on_download(file_name, pdf_content) for o in self._observers])
+        return res[0]
 
     @staticmethod
     async def run(
