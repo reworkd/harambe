@@ -175,7 +175,8 @@ class SDK:
         self,
     ) -> DownloadMeta:
         """
-        Capture the current page as a pdf and then apply some download handling logic from the downloader
+        Capture the current page as a pdf and then apply some download handling logic
+        from the observer to transform to a usable URL
         """
         pdf_content = await self.page.pdf()
         file_name = f"{self.page.url}-screen.pdf"
