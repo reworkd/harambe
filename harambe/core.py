@@ -16,7 +16,12 @@ from harambe.handlers import (
     ResourceType,
     UnnecessaryResourceHandler,
 )
-from harambe.observer import LocalStorageObserver, LoggingObserver, OutputObserver, DownloadMeta
+from harambe.observer import (
+    LocalStorageObserver,
+    LoggingObserver,
+    OutputObserver,
+    DownloadMeta,
+)
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
 
@@ -165,10 +170,15 @@ class SDK:
         # Create a temporary file to save the download
         with tempfile.NamedTemporaryFile() as temp_file:
             await download.save_as(temp_file.name)
-            with open(temp_file.name, 'rb') as f:
+            with open(temp_file.name, "rb") as f:
                 content = f.read()
 
-        res = await asyncio.gather(*[o.on_download(download.suggested_filename, content) for o in self._observers])
+        res = await asyncio.gather(
+            *[
+                o.on_download(download.suggested_filename, content)
+                for o in self._observers
+            ]
+        )
         return res[0]
 
     async def capture_pdf(
@@ -180,7 +190,9 @@ class SDK:
         """
         pdf_content = await self.page.pdf()
         file_name = f"{self.page.url}-screen.pdf"
-        res = await asyncio.gather(*[o.on_download(file_name, pdf_content) for o in self._observers])
+        res = await asyncio.gather(
+            *[o.on_download(file_name, pdf_content) for o in self._observers]
+        )
         return res[0]
 
     @staticmethod
