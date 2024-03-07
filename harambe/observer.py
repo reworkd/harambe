@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import Any, Dict, List, Protocol, Tuple, runtime_checkable, TypedDict
+from urllib.parse import quote
 
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Stage
@@ -31,7 +32,7 @@ class LoggingObserver(OutputObserver):
     async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
         print(f"Downloading file: {filename}")  # TODO: use logger
         return {
-            "url": f"{download_url}/{filename}",
+            "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
         }
 
@@ -48,7 +49,7 @@ class LocalStorageObserver(OutputObserver):
 
     async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
         data = {
-            "url": f"{download_url}/{filename}",
+            "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
         }
         self._tracker.save_data(data)
@@ -69,7 +70,7 @@ class InMemoryObserver(OutputObserver):
 
     async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
         data = {
-            "url": f"{download_url}/{filename}",
+            "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
         }
         self._files.append((filename, content))

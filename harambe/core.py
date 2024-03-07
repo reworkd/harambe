@@ -175,7 +175,7 @@ class SDK:
 
         res = await asyncio.gather(
             *[
-                o.on_download(download.suggested_filename, content)
+                o.on_download(download.url, download.suggested_filename, content)
                 for o in self._observers
             ]
         )
@@ -189,9 +189,9 @@ class SDK:
         from the observer to transform to a usable URL
         """
         pdf_content = await self.page.pdf()
-        file_name = f"{self.page.url}-screen.pdf"
+        file_name = f"reworkd_page_snapshot.pdf"
         res = await asyncio.gather(
-            *[o.on_download(file_name, pdf_content) for o in self._observers]
+            *[o.on_download(self.page.url, file_name, pdf_content) for o in self._observers]
         )
         return res[0]
 
