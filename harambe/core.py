@@ -189,7 +189,7 @@ class SDK:
         from the observer to transform to a usable URL
         """
         pdf_content = await self.page.pdf()
-        file_name = f"reworkd_page_snapshot.pdf"
+        file_name = PAGE_PDF_FILENAME
         res = await asyncio.gather(
             *[o.on_download(self.page.url, file_name, pdf_content) for o in self._observers]
         )
@@ -331,3 +331,6 @@ class SDK:
             return wrapper
 
         return decorator
+
+
+PAGE_PDF_FILENAME = "reworkd_page_pdf.pdf"
