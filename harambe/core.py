@@ -102,7 +102,7 @@ class SDK:
     async def paginate(
         self,
         next_page: Callable[..., Awaitable[URL | ElementHandle | None]],
-        sleep: int = 0,
+        timeout: int = 5000,
     ) -> None:
         """
         Navigate to the next page of a listing.
@@ -117,7 +117,7 @@ class SDK:
 
             next_url = ""
             if isinstance(next_page, ElementHandle):
-                await next_page.click(timeout=1000)
+                await next_page.click(timeout=timeout)
                 next_url = self.page.url
 
             elif isinstance(next_page, str):
@@ -128,9 +128,9 @@ class SDK:
                     await self.page.goto(next_url)
 
             if next_url:
-                if sleep > 0:
-                    await asyncio.sleep(sleep)
-                await self._scraper(self, next_url, self._context)
+                await self._scraper(
+                    self, next_url, self._context
+                )  # TODO: eventually fix this to not be recursive
         except:  # noqa: E722
             return
 
@@ -188,11 +188,16 @@ class SDK:
         Capture the current page as a pdf and then apply some download handling logic
         from the observer to transform to a usable URL
         """
-        await self.page.wait_for_timeout(1000)  # Allow for some extra time for the page to load
+        await self.page.wait_for_timeout(
+            1000
+        )  # Allow for some extra time for the page to load
         pdf_content = await self.page.pdf()
         file_name = PAGE_PDF_FILENAME
         res = await asyncio.gather(
-            *[o.on_download(self.page.url, file_name, pdf_content) for o in self._observers]
+            *[
+                o.on_download(self.page.url, file_name, pdf_content)
+                for o in self._observers
+            ]
         )
         return res[0]
 
@@ -248,15 +253,11 @@ class SDK:
                 )
             except Exception as e:
                 # TODO: Fix path for non Mr. Watkins
-                await ctx.tracing.stop(
-                    path="/Users/awtkns/PycharmProjects/harambe-public/trace.zip"
-                )
+                await ctx.tracing.stop(path="trace.zip")
                 await browser.close()
                 raise e
             else:
-                await ctx.tracing.stop(
-                    path="/Users/awtkns/PycharmProjects/harambe-public/trace.zip"
-                )
+                await ctx.tracing.stop(path="trace.zip")
                 await browser.close()
 
     @staticmethod
