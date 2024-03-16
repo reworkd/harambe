@@ -17,7 +17,9 @@ class OutputObserver(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
-    async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
+    async def on_download(
+        self, download_url: str, filename: str, content: bytes
+    ) -> "DownloadMeta":
         raise NotImplementedError()
 
 
@@ -29,7 +31,9 @@ class LoggingObserver(OutputObserver):
     async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
         print(f"Enqueuing: {url} with context {context}")
 
-    async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
+    async def on_download(
+        self, download_url: str, filename: str, content: bytes
+    ) -> "DownloadMeta":
         print(f"Downloading file: {filename}")  # TODO: use logger
         return {
             "url": f"{download_url}/{quote(filename)}",
@@ -47,7 +51,9 @@ class LocalStorageObserver(OutputObserver):
     async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
         self._tracker.save_data({"url": url, "context": context})
 
-    async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
+    async def on_download(
+        self, download_url: str, filename: str, content: bytes
+    ) -> "DownloadMeta":
         data = {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
@@ -68,7 +74,9 @@ class InMemoryObserver(OutputObserver):
     async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
         self._urls.append((url, context))
 
-    async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
+    async def on_download(
+        self, download_url: str, filename: str, content: bytes
+    ) -> "DownloadMeta":
         data = {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,

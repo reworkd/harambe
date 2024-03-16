@@ -188,11 +188,16 @@ class SDK:
         Capture the current page as a pdf and then apply some download handling logic
         from the observer to transform to a usable URL
         """
-        await self.page.wait_for_timeout(1000)  # Allow for some extra time for the page to load
+        await self.page.wait_for_timeout(
+            1000
+        )  # Allow for some extra time for the page to load
         pdf_content = await self.page.pdf()
         file_name = PAGE_PDF_FILENAME
         res = await asyncio.gather(
-            *[o.on_download(self.page.url, file_name, pdf_content) for o in self._observers]
+            *[
+                o.on_download(self.page.url, file_name, pdf_content)
+                for o in self._observers
+            ]
         )
         return res[0]
 
