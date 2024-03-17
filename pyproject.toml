@@ -16,6 +16,7 @@ setuptools = "^69.0.2"
 beautifulsoup4 = "^4.12.2"
 requests = "^2.31.0"
 playwright-stealth = "^1.0.6" # TODO: self host this package
+aiohttp = "^3.9.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.2.1"
