@@ -4,6 +4,7 @@ import uuid
 from functools import wraps
 from typing import Callable, List, Optional, Protocol, Union, Awaitable
 
+import aiohttp
 from playwright.async_api import (
     Page,
     async_playwright,
@@ -16,6 +17,7 @@ from harambe.handlers import (
     ResourceType,
     UnnecessaryResourceHandler,
 )
+from harambe.normalize_url import normalize_url
 from harambe.observer import (
     LocalStorageObserver,
     LoggingObserver,
@@ -101,17 +103,17 @@ class SDK:
 
     async def paginate(
         self,
-        next_page: Callable[..., Awaitable[URL | ElementHandle | None]],
+        get_next_page_element: Callable[..., Awaitable[URL | ElementHandle | None]],
         timeout: int = 5000,
     ) -> None:
         """
         Navigate to the next page of a listing.
 
         :param sleep: seconds to sleep for before continuing
-        :param next_page: the url or ElementHandle of the next page
+        :param get_next_page_element: the url or ElementHandle of the next page
         """
         try:
-            next_page = await next_page()
+            next_page = await get_next_page_element()
             if not next_page:
                 return
 
@@ -131,7 +133,7 @@ class SDK:
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
-        except:  # noqa: E722
+        except TimeoutError:
             return
 
     async def capture_url(
@@ -259,6 +261,11 @@ class SDK:
             else:
                 await ctx.tracing.stop(path="trace.zip")
                 await browser.close()
+
+    async def get_content_type(self, url: str) -> str:
+        async with aiohttp.ClientSession() as session:
+            async with session.head(normalize_url(url, self.page.url)) as response:
+                return response.headers.get('Content-Type', '')
 
     @staticmethod
     async def run_from_file(scraper: AsyncScraperType, headless: bool = False) -> None:
