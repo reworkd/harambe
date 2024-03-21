@@ -63,6 +63,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
+        self._saved_data = set()
 
         if not observer:
             observer = [LoggingObserver()]
@@ -81,8 +82,13 @@ class SDK:
         """
         url = self.page.url
         for d in data:
-            d["__url"] = url
-            await asyncio.gather(*[o.on_save_data(d) for o in self._observers])
+            d_set = frozenset(d.items())
+            if d_set not in self._saved_data:
+                self._saved_data.add(d_set)
+                d["__url"] = url
+                await asyncio.gather(*[o.on_save_data(d) for o in self._observers])
+            else:
+                continue
 
     async def enqueue(self, *urls: URL, context: Optional[Context] = None) -> None:
         """
