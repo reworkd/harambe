@@ -2,7 +2,7 @@ import asyncio
 import tempfile
 import uuid
 from functools import wraps
-from typing import Callable, List, Optional, Protocol, Union, Awaitable
+from typing import Any, Callable, List, Optional, Protocol, Union, Awaitable
 
 import aiohttp
 from playwright.async_api import (
@@ -22,7 +22,8 @@ from harambe.observer import (
     LocalStorageObserver,
     LoggingObserver,
     OutputObserver,
-    DownloadMeta, StopPaginationObserver,
+    DownloadMeta,
+    StopPaginationObserver,
 )
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
@@ -34,8 +35,7 @@ class AsyncScraper(Protocol):
     Note that scrapers in harambe should be functions, not classes.
     """
 
-    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None:
-        ...
+    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None: ...
 
 
 class SDK:
@@ -71,8 +71,15 @@ class SDK:
         if not isinstance(observer, list):
             observer = [observer]
 
-        observer.append(StopPaginationObserver())
+        observer.insert(0, StopPaginationObserver())
         self._observers = observer
+
+    async def _notify_observers(self, method: str, *args: Any, **kwargs: Any) -> None:
+        await getattr(self._observers[0], method)(*args, **kwargs)
+        res = await asyncio.gather(
+            *[getattr(o, method)(*args, **kwargs) for o in self._observers[1:]]
+        )
+        return res
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
@@ -84,7 +91,7 @@ class SDK:
         url = self.page.url
         for d in data:
             d["__url"] = url
-            await asyncio.gather(*[o.on_save_data(d) for o in self._observers])
+            await self._notify_observers("on_save_data", d)
 
     async def enqueue(self, *urls: URL, context: Optional[Context] = None) -> None:
         """
@@ -99,19 +106,17 @@ class SDK:
         context["__url"] = self.page.url
 
         for url in urls:
-            await asyncio.gather(
-                *[o.on_queue_url(url, context) for o in self._observers]
-            )
+            await self._notify_observers("on_queue_url", url, context)
 
     async def paginate(
         self,
         get_next_page_element: Callable[..., Awaitable[URL | ElementHandle | None]],
-        timeout: int = 5000,
+        timeout: int = 2000,
     ) -> None:
         """
         Navigate to the next page of a listing.
 
-        :param sleep: seconds to sleep for before continuing
+        :param timeout: milliseconds to sleep for before continuing
         :param get_next_page_element: the url or ElementHandle of the next page
         """
         try:
@@ -122,6 +127,7 @@ class SDK:
             next_url = ""
             if isinstance(next_page, ElementHandle):
                 await next_page.click(timeout=timeout)
+                await self.page.wait_for_timeout(timeout)
                 next_url = self.page.url
 
             elif isinstance(next_page, str):
@@ -130,12 +136,16 @@ class SDK:
                     # TODO: merge query params
                     next_url = self.page.url.split("?")[0] + next_url
                     await self.page.goto(next_url)
+                    await self.page.wait_for_timeout(timeout)
 
             if next_url:
+                for o in self._observers:
+                    o.on_paginate(self.page.url)
+
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
-        except (TimeoutError, StopAsyncIteration):
+        except (TimeoutError, StopAsyncIteration) as e:
             return
 
     async def capture_url(
@@ -177,11 +187,8 @@ class SDK:
             with open(temp_file.name, "rb") as f:
                 content = f.read()
 
-        res = await asyncio.gather(
-            *[
-                o.on_download(download.url, download.suggested_filename, content)
-                for o in self._observers
-            ]
+        res = await self._notify_observers(
+            "on_download", download.url, download.suggested_filename, content
         )
         return res[0]
 
@@ -197,11 +204,8 @@ class SDK:
         )  # Allow for some extra time for the page to load
         pdf_content = await self.page.pdf()
         file_name = PAGE_PDF_FILENAME
-        res = await asyncio.gather(
-            *[
-                o.on_download(self.page.url, file_name, pdf_content)
-                for o in self._observers
-            ]
+        res = await self._notify_observers(
+            "on_download", self.page.url, file_name, pdf_content
         )
         return res[0]
 

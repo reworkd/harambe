@@ -18,9 +18,12 @@ class OutputObserver(Protocol):
 
     @abstractmethod
     async def on_download(
-            self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         raise NotImplementedError()
+
+    def on_paginate(self, next_url: str) -> None:
+        pass
 
 
 class LoggingObserver(OutputObserver):
@@ -32,7 +35,7 @@ class LoggingObserver(OutputObserver):
         print(f"Enqueuing: {url} with context {context}")
 
     async def on_download(
-            self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         print(f"Downloading file: {filename}")  # TODO: use logger
         return {
@@ -52,7 +55,7 @@ class LocalStorageObserver(OutputObserver):
         self._tracker.save_data({"url": url, "context": context})
 
     async def on_download(
-            self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         data = {
             "url": f"{download_url}/{quote(filename)}",
@@ -75,7 +78,7 @@ class InMemoryObserver(OutputObserver):
         self._urls.append((url, context))
 
     async def on_download(
-            self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         data = {
             "url": f"{download_url}/{quote(filename)}",
@@ -100,6 +103,7 @@ class InMemoryObserver(OutputObserver):
 class StopPaginationObserver(OutputObserver):
     def __init__(self):
         self._saved_data = set()
+        self._paginator_called = False
 
     async def on_save_data(self, data: dict[str, Any]):
         self._add_data(data)
@@ -107,13 +111,21 @@ class StopPaginationObserver(OutputObserver):
     async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
         self._add_data(url)
 
-    async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
-        pass
+    async def on_download(
+        self, download_url: str, filename: str, content: bytes
+    ) -> "DownloadMeta":
+        self._add_data((download_url, filename, content))
+
+    def on_paginate(self, next_url: str) -> None:
+        self._paginator_called = True
 
     def _add_data(self, data: Any):
-        # TODO remove __url from data?
-        d_set = frozenset(data.items() if isinstance(data, dict) else data)
-        if d_set in self._saved_data:
+        d_set = frozenset(
+            (item for item in data.items() if not item[0].startswith("__"))
+            if isinstance(data, dict)
+            else data
+        )
+        if self._paginator_called and d_set in self._saved_data:
             raise StopAsyncIteration()
         self._saved_data.add(d_set)
 
