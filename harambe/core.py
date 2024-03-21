@@ -24,6 +24,7 @@ from harambe.observer import (
     OutputObserver,
     DownloadMeta,
     StopPaginationObserver,
+    ObservationTrigger,
 )
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
@@ -73,13 +74,6 @@ class SDK:
 
         observer.insert(0, StopPaginationObserver())
         self._observers = observer
-
-    async def _notify_observers(self, method: str, *args: Any, **kwargs: Any) -> None:
-        await getattr(self._observers[0], method)(*args, **kwargs)
-        res = await asyncio.gather(
-            *[getattr(o, method)(*args, **kwargs) for o in self._observers[1:]]
-        )
-        return res
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
@@ -145,7 +139,7 @@ class SDK:
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
-        except (TimeoutError, StopAsyncIteration) as e:
+        except (TimeoutError, StopAsyncIteration):
             return
 
     async def capture_url(
@@ -208,6 +202,23 @@ class SDK:
             "on_download", self.page.url, file_name, pdf_content
         )
         return res[0]
+
+    async def _notify_observers(
+        self, method: ObservationTrigger, *args: Any, **kwargs: Any
+    ) -> Any:
+        """
+        Notify all observers of an event. This will call the method on each observer that is subscribed. Note that
+        the first observer is the stop pagination observer, so it will always be called separately so that we can stop
+        pagination if needed.
+        :param method: observation trigger
+        :param args: arguments to pass to the method
+        :param kwargs: keyword arguments to pass to the method
+        :return: the result of the method call
+        """
+        await getattr(self._observers[0], method)(*args, **kwargs)
+        return await asyncio.gather(
+            *[getattr(o, method)(*args, **kwargs) for o in self._observers[1:]]
+        )
 
     @staticmethod
     async def run(

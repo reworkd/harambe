@@ -1,9 +1,21 @@
 from abc import abstractmethod
-from typing import Any, Dict, List, Protocol, Tuple, runtime_checkable, TypedDict
+from typing import (
+    Any,
+    Dict,
+    List,
+    Protocol,
+    Tuple,
+    runtime_checkable,
+    TypedDict,
+    Literal,
+)
 from urllib.parse import quote
 
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Stage
+
+
+ObservationTrigger = Literal["on_save_data", "on_queue_url", "on_download", "on_paginate"]
 
 
 @runtime_checkable
@@ -22,12 +34,12 @@ class OutputObserver(Protocol):
     ) -> "DownloadMeta":
         raise NotImplementedError()
 
+    @abstractmethod
     def on_paginate(self, next_url: str) -> None:
-        pass
+        raise NotImplementedError()
 
 
 class LoggingObserver(OutputObserver):
-    # TODO: use logger
     async def on_save_data(self, data: Dict[str, Any]):
         print(data)
 
@@ -42,6 +54,9 @@ class LoggingObserver(OutputObserver):
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
         }
+
+    def on_paginate(self, next_url: str) -> None:
+        pass
 
 
 class LocalStorageObserver(OutputObserver):
@@ -63,6 +78,9 @@ class LocalStorageObserver(OutputObserver):
         }
         self._tracker.save_data(data)
         return data
+
+    def on_paginate(self, next_url: str) -> None:
+        pass
 
 
 class InMemoryObserver(OutputObserver):
@@ -86,6 +104,9 @@ class InMemoryObserver(OutputObserver):
         }
         self._files.append((filename, content))
         return data
+
+    def on_paginate(self, next_url: str) -> None:
+        pass
 
     @property
     def data(self) -> List[Dict[str, Any]]:
@@ -111,10 +132,11 @@ class StopPaginationObserver(OutputObserver):
     async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
         self._add_data(url)
 
+    # noinspection PyTypeChecker
     async def on_download(
         self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
-        self._add_data((download_url, filename, content))
+        self._add_data((download_url, filename))
 
     def on_paginate(self, next_url: str) -> None:
         self._paginator_called = True

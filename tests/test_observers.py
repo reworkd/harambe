@@ -35,3 +35,50 @@ async def test_stop_pagination_observer_duplicate_data_error():
 
     with pytest.raises(StopAsyncIteration):
         await observer.on_save_data({"foo": "bar"})
+
+
+@pytest.mark.asyncio
+async def test_stop_pagination_observer_duplicate_url_error():
+    observer = StopPaginationObserver()
+
+    await observer.on_queue_url("https://example.com", {"foo": "bar"})
+    observer.on_paginate("https://example.com/page2")
+
+    with pytest.raises(StopAsyncIteration):
+        await observer.on_queue_url("https://example.com", {"foo": "bar"})
+
+
+@pytest.mark.asyncio
+async def test_stop_pagination_observer_duplicate_download_error():
+    observer = StopPaginationObserver()
+
+    await observer.on_download("https://example.com", "foo.txt", b"foo")
+    observer.on_paginate("https://example.com/page2")
+
+    with pytest.raises(StopAsyncIteration):
+        await observer.on_download("https://example.com", "foo.txt", b"foo")
+
+
+@pytest.mark.asyncio
+async def test_stop_pagination_observer_no_duplicate_data():
+    observer = StopPaginationObserver()
+    await observer.on_save_data({"foo": "bar"})
+    observer.on_paginate("https://example.com/page2")
+    await observer.on_save_data({"baz": "qux"})
+
+
+@pytest.mark.asyncio
+async def test_duplicate_data_without_pagination():
+    observer = StopPaginationObserver()
+    await observer.on_save_data({"foo": "bar"})
+    await observer.on_save_data({"foo": "bar"})
+
+    await observer.on_queue_url("https://example.com", {"foo": "bar"})
+    await observer.on_queue_url("https://example.com", {"foo": "bar"})
+
+    await observer.on_download("https://example.com", "foo.txt", b"foo")
+    await observer.on_download("https://example.com", "foo.txt", b"foo")
+
+    observer.on_paginate("https://example.com/page2")
+    with pytest.raises(StopAsyncIteration):
+        await observer.on_save_data({"foo": "bar"})
