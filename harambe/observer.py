@@ -18,7 +18,7 @@ class OutputObserver(Protocol):
 
     @abstractmethod
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         raise NotImplementedError()
 
@@ -32,7 +32,7 @@ class LoggingObserver(OutputObserver):
         print(f"Enqueuing: {url} with context {context}")
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         print(f"Downloading file: {filename}")  # TODO: use logger
         return {
@@ -45,14 +45,14 @@ class LocalStorageObserver(OutputObserver):
     def __init__(self, domain: str, stage: Stage):
         self._tracker = FileDataTracker(domain, stage)
 
-    async def on_save_data(self, data: Dict[str, Any]):
+    async def on_save_data(self, data: Dict[str, Any]) -> None:
         self._tracker.save_data(data)
 
     async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
         self._tracker.save_data({"url": url, "context": context})
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         data = {
             "url": f"{download_url}/{quote(filename)}",
@@ -68,14 +68,14 @@ class InMemoryObserver(OutputObserver):
         self._urls: List[Tuple[URL, Context]] = []
         self._files: List[Tuple[str, bytes]] = []
 
-    async def on_save_data(self, data: Dict[str, Any]):
+    async def on_save_data(self, data: Dict[str, Any]) -> None:
         self._data.append(data)
 
     async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
         self._urls.append((url, context))
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         data = {
             "url": f"{download_url}/{quote(filename)}",
@@ -95,6 +95,27 @@ class InMemoryObserver(OutputObserver):
     @property
     def files(self) -> List[Tuple[str, bytes]]:
         return self._files
+
+
+class StopPaginationObserver(OutputObserver):
+    def __init__(self):
+        self._saved_data = set()
+
+    async def on_save_data(self, data: dict[str, Any]):
+        self._add_data(data)
+
+    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
+        self._add_data(url)
+
+    async def on_download(self, download_url: str, filename: str, content: bytes) -> "DownloadMeta":
+        pass
+
+    def _add_data(self, data: Any):
+        # TODO remove __url from data?
+        d_set = frozenset(data.items() if isinstance(data, dict) else data)
+        if d_set in self._saved_data:
+            raise StopAsyncIteration()
+        self._saved_data.add(d_set)
 
 
 class DownloadMeta(TypedDict):

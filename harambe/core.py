@@ -22,7 +22,7 @@ from harambe.observer import (
     LocalStorageObserver,
     LoggingObserver,
     OutputObserver,
-    DownloadMeta,
+    DownloadMeta, StopPaginationObserver,
 )
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
@@ -71,6 +71,7 @@ class SDK:
         if not isinstance(observer, list):
             observer = [observer]
 
+        observer.append(StopPaginationObserver())
         self._observers = observer
 
     async def save_data(self, *data: ScrapeResult) -> None:
@@ -82,13 +83,8 @@ class SDK:
         """
         url = self.page.url
         for d in data:
-            d_set = frozenset(d.items())
-            if d_set not in self._saved_data:
-                self._saved_data.add(d_set)
-                d["__url"] = url
-                await asyncio.gather(*[o.on_save_data(d) for o in self._observers])
-            else:
-                continue
+            d["__url"] = url
+            await asyncio.gather(*[o.on_save_data(d) for o in self._observers])
 
     async def enqueue(self, *urls: URL, context: Optional[Context] = None) -> None:
         """
@@ -139,7 +135,7 @@ class SDK:
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
-        except TimeoutError:
+        except (TimeoutError, StopAsyncIteration):
             return
 
     async def capture_url(
@@ -260,7 +256,6 @@ class SDK:
                     context,
                 )
             except Exception as e:
-                # TODO: Fix path for non Mr. Watkins
                 await ctx.tracing.stop(path="trace.zip")
                 await browser.close()
                 raise e
