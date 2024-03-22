@@ -1,3 +1,5 @@
+import hashlib
+import json
 from abc import abstractmethod
 from typing import (
     Any,
@@ -123,7 +125,7 @@ class InMemoryObserver(OutputObserver):
 
 class StopPaginationObserver(OutputObserver):
     def __init__(self):
-        self._saved_data = set()
+        self._saved_data: set[bytes] = set()
         self._paginator_called = False
 
     async def on_save_data(self, data: dict[str, Any]):
@@ -142,14 +144,20 @@ class StopPaginationObserver(OutputObserver):
         self._paginator_called = True
 
     def _add_data(self, data: Any):
-        d_set = frozenset(
-            (item for item in data.items() if not item[0].startswith("__"))
-            if isinstance(data, dict)
-            else data
-        )
-        if self._paginator_called and d_set in self._saved_data:
+        hash_value = self.compute_hash(data)
+
+        if self._paginator_called and hash_value in self._saved_data:
             raise StopAsyncIteration()
-        self._saved_data.add(d_set)
+
+        self._saved_data.add(hash_value)
+
+    @staticmethod
+    def compute_hash(data: Any) -> bytes:
+        if isinstance(data, dict):
+            data = {k: v for k, v in data.items() if not k.startswith("__")}
+
+        data_str = json.dumps(data, separators=(',', ':'), sort_keys=True)
+        return hashlib.md5(data_str.encode()).digest()
 
 
 class DownloadMeta(TypedDict):
