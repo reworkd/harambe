@@ -126,7 +126,7 @@ class InMemoryObserver(OutputObserver):
 class StopPaginationObserver(OutputObserver):
     def __init__(self):
         self._saved_data: set[bytes] = set()
-        self._paginator_called = False
+        self.page_count = 0
 
     async def on_save_data(self, data: dict[str, Any]):
         self._add_data(data)
@@ -141,12 +141,12 @@ class StopPaginationObserver(OutputObserver):
         self._add_data((download_url, filename))
 
     def on_paginate(self, next_url: str) -> None:
-        self._paginator_called = True
+        self.page_count += 1
 
     def _add_data(self, data: Any):
         hash_value = self.compute_hash(data)
 
-        if self._paginator_called and hash_value in self._saved_data:
+        if self.page_count and hash_value in self._saved_data:
             raise StopAsyncIteration()
 
         self._saved_data.add(hash_value)
