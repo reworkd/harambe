@@ -17,7 +17,9 @@ from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Stage
 
 
-ObservationTrigger = Literal["on_save_data", "on_queue_url", "on_download", "on_paginate"]
+ObservationTrigger = Literal[
+    "on_save_data", "on_queue_url", "on_download", "on_paginate"
+]
 
 
 @runtime_checkable
@@ -156,7 +158,7 @@ class StopPaginationObserver(OutputObserver):
         if isinstance(data, dict):
             data = {k: v for k, v in data.items() if not k.startswith("__")}
 
-        data_str = json.dumps(data, separators=(',', ':'), sort_keys=True)
+        data_str = json.dumps(data, separators=(",", ":"), sort_keys=True)
         return hashlib.md5(data_str.encode()).digest()
 
 

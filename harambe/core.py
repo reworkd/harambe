@@ -37,7 +37,8 @@ class AsyncScraper(Protocol):
     Note that scrapers in harambe should be functions, not classes.
     """
 
-    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None: ...
+    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None:
+        ...
 
 
 class SDK:
@@ -146,7 +147,9 @@ class SDK:
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
         except PlaywrightTimeoutError as e:
-            raise TimeoutError(f"{e.args[0]} You may increase the timeout by passing `timeout` in ms to `SDK.paginate`. Alternatively, this may mean that the next page element or URL was not found and pagination is complete.")
+            raise TimeoutError(
+                f"{e.args[0]} You may increase the timeout by passing `timeout` in ms to `SDK.paginate`. Alternatively, this may mean that the next page element or URL was not found and pagination is complete."
+            )
         except (TimeoutError, StopAsyncIteration):
             return
 
