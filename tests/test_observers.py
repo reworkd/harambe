@@ -65,10 +65,14 @@ async def test_stop_pagination_observer_no_duplicate_data():
     await observer.on_save_data({"foo": "bar"})
     observer.on_paginate("https://example.com/page2")
     await observer.on_save_data({"baz": "qux"})
-    await observer.on_save_data({"foo": [
-        "bar",
-        "baz",
-    ]})
+    await observer.on_save_data(
+        {
+            "foo": [
+                "bar",
+                "baz",
+            ]
+        }
+    )
 
 
 @pytest.mark.asyncio

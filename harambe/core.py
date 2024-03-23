@@ -9,6 +9,7 @@ from playwright.async_api import (
     Page,
     async_playwright,
     ElementHandle,
+    TimeoutError as PlaywrightTimeoutError,
 )
 from playwright_stealth import stealth_async
 
@@ -36,7 +37,8 @@ class AsyncScraper(Protocol):
     Note that scrapers in harambe should be functions, not classes.
     """
 
-    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None: ...
+    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None:
+        ...
 
 
 class SDK:
@@ -82,6 +84,11 @@ class SDK:
 
         :param data: one or more dicts of details to save
         """
+        if len(data) == 1 and isinstance(data[0], list):
+            raise TypeError(
+                "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
+            )
+
         url = self.page.url
         for d in data:
             d["__url"] = url
@@ -139,6 +146,10 @@ class SDK:
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
+        except PlaywrightTimeoutError as e:
+            raise TimeoutError(
+                f"{e.args[0]} You may increase the timeout by passing `timeout` in ms to `SDK.paginate`. Alternatively, this may mean that the next page element or URL was not found and pagination is complete."
+            ) from e
         except (TimeoutError, StopAsyncIteration):
             return
 
