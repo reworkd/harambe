@@ -149,7 +149,7 @@ class SDK:
         except PlaywrightTimeoutError as e:
             raise TimeoutError(
                 f"{e.args[0]} You may increase the timeout by passing `timeout` in ms to `SDK.paginate`. Alternatively, this may mean that the next page element or URL was not found and pagination is complete."
-            )
+            ) from e
         except (TimeoutError, StopAsyncIteration):
             return
 
