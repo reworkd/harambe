@@ -85,7 +85,7 @@ class SDK:
         :param data: one or more dicts of details to save
         """
         if len(data) == 1 and isinstance(data[0], list):
-            raise ValueError(
+            raise TypeError(
                 "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
             )
 
