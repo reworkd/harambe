@@ -2,13 +2,14 @@ import asyncio
 import tempfile
 import uuid
 from functools import wraps
-from typing import Callable, List, Optional, Protocol, Union, Awaitable
+from typing import Any, Callable, List, Optional, Protocol, Union, Awaitable
 
 import aiohttp
 from playwright.async_api import (
     Page,
     async_playwright,
     ElementHandle,
+    TimeoutError as PlaywrightTimeoutError,
 )
 from playwright_stealth import stealth_async
 
@@ -23,6 +24,8 @@ from harambe.observer import (
     LoggingObserver,
     OutputObserver,
     DownloadMeta,
+    StopPaginationObserver,
+    ObservationTrigger,
 )
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
@@ -63,6 +66,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
+        self._saved_data = set()
 
         if not observer:
             observer = [LoggingObserver()]
@@ -70,6 +74,7 @@ class SDK:
         if not isinstance(observer, list):
             observer = [observer]
 
+        observer.insert(0, StopPaginationObserver())
         self._observers = observer
 
     async def save_data(self, *data: ScrapeResult) -> None:
@@ -79,10 +84,15 @@ class SDK:
 
         :param data: one or more dicts of details to save
         """
+        if len(data) == 1 and isinstance(data[0], list):
+            raise TypeError(
+                "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
+            )
+
         url = self.page.url
         for d in data:
             d["__url"] = url
-            await asyncio.gather(*[o.on_save_data(d) for o in self._observers])
+            await self._notify_observers("on_save_data", d)
 
     async def enqueue(self, *urls: URL, context: Optional[Context] = None) -> None:
         """
@@ -97,19 +107,17 @@ class SDK:
         context["__url"] = self.page.url
 
         for url in urls:
-            await asyncio.gather(
-                *[o.on_queue_url(url, context) for o in self._observers]
-            )
+            await self._notify_observers("on_queue_url", url, context)
 
     async def paginate(
         self,
         get_next_page_element: Callable[..., Awaitable[URL | ElementHandle | None]],
-        timeout: int = 5000,
+        timeout: int = 2000,
     ) -> None:
         """
         Navigate to the next page of a listing.
 
-        :param sleep: seconds to sleep for before continuing
+        :param timeout: milliseconds to sleep for before continuing
         :param get_next_page_element: the url or ElementHandle of the next page
         """
         try:
@@ -120,6 +128,7 @@ class SDK:
             next_url = ""
             if isinstance(next_page, ElementHandle):
                 await next_page.click(timeout=timeout)
+                await self.page.wait_for_timeout(timeout)
                 next_url = self.page.url
 
             elif isinstance(next_page, str):
@@ -128,12 +137,20 @@ class SDK:
                     # TODO: merge query params
                     next_url = self.page.url.split("?")[0] + next_url
                     await self.page.goto(next_url)
+                    await self.page.wait_for_timeout(timeout)
 
             if next_url:
+                for o in self._observers:
+                    o.on_paginate(self.page.url)
+
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
-        except TimeoutError:
+        except PlaywrightTimeoutError as e:
+            raise TimeoutError(
+                f"{e.args[0]} You may increase the timeout by passing `timeout` in ms to `SDK.paginate`. Alternatively, this may mean that the next page element or URL was not found and pagination is complete."
+            ) from e
+        except (TimeoutError, StopAsyncIteration):
             return
 
     async def capture_url(
@@ -175,11 +192,8 @@ class SDK:
             with open(temp_file.name, "rb") as f:
                 content = f.read()
 
-        res = await asyncio.gather(
-            *[
-                o.on_download(download.url, download.suggested_filename, content)
-                for o in self._observers
-            ]
+        res = await self._notify_observers(
+            "on_download", download.url, download.suggested_filename, content
         )
         return res[0]
 
@@ -195,13 +209,27 @@ class SDK:
         )  # Allow for some extra time for the page to load
         pdf_content = await self.page.pdf()
         file_name = PAGE_PDF_FILENAME
-        res = await asyncio.gather(
-            *[
-                o.on_download(self.page.url, file_name, pdf_content)
-                for o in self._observers
-            ]
+        res = await self._notify_observers(
+            "on_download", self.page.url, file_name, pdf_content
         )
         return res[0]
+
+    async def _notify_observers(
+        self, method: ObservationTrigger, *args: Any, **kwargs: Any
+    ) -> Any:
+        """
+        Notify all observers of an event. This will call the method on each observer that is subscribed. Note that
+        the first observer is the stop pagination observer, so it will always be called separately so that we can stop
+        pagination if needed.
+        :param method: observation trigger
+        :param args: arguments to pass to the method
+        :param kwargs: keyword arguments to pass to the method
+        :return: the result of the method call
+        """
+        await getattr(self._observers[0], method)(*args, **kwargs)
+        return await asyncio.gather(
+            *[getattr(o, method)(*args, **kwargs) for o in self._observers[1:]]
+        )
 
     @staticmethod
     async def run(
@@ -254,7 +282,6 @@ class SDK:
                     context,
                 )
             except Exception as e:
-                # TODO: Fix path for non Mr. Watkins
                 await ctx.tracing.stop(path="trace.zip")
                 await browser.close()
                 raise e

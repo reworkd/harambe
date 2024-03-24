@@ -147,3 +147,4 @@ cython_debug/
 *.db
 *.bin
 /screenshots/
+/data/
