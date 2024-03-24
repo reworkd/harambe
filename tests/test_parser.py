@@ -10,6 +10,10 @@ document_schema = {
     "document_url": {"type": "string", "actions": {"download": True}, "description": "A link to the document"}
 }
 
+documents_schema = {
+    "documents": {"type": "array", "items": document_schema}
+}
+
 contact_schema = {
     "name": {"type": "object", "properties": {
         "first_name": {"type": "string", "description": "The first name of the contact"},
@@ -30,12 +34,18 @@ contact_schema = {
     (document_schema, {"title": None, "document_url": None}),
     (contact_schema, {
         "name": {"first_name": "Jane", "last_name": "Doe"},
-        "address": {"street": "456 Elm St", "city": "Othertown", "zip": 67890}
+        "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890}
     }),
     (contact_schema, {
         "name": {"first_name": None, "last_name": None},
         "address": {"street": None, "city": None, "zip": None}
     }),
+    (documents_schema, {
+        "documents": [
+            {"title": "Document One", "document_url": "http://example.com/doc1"},
+        ]
+    }),
+    (documents_schema, {"documents": []}),
 ])
 def test_pydantic_schema_validator_success(schema: dict[str, Any], data: dict[str, Any]) -> None:
     validator = PydanticSchemaParser(schema)
@@ -53,7 +63,9 @@ def test_pydantic_schema_validator_success(schema: dict[str, Any], data: dict[st
     (contact_schema, {
         "name": {"first_name": None, "last_name": "Doe"},
         "address": None
-    }),  # None sub-fields 
+    }),  # None sub-fields
+    (documents_schema, {"documents": None}),  # Null list
+    (documents_schema, {"documents": [None]}),  # Null item in list
 ])
 def test_pydantic_schema_validator_error(schema: dict[str, Any], data: dict[str, Any]) -> None:
     validator = PydanticSchemaParser(schema)
