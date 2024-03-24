@@ -10,6 +10,7 @@ class SchemaParser(ABC):
         pass
 
 
+OBJECT_TYPE = 'object'
 FIELD_TYPE_MAPPING = {
     "string": str,
     "str": str,
@@ -27,7 +28,7 @@ FIELD_TYPE_MAPPING = {
 }
 
 
-def _schema_to_pydantic_model(schema: Dict[str, Any]) -> Type[BaseModel]:
+def _schema_to_pydantic_model(schema: Dict[str, Any], model_name: str = 'DynamicModel') -> Type[BaseModel]:
     """
     Convert a JSON schema to a Pydantic model dynamically. All fields are optional
     """
@@ -35,19 +36,22 @@ def _schema_to_pydantic_model(schema: Dict[str, Any]) -> Type[BaseModel]:
 
     for field_name, field_info in schema.items():
         field_description = field_info.get('description', None)
-        field_type = field_info['type']
-        python_type = FIELD_TYPE_MAPPING.get(field_type)
-        optional_python_type = Optional[python_type]
+        field_type = field_info.get('type')
 
-        if python_type is None:
-            raise ValueError(f"Unsupported field type: {field_type}")
+        if field_type == OBJECT_TYPE:
+            python_type = _schema_to_pydantic_model(field_info.get("properties", {}), model_name=f"{field_name}")
+        else:
+            python_type = FIELD_TYPE_MAPPING.get(field_type)
+            if python_type is None:
+                raise ValueError(f"Unsupported field type: {field_type}")
+            python_type = Optional[python_type]  # Make the field optional
 
-        fields[field_name] = (optional_python_type, Field(..., description=field_description))
+        fields[field_name] = (python_type, Field(..., description=field_description))
 
     # Disallow additional fields
     config = {'extra': Extra.forbid}
 
-    dynamic_model = create_model('DynamicModel', __config__=config, **fields)
+    dynamic_model = create_model(model_name, __config__=config, **fields)
     return dynamic_model
 
 
