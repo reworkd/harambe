@@ -292,7 +292,7 @@ class SDK:
     async def get_content_type(self, url: str) -> str:
         async with aiohttp.ClientSession() as session:
             async with session.head(normalize_url(url, self.page.url)) as response:
-                return response.headers.get("Content-Type", "")
+                return response.headers.get('Content-Type', '')
 
     @staticmethod
     async def run_from_file(scraper: AsyncScraperType, headless: bool = False) -> None:
