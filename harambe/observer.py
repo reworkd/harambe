@@ -157,7 +157,7 @@ class DeduplicationObserver(OutputObserver):
         hash_value = self.compute_hash(data)
         if hash_value in self._saved_data:
             self.previously_saved_rows_on_page += 1
-            return True # return True if data is duplicated
+            return True  # return True if data is duplicated
         else:
             self._saved_data.add(hash_value)
             return False
