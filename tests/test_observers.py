@@ -1,6 +1,6 @@
 import pytest
 
-from harambe.observer import InMemoryObserver, DeduplicationObserver
+from harambe.observer import InMemoryObserver, DuplicateHandler
 
 
 @pytest.mark.asyncio
@@ -28,7 +28,7 @@ async def in_memory_on_queue_url():
 
 @pytest.mark.asyncio
 async def test_stop_pagination_observer_duplicate_data_error():
-    observer = DeduplicationObserver()
+    observer = DuplicateHandler()
 
     unduplicated = await observer.on_save_data({"foo": "bar"})
     await observer.on_paginate("https://example.com/page2")
@@ -42,7 +42,7 @@ async def test_stop_pagination_observer_duplicate_data_error():
 
 @pytest.mark.asyncio
 async def test_stop_pagination_observer_duplicate_url_error():
-    observer = DeduplicationObserver()
+    observer = DuplicateHandler()
 
     unduplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"})
     await observer.on_paginate("https://example.com/page2")
@@ -56,7 +56,7 @@ async def test_stop_pagination_observer_duplicate_url_error():
 
 @pytest.mark.asyncio
 async def test_stop_pagination_observer_duplicate_download_error():
-    observer = DeduplicationObserver()
+    observer = DuplicateHandler()
 
     unduplicated = await observer.on_download("https://example.com", "foo.txt", b"foo")
     await observer.on_paginate("https://example.com/page2")
@@ -70,7 +70,7 @@ async def test_stop_pagination_observer_duplicate_download_error():
 
 @pytest.mark.asyncio
 async def test_stop_pagination_observer_no_duplicate_data():
-    observer = DeduplicationObserver()
+    observer = DuplicateHandler()
     unduplicated1 = await observer.on_save_data({"foo": "bar"})
     await observer.on_paginate("https://example.com/page2")
     unduplicated2 = await observer.on_save_data({"baz": "qux"})
@@ -88,7 +88,7 @@ async def test_stop_pagination_observer_no_duplicate_data():
 
 @pytest.mark.asyncio
 async def test_ignore_underscore_attributes():
-    observer = DeduplicationObserver()
+    observer = DuplicateHandler()
 
     unduplicated1 = await observer.on_save_data({"foo": "bar", "__url": "qux"})
     unduplicated2 = await observer.on_save_data({"qux": "bar", "__url": "qux"})
@@ -105,7 +105,7 @@ async def test_ignore_underscore_attributes():
 
 @pytest.mark.asyncio
 async def test_duplicate_data_without_pagination():
-    observer = DeduplicationObserver()
+    observer = DuplicateHandler()
     unduplicated = await observer.on_save_data({"foo": "bar"})
     duplicated = await observer.on_save_data({"foo": "bar"})
     assert not unduplicated and duplicated

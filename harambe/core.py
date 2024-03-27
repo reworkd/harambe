@@ -24,7 +24,7 @@ from harambe.observer import (
     LoggingObserver,
     OutputObserver,
     DownloadMeta,
-    DeduplicationObserver,
+    DuplicateHandler,
     ObservationTrigger,
 )
 from harambe.tracker import FileDataTracker
@@ -75,7 +75,7 @@ class SDK:
             observer = [observer]
 
         self._observers = observer
-        self._deduper = DeduplicationObserver()
+        self._deduper = DuplicateHandler()
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """

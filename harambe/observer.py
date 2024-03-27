@@ -125,7 +125,7 @@ class InMemoryObserver(OutputObserver):
         return self._files
 
 
-class DeduplicationObserver(OutputObserver):
+class DuplicateHandler:
     def __init__(self):
         self._saved_data: set[bytes] = set()
         self.rows_on_page = 0
