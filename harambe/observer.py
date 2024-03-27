@@ -39,7 +39,7 @@ class OutputObserver(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
-    def on_paginate(self, next_url: str) -> None:
+    async def on_paginate(self, next_url: str) -> None:
         raise NotImplementedError()
 
 
@@ -59,7 +59,7 @@ class LoggingObserver(OutputObserver):
             "filename": filename,
         }
 
-    def on_paginate(self, next_url: str) -> None:
+    async def on_paginate(self, next_url: str) -> None:
         pass
 
 
@@ -83,7 +83,7 @@ class LocalStorageObserver(OutputObserver):
         self._tracker.save_data(data)
         return data
 
-    def on_paginate(self, next_url: str) -> None:
+    async def on_paginate(self, next_url: str) -> None:
         pass
 
 
@@ -109,7 +109,7 @@ class InMemoryObserver(OutputObserver):
         self._files.append((filename, content))
         return data
 
-    def on_paginate(self, next_url: str) -> None:
+    async def on_paginate(self, next_url: str) -> None:
         pass
 
     @property
@@ -125,33 +125,42 @@ class InMemoryObserver(OutputObserver):
         return self._files
 
 
-class StopPaginationObserver(OutputObserver):
+class DuplicateHandler:
     def __init__(self):
         self._saved_data: set[bytes] = set()
-        self.page_count = 0
+        self.rows_on_page = 0
+        self.previously_saved_rows_on_page = 0
 
-    async def on_save_data(self, data: dict[str, Any]):
-        self._add_data(data)
+    async def on_save_data(self, data: dict[str, Any]) -> bool:
+        return self._add_data(data)
 
-    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
-        self._add_data(url)
+    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> bool:
+        return self._add_data(url)
 
     # noinspection PyTypeChecker
     async def on_download(
         self, download_url: str, filename: str, content: bytes
-    ) -> "DownloadMeta":
-        self._add_data((download_url, filename))
+    ) -> bool:
+        return self._add_data((download_url, filename))
 
-    def on_paginate(self, next_url: str) -> None:
-        self.page_count += 1
-
-    def _add_data(self, data: Any):
-        hash_value = self.compute_hash(data)
-
-        if self.page_count and hash_value in self._saved_data:
+    async def on_paginate(self, next_url: str) -> bool:
+        if self.rows_on_page == self.previously_saved_rows_on_page:
             raise StopAsyncIteration()
 
-        self._saved_data.add(hash_value)
+        self.rows_on_page = 0
+        self.previously_saved_rows_on_page = 0
+        return False
+
+    def _add_data(self, data: Any) -> bool:
+        self.rows_on_page += 1
+
+        hash_value = self.compute_hash(data)
+        if hash_value in self._saved_data:
+            self.previously_saved_rows_on_page += 1
+            return True  # return True if data is duplicated
+        else:
+            self._saved_data.add(hash_value)
+            return False
 
     @staticmethod
     def compute_hash(data: Any) -> bytes:
