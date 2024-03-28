@@ -24,7 +24,7 @@ from harambe.observer import (
     LoggingObserver,
     OutputObserver,
     DownloadMeta,
-    StopPaginationObserver,
+    DuplicateHandler,
     ObservationTrigger,
 )
 from harambe.tracker import FileDataTracker
@@ -74,8 +74,8 @@ class SDK:
         if not isinstance(observer, list):
             observer = [observer]
 
-        observer.insert(0, StopPaginationObserver())
         self._observers = observer
+        self._deduper = DuplicateHandler()
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
@@ -140,8 +140,7 @@ class SDK:
                     await self.page.wait_for_timeout(timeout)
 
             if next_url:
-                for o in self._observers:
-                    o.on_paginate(self.page.url)
+                await self._notify_observers("on_paginate", next_url)
 
                 await self._scraper(
                     self, next_url, self._context
@@ -226,10 +225,11 @@ class SDK:
         :param kwargs: keyword arguments to pass to the method
         :return: the result of the method call
         """
-        await getattr(self._observers[0], method)(*args, **kwargs)
-        return await asyncio.gather(
-            *[getattr(o, method)(*args, **kwargs) for o in self._observers[1:]]
-        )
+        duplicated = await getattr(self._deduper, method)(*args, **kwargs)
+        if not duplicated:
+            return await asyncio.gather(
+                *[getattr(o, method)(*args, **kwargs) for o in self._observers]
+            )
 
     @staticmethod
     async def run(
