@@ -26,6 +26,8 @@ FIELD_TYPE_MAPPING = {
     "float": float,
     "double": float,
 
+    # TODO: Add support for date and datetime types
+    # TODO: The URL type should have a custom validator to handle relative URLs
     "url": AnyUrl,
 }
 
@@ -48,18 +50,13 @@ def _schema_to_pydantic_model(schema: Dict[str, Any], model_name: str = 'Dynamic
         field_type = field_info.get('type')
 
         if field_type == OBJECT_TYPE:
-            python_type = _schema_to_pydantic_model(field_info.get("properties", {}),
-                                                    model_name=f"{model_name}{field_name.capitalize()}")
-        elif field_type == LIST_TYPE:
-            item_schema = field_info.get('items')
-            item_type = _schema_to_pydantic_model(item_schema, model_name=f"{model_name}{field_name.capitalize()}Item")
-            python_type = list[item_type]  # Explicit list type without Optional
+            python_type = _schema_to_pydantic_model(
+                field_info.get("properties", {}),
+                model_name=f"{model_name}{field_name.capitalize()}",
+            )
         else:
-            python_type = FIELD_TYPE_MAPPING.get(field_type)
-            if python_type is None:
-                raise ValueError(f"Unsupported field type: {field_type}")
-            # Make non-list fields optional
-            python_type = Optional[python_type] if field_type != LIST_TYPE else python_type
+            # Non complex types should be optional
+            python_type = Optional[get_type(field_type)]
 
         fields[field_name] = (python_type, Field(..., description=field_description))
 

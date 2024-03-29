@@ -20,6 +20,7 @@ from tests.parser.schemas import document_schema, contact_schema
         "name": {"first_name": None, "last_name": None},
         "address": {"street": None, "city": None, "zip": None}
     }),
+    # TODO: Support lists and nested objects
     # (documents_schema, {"documents": []}),
     # (documents_schema, {
     #     "documents": [
@@ -62,6 +63,7 @@ def test_pydantic_schema_validator_success(schema: dict[str, Any], data: dict[st
         "name": {"first_name": None, "last_name": "Doe"},
         "address": None
     }),  # None sub-fields
+    # TODO: Support lists and nested objects
     # (documents_schema, {"documents": None}),  # Null list
     # (documents_schema, {"documents": [None]}),  # Null item in list
     # (list_of_strings_schema, {"tags": [None, "pydantic", "typing"]}),  # None in list of strings
