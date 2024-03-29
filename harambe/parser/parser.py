@@ -5,38 +5,25 @@ from pydantic import BaseModel, create_model, Field, AnyUrl, Extra
 
 
 class SchemaParser(ABC):
+    """
+    Interface for schema parsers
+    """
     @abstractmethod
     def validate(self, data: Dict[str, Any]) -> None:
         pass
 
 
-OBJECT_TYPE = 'object'
-LIST_TYPE = 'array'
-COMPLEX_TYPES = [OBJECT_TYPE, LIST_TYPE]
-BASIC_FIELD_TYPE_MAPPING = {
-    "string": str,
-    "str": str,
+class PydanticSchemaParser(SchemaParser):
+    """
+    A schema parser that uses Pydantic models to validate data against a JSON schema
+    """
 
-    "boolean": bool,
-    "bool": bool,
+    def __init__(self, schema: Dict[str, Any]):
+        self.schema = schema
+        self.model = _schema_to_pydantic_model(schema)
 
-    "integer": int,
-    "int": int,
-    "number": float,
-    "float": float,
-    "double": float,
-
-    # TODO: Add support for date and datetime types
-    # TODO: The URL type should have a custom validator to handle relative URLs
-    "url": AnyUrl,
-}
-
-
-def get_type(field: str) -> Type:
-    field_type = BASIC_FIELD_TYPE_MAPPING.get(field)
-    if not field_type:
-        raise ValueError(f"Unsupported field type: {field}")
-    return field_type
+    def validate(self, data: Dict[str, Any]) -> None:
+        self.model(**data)
 
 
 def _schema_to_pydantic_model(schema: Dict[str, Any], model_name: str = 'DynamicModel') -> Type[BaseModel]:
@@ -66,10 +53,30 @@ def _schema_to_pydantic_model(schema: Dict[str, Any], model_name: str = 'Dynamic
     return create_model(model_name, __config__=config, **fields)
 
 
-class PydanticSchemaParser(SchemaParser):
-    def __init__(self, schema: Dict[str, Any]):
-        self.schema = schema
-        self.model = _schema_to_pydantic_model(schema)
+def get_type(field: str) -> Type:
+    field_type = BASIC_FIELD_TYPE_MAPPING.get(field)
+    if not field_type:
+        raise ValueError(f"Unsupported field type: {field}")
+    return field_type
 
-    def validate(self, data: Dict[str, Any]) -> None:
-        self.model(**data)
+
+OBJECT_TYPE = 'object'
+LIST_TYPE = 'array'
+COMPLEX_TYPES = [OBJECT_TYPE, LIST_TYPE]
+BASIC_FIELD_TYPE_MAPPING = {
+    "string": str,
+    "str": str,
+
+    "boolean": bool,
+    "bool": bool,
+
+    "integer": int,
+    "int": int,
+    "number": float,
+    "float": float,
+    "double": float,
+
+    # TODO: Add support for date and datetime types
+    # TODO: The URL type should have a custom validator to handle relative URLs
+    "url": AnyUrl,
+}
