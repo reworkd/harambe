@@ -74,7 +74,6 @@ SELECTORS = {
 @SDK.scraper(domain="https://apprhs.org/our-locations/", stage="detail")
 async def scrape(sdk: SDK, url: str, *args: Any, **kwargs: Any) -> None:
     page: Page = sdk.page
-    await page.goto(url)
 
     locations = await page.locator(SELECTORS["list_view"]).all()
     for location in locations:        
@@ -113,7 +112,6 @@ SELECTORS = {}
 @SDK.scraper(domain="https://example.org", stage="listing")
 async def scrape(sdk: SDK, url: str, *args: Any, **kwargs: Any) -> None:
     page: Page = sdk.page
-    await page.goto(url)
 
     for url in [
         "https://example.org/1",
@@ -134,7 +132,6 @@ async def scrape(sdk: SDK, url: str, *args: Any, **kwargs: Any) -> None:
 @SDK.scraper(domain="https://example.org", stage="detail")
 async def scrape_detail(sdk: SDK, url: str, context: Any) -> None:
     page: Page = sdk.page
-    await page.goto(url)
 
     # Grab all properties from the context
     detail = {**context}
