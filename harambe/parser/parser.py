@@ -13,7 +13,7 @@ class SchemaParser(ABC):
 OBJECT_TYPE = 'object'
 LIST_TYPE = 'array'
 COMPLEX_TYPES = [OBJECT_TYPE, LIST_TYPE]
-FIELD_TYPE_MAPPING = {
+BASIC_FIELD_TYPE_MAPPING = {
     "string": str,
     "str": str,
 
@@ -33,7 +33,7 @@ FIELD_TYPE_MAPPING = {
 
 
 def get_type(field: str) -> Type:
-    field_type = FIELD_TYPE_MAPPING.get(field)
+    field_type = BASIC_FIELD_TYPE_MAPPING.get(field)
     if not field_type:
         raise ValueError(f"Unsupported field type: {field}")
     return field_type
