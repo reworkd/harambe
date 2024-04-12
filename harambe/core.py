@@ -7,17 +7,15 @@ from typing import Any, Callable, List, Optional, Protocol, Union, Awaitable
 import aiohttp
 from playwright.async_api import (
     Page,
-    async_playwright,
     ElementHandle,
     TimeoutError as PlaywrightTimeoutError,
 )
-from playwright_stealth import stealth_async
 
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
-    UnnecessaryResourceHandler,
 )
+from harambe.harness import playwright_harness
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     LocalStorageObserver,
@@ -251,43 +249,20 @@ class SDK:
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=headless)
-            ctx = await browser.new_context(
-                viewport={"width": 1280, "height": 1024},
-                ignore_https_errors=True,
-                user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-                " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        async with playwright_harness(headless=headless) as page:
+            await page.goto(url)
+            await scraper(
+                SDK(
+                    page,
+                    domain=domain,
+                    stage=stage,
+                    observer=observer,
+                    scraper=scraper,
+                    context=context,
+                ),
+                url,
+                context,
             )
-            ctx.set_default_timeout(60000)
-
-            await ctx.route("**/*", UnnecessaryResourceHandler().handle)
-
-            await ctx.tracing.start(screenshots=True, snapshots=True, sources=True)
-            page = await ctx.new_page()
-            await stealth_async(page)
-
-            try:
-                await page.goto(url)
-                await scraper(
-                    SDK(
-                        page,
-                        domain=domain,
-                        stage=stage,
-                        observer=observer,
-                        scraper=scraper,
-                        context=context,
-                    ),
-                    url,
-                    context,
-                )
-            except Exception as e:
-                await ctx.tracing.stop(path="trace.zip")
-                await browser.close()
-                raise e
-            else:
-                await ctx.tracing.stop(path="trace.zip")
-                await browser.close()
 
     async def get_content_type(self, url: str) -> str:
         async with aiohttp.ClientSession() as session:
@@ -323,13 +298,9 @@ class SDK:
             )
 
         listing_data = tracker.load_data(domain, prev)
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=headless)
-            ctx = await browser.new_context()
-            page = await ctx.new_page()
-            await stealth_async(page)
-
+        async with playwright_harness(headless=headless) as page:
             for listing in listing_data:
+                await page.goto(listing["url"])
                 await scraper(
                     SDK(
                         page,
@@ -341,8 +312,6 @@ class SDK:
                     listing["url"],
                     listing["context"],
                 )
-
-            await browser.close()
 
     @staticmethod
     def scraper(
