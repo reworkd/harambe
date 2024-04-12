@@ -313,7 +313,6 @@ class SDK:
                     listing["context"],
                 )
 
-
     @staticmethod
     def scraper(
         domain: str, stage: Stage
