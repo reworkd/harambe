@@ -6,4 +6,3 @@ poetry run ruff format
 
 echo "Checking code 🧹"
 poetry run ruff check
-

@@ -232,9 +232,10 @@ class SDK:
     @staticmethod
     async def run(
         scraper: AsyncScraperType,
-        url: Optional[str] = None,
+        url: str,
         context: Optional[Context] = None,
         headless: bool = False,
+        cdp_endpoint: Optional[str] = None,
     ) -> None:
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -243,13 +244,17 @@ class SDK:
         :param url: starting url to run the scraper on
         :param context: additional context to pass to the scraper
         :param headless: whether to run the browser headless
+        :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
+        context = context or {}
 
-        async with playwright_harness(headless=headless) as page:
+        async with playwright_harness(
+            headless=headless, cdp_endpoint=cdp_endpoint
+        ) as page:
             await page.goto(url)
             await scraper(
                 SDK(
@@ -270,13 +275,18 @@ class SDK:
                 return response.headers.get("Content-Type", "")
 
     @staticmethod
-    async def run_from_file(scraper: AsyncScraperType, headless: bool = False) -> None:
+    async def run_from_file(
+        scraper: AsyncScraperType,
+        headless: bool = False,
+        cdp_endpoint: Optional[str] = None,
+    ) -> None:
         """
         Convenience method for running a detail scraper from file. This will load
         the listing data from file and pass it to the scraper.
 
         :param scraper: the scraper to run (function)
         :param headless: whether to run the browser headless
+        :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
         :return: None: the scraper should save data to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -298,7 +308,9 @@ class SDK:
             )
 
         listing_data = tracker.load_data(domain, prev)
-        async with playwright_harness(headless=headless) as page:
+        async with playwright_harness(
+            headless=headless, cdp_endpoint=cdp_endpoint
+        ) as page:
             for listing in listing_data:
                 await page.goto(listing["url"])
                 await scraper(
