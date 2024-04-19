@@ -190,7 +190,7 @@ class SDK:
                 content = f.read()
 
         res = await self._notify_observers(
-            "on_download", download.url, download.suggested_filename, content
+            "on_download", download.url, download.suggested_filename, content, check_duplication=False
         )
         return res[0]
 
@@ -212,7 +212,7 @@ class SDK:
         return res[0]
 
     async def _notify_observers(
-        self, method: ObservationTrigger, *args: Any, **kwargs: Any
+        self, method: ObservationTrigger, *args: Any, check_duplication: bool = True, **kwargs: Any
     ) -> Any:
         """
         Notify all observers of an event. This will call the method on each observer that is subscribed. Note that
@@ -223,7 +223,10 @@ class SDK:
         :param kwargs: keyword arguments to pass to the method
         :return: the result of the method call
         """
-        duplicated = await getattr(self._deduper, method)(*args, **kwargs)
+        duplicated = False
+        if check_duplication:
+            duplicated = await getattr(self._deduper, method)(*args, **kwargs)
+
         if not duplicated:
             return await asyncio.gather(
                 *[getattr(o, method)(*args, **kwargs) for o in self._observers]
