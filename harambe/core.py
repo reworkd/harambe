@@ -35,7 +35,8 @@ class AsyncScraper(Protocol):
     Note that scrapers in harambe should be functions, not classes.
     """
 
-    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None: ...
+    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None:
+        ...
 
 
 class SDK:
