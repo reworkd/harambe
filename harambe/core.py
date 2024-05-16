@@ -35,8 +35,7 @@ class AsyncScraper(Protocol):
     Note that scrapers in harambe should be functions, not classes.
     """
 
-    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None:
-        ...
+    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None: ...
 
 
 class SDK:
@@ -190,7 +189,11 @@ class SDK:
                 content = f.read()
 
         res = await self._notify_observers(
-            "on_download", download.url, download.suggested_filename, content, check_duplication=False
+            "on_download",
+            download.url,
+            download.suggested_filename,
+            content,
+            check_duplication=False,
         )
         return res[0]
 
@@ -212,7 +215,11 @@ class SDK:
         return res[0]
 
     async def _notify_observers(
-        self, method: ObservationTrigger, *args: Any, check_duplication: bool = True, **kwargs: Any
+        self,
+        method: ObservationTrigger,
+        *args: Any,
+        check_duplication: bool = True,
+        **kwargs: Any,
     ) -> Any:
         """
         Notify all observers of an event. This will call the method on each observer that is subscribed. Note that
@@ -239,6 +246,7 @@ class SDK:
         context: Optional[Context] = None,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
+        record_har_path: Optional[str] = None,
     ) -> None:
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -248,6 +256,7 @@ class SDK:
         :param context: additional context to pass to the scraper
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
+        :param record_har_path: filesystem path to the HAR file
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -256,7 +265,9 @@ class SDK:
         context = context or {}
 
         async with playwright_harness(
-            headless=headless, cdp_endpoint=cdp_endpoint
+            headless=headless,
+            cdp_endpoint=cdp_endpoint,
+            record_har_path=record_har_path,
         ) as page:
             await page.goto(url)
             await scraper(

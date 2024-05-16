@@ -9,14 +9,17 @@ from harambe.handlers import UnnecessaryResourceHandler
 
 @asynccontextmanager
 async def playwright_harness(
-    headless: bool, cdp_endpoint: str | None
+    headless: bool,
+    cdp_endpoint: str | None,
+    record_har_path: str | None,
 ) -> AsyncGenerator[Page, None]:
     """
     Context manager for Playwright. Starts a new browser, context, and page, and closes them when done.
-    Also does some basic setup like setting the viewport, user agent, and ignoring HTTPS errors, and stealth.
+    Also does some basic setup like setting the viewport, user agent, ignoring HTTPS errors, creation of HAR file, and stealth.
 
     :param headless: launch browser in headless mode
     :param cdp_endpoint: Chrome DevTools Protocol endpoint to connect to (if using a remote browser)
+    :param record_har_path: path to HTTP Archive file (enables HAR capture)
     :return: async generator yielding a Playwright page
     """
 
@@ -32,6 +35,7 @@ async def playwright_harness(
             ignore_https_errors=True,
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
             " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+            record_har_path=record_har_path,
         )
 
         ctx.set_default_timeout(60000)
@@ -43,4 +47,5 @@ async def playwright_harness(
         try:
             yield page
         finally:
+            await ctx.close()
             await browser.close()
