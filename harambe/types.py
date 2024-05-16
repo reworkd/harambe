@@ -5,3 +5,4 @@ ScrapeResult = Dict[str, Any]
 Context = Dict[str, Any]
 Stage = Literal["category", "listing", "detail"]
 AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # noqa: F821
+SetupType = Callable[["SDK"], Awaitable[None]]  # noqa: F821
