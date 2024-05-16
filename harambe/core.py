@@ -26,7 +26,7 @@ from harambe.observer import (
     ObservationTrigger,
 )
 from harambe.tracker import FileDataTracker
-from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
+from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, SetupType, Stage
 
 
 class AsyncScraper(Protocol):
@@ -247,6 +247,7 @@ class SDK:
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
         record_har_path: Optional[str] = None,
+        setup: Optional[SetupType] = None,
     ) -> None:
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -257,6 +258,7 @@ class SDK:
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
         :param record_har_path: filesystem path to the HAR file
+        :param setup: setup function to run before the scraper
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -269,19 +271,18 @@ class SDK:
             cdp_endpoint=cdp_endpoint,
             record_har_path=record_har_path,
         ) as page:
-            await page.goto(url)
-            await scraper(
-                SDK(
-                    page,
-                    domain=domain,
-                    stage=stage,
-                    observer=observer,
-                    scraper=scraper,
-                    context=context,
-                ),
-                url,
-                context,
+            sdk = SDK(
+                page,
+                domain=domain,
+                stage=stage,
+                observer=observer,
+                scraper=scraper,
+                context=context,
             )
+            if setup:
+                await setup(sdk)
+            await page.goto(url)
+            await scraper(sdk, url, context)
 
     async def get_content_type(self, url: str) -> str:
         async with aiohttp.ClientSession() as session:
