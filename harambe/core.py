@@ -254,9 +254,12 @@ class SDK:
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
         context = context or {}
+        record_har_path = (context["record_har"]["path"] if "record_har" in context and "path" in context["record_har"] else None)
 
         async with playwright_harness(
-            headless=headless, cdp_endpoint=cdp_endpoint
+            headless=headless,
+            cdp_endpoint=cdp_endpoint,
+            record_har_path=record_har_path,
         ) as page:
             await page.goto(url)
             await scraper(
