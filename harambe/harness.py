@@ -13,7 +13,7 @@ async def playwright_harness(
 ) -> AsyncGenerator[Page, None]:
     """
     Context manager for Playwright. Starts a new browser, context, and page, and closes them when done.
-    Also does some basic setup like setting the viewport, user agent, and ignoring HTTPS errors, tracing, and stealth.
+    Also does some basic setup like setting the viewport, user agent, and ignoring HTTPS errors, and stealth.
 
     :param headless: launch browser in headless mode
     :param cdp_endpoint: Chrome DevTools Protocol endpoint to connect to (if using a remote browser)
@@ -37,12 +37,10 @@ async def playwright_harness(
         ctx.set_default_timeout(60000)
         await ctx.route("**/*", UnnecessaryResourceHandler().handle)
 
-        await ctx.tracing.start(screenshots=True, snapshots=True, sources=True)
         page = await ctx.new_page()
         await stealth_async(page)
 
         try:
             yield page
         finally:
-            await ctx.tracing.stop(path="trace.zip")
             await browser.close()
