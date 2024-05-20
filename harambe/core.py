@@ -105,7 +105,10 @@ class SDK:
         context["__url"] = self.page.url
 
         for url in urls:
-            await self._notify_observers("on_queue_url", url, context)
+            normalized_url = (
+                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
+            )
+            await self._notify_observers("on_queue_url", normalized_url, context)
 
     async def paginate(
         self,
@@ -337,7 +340,8 @@ class SDK:
                 if setup:
                     await setup(sdk)
                 await page.goto(listing["url"])
-                await scraper(sdk,
+                await scraper(
+                    sdk,
                     listing["url"],
                     listing["context"],
                 )

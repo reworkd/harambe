@@ -45,6 +45,7 @@ async def test_sdk_save_data_calls_on_save_data_for_each_observer():
 @pytest.mark.asyncio
 async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer():
     page = AsyncMock(spec=Page)
+    page.url = "https://example.net"
     observer = AsyncMock(spec=OutputObserver)
     sdk = SDK(page, observer=observer)
     urls = ["https://example.org", "https://example.com"]
