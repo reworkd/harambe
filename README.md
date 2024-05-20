@@ -222,7 +222,7 @@ Before submitting a PR, please run the following commands to ensure
 that your code is formatted correctly.
 
 ```shell
-make format lint
+make FORMAT LINT
 ```
 
 Happy extraction! 🦍

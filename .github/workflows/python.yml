@@ -39,11 +39,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'poetry'
-      - run: make resolve_deps
+      - run: make RESOLVE_DEPS
       - name: Check code formatting
-        run: make format_check
+        run: make FORMAT_CHECK
       - name: Run linter
-        run: make lint_check
+        run: make LINT_CHECK
 
   pytest:
     runs-on: ubuntu-latest
@@ -55,9 +55,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'poetry'
-      - run: make resolve_deps
+      - run: make RESOLVE_DEPS
       - name: Run pytest
-        run: make test
+        run: make TEST
 
   publish:
     needs: [ check-version, format, pytest ]
@@ -71,7 +71,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: "poetry"
-      - run: make resolve_deps
+      - run: make RESOLVE_DEPS
       - name: Build and Publish
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
