@@ -294,6 +294,8 @@ class SDK:
         scraper: AsyncScraperType,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
+        record_har_path: Optional[str] = None,
+        setup: Optional[SetupType] = None,
     ) -> None:
         """
         Convenience method for running a detail scraper from file. This will load
@@ -324,18 +326,22 @@ class SDK:
 
         listing_data = tracker.load_data(domain, prev)
         async with playwright_harness(
-            headless=headless, cdp_endpoint=cdp_endpoint
+            headless=headless,
+            cdp_endpoint=cdp_endpoint,
+            record_har_path=record_har_path,
         ) as page:
             for listing in listing_data:
+                sdk = SDK(
+                    page,
+                    domain=domain,
+                    stage=stage,
+                    observer=observer,
+                    scraper=scraper,
+                )
+                if setup:
+                    await setup(sdk)
                 await page.goto(listing["url"])
-                await scraper(
-                    SDK(
-                        page,
-                        domain=domain,
-                        stage=stage,
-                        observer=observer,
-                        scraper=scraper,
-                    ),
+                await scraper(sdk,
                     listing["url"],
                     listing["context"],
                 )
