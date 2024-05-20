@@ -11,7 +11,6 @@ from harambe.handlers import UnnecessaryResourceHandler
 async def playwright_harness(
     headless: bool,
     cdp_endpoint: str | None,
-    record_har_path: Optional[str] = None,
 ) -> AsyncGenerator[Page, None]:
     """
     Context manager for Playwright. Starts a new browser, context, and page, and closes them when done.
@@ -19,7 +18,6 @@ async def playwright_harness(
 
     :param headless: launch browser in headless mode
     :param cdp_endpoint: Chrome DevTools Protocol endpoint to connect to (if using a remote browser)
-    :param record_har_path: path to HTTP Archive file (enables HAR capture)
     :return: async generator yielding a Playwright page
     """
 
@@ -35,7 +33,6 @@ async def playwright_harness(
             ignore_https_errors=True,
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
             " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-            record_har_path=record_har_path,
         )
 
         ctx.set_default_timeout(60000)

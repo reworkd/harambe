@@ -15,6 +15,7 @@ for both manual and automatically created web extractors
 - [Example Scraper](#example-scraper)
   - [Detail Only Scraper](#detail-only-scraper)
   - [Listing Scraper](#listing-scraper)
+  - [Using Cache](#using-cache)
 - [Running a Scraper](#running-a-scraper)
 - [Submitting a PR](#submitting-a-pr)
 ---
@@ -144,6 +145,64 @@ async def scrape_detail(sdk: SDK, url: str, context: Any) -> None:
 if __name__ == "__main__":
     asyncio.run(SDK.run(scrape, "https://navicenthealth.org/locations"))
     asyncio.run(SDK.run_from_file(scrape_detail))
+```
+
+
+#### Using Cache
+The code below is an example detail scraper that relies on HAR cache
+that it creates during initial run, subsequently using it as source
+of data to improve speed and consume less bandwidth.
+
+```python
+import asyncio
+import os.path
+from typing import Any
+
+from playwright.async_api import Page
+
+from harambe import SDK
+from harambe import PlaywrightUtils as Pu
+
+HAR_FILE_PATH = "bananas.har"
+SELECTORS = {
+    "last_page": "",
+    "list_view": "//div[@class='et_pb_blurb_content']",
+    "name": "//h4/*[self::span or self::a]",
+    "fax": ">Fax.*?strong>(.*?)<br>",
+    # etc...
+}
+
+
+async def setup(sdk: SDK) -> None:
+    page: Page = sdk.page
+
+    already_cached = os.path.isfile(HAR_FILE_PATH)
+
+    if already_cached:
+        await page.route_from_har(HAR_FILE_PATH, not_found="fallback")
+    else:
+        await page.route_from_har(HAR_FILE_PATH, not_found="fallback", update=True)
+
+
+# Annotation registers the scraper with the SDK
+@SDK.scraper(domain="https://apprhs.org/our-locations/", stage="detail")
+async def scrape(sdk: SDK, url: str, *args: Any, **kwargs: Any) -> None:
+    page: Page = sdk.page
+
+    locations = await page.locator(SELECTORS["list_view"]).all()
+    for location in locations:
+        # Save the data to the database or file
+        await sdk.save_data(
+            {
+                "name": await Pu.get_text(location, SELECTORS["name"]),
+                "fax": await Pu.parse_by_regex(location, SELECTORS["fax"]),
+                # etc...
+            }
+        )
+
+
+if __name__ == "__main__":
+    asyncio.run(SDK.run(scrape, "https://apprhs.org/our-locations/", setup=setup))
 ```
 
 
