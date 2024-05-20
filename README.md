@@ -163,7 +163,7 @@ Before submitting a PR, please run the following commands to ensure
 that your code is formatted correctly.
 
 ```shell
-./format.sh
+make format lint
 ```
 
 Happy extraction! 🦍
