@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator
 
 from playwright.async_api import async_playwright, Page
 from playwright_stealth import stealth_async

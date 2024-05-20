@@ -35,7 +35,8 @@ class AsyncScraper(Protocol):
     Note that scrapers in harambe should be functions, not classes.
     """
 
-    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None: ...
+    async def scrape(self, sdk: "SDK", url: URL, context: Context) -> None:
+        ...
 
 
 class SDK:
@@ -104,7 +105,9 @@ class SDK:
         context["__url"] = self.page.url
 
         for url in urls:
-            normalized_url = normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
+            normalized_url = (
+                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
+            )
             await self._notify_observers("on_queue_url", normalized_url, context)
 
     async def paginate(
