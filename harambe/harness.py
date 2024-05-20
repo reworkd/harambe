@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 from playwright.async_api import async_playwright, Page
 from playwright_stealth import stealth_async
@@ -11,7 +11,7 @@ from harambe.handlers import UnnecessaryResourceHandler
 async def playwright_harness(
     headless: bool,
     cdp_endpoint: str | None,
-    record_har_path: str | None,
+    record_har_path: Optional[str] = None,
 ) -> AsyncGenerator[Page, None]:
     """
     Context manager for Playwright. Starts a new browser, context, and page, and closes them when done.
