@@ -56,15 +56,26 @@ from harambe.types import Schema
                 "address": {"street": None, "city": None, "zip": None},
             },
         ),
+        (
+            # Schema
+            schemas.documents_schema,
+            # Data
+            {"documents": []},
+        ),
+        (
+            # Schema
+            schemas.documents_schema,
+            # Data
+            {
+                "documents": [
+                    {
+                        "title": "Document One",
+                        "document_url": "http://example.com/doc1",
+                    },
+                ]
+            },
+        ),
         # TODO: Support lists and nested objects
-        # (documents_schema, {"documents": []}),
-        #
-        # (documents_schema, {
-        #     "documents": [
-        #         {"title": "Document One", "document_url": "http://example.com/doc1"},
-        #     ]
-        # }),
-        #
         # (list_of_strings_schema, {"tags": ["python", "pydantic", "typing"]}),
         #
         # (list_of_objects_schema,
@@ -153,10 +164,37 @@ def test_pydantic_schema_validator_success(
                 "address": None,  # ❌ No sub-fields
             },
         ),
+        (
+            # Schema
+            schemas.documents_schema,
+            # Data
+            {
+                "documents": None  # ❌ Null list
+            },
+        ),
+        (
+            # Schema
+            schemas.documents_schema,
+            # Data
+            {
+                "documents": [
+                    None  # ❌ Null item in list
+                ]
+            },
+        ),
+        # (
+        #     # Schema
+        #     schemas.list_of_strings_schema,
+        #     # Data
+        #     {
+        #         "tags": [
+        #             None,  # ❌ None in list of strings
+        #             "pydantic",
+        #             "typing",
+        #         ]
+        #     },
+        # ),
         # TODO: Support lists and nested objects
-        # (documents_schema, {"documents": None}),  # Null list
-        # (documents_schema, {"documents": [None]}),  # Null item in list
-        # (list_of_strings_schema, {"tags": [None, "pydantic", "typing"]}),  # None in list of strings
         # (list_of_objects_schema, {"users": [{"name": "Alice", "email": 12345}]}),  # Invalid email type
         # (object_with_list_schema, {"team": {"name": "Developers", "members": [None]}}),  # None in sub-list
         # (list_of_lists_schema, {"matrix": [[1, "a"], [3, 4]]}),  # Invalid type in nested list
