@@ -5,6 +5,7 @@ from playwright.async_api import Page
 
 from harambe.core import SDK, URL, AsyncScraperType, Context
 from harambe.observer import OutputObserver
+from harambe.parser.parser import SchemaValidationError
 from harambe.types import Schema
 
 
@@ -129,5 +130,5 @@ async def test_sdk_save_data_does_not_save_invalid_data():
     sdk = SDK(page, observer=observer, schema=schema)
     data = [{"baz": "456"}]
 
-    await sdk.save_data(*data)
-    assert observer.on_save_data.call_count == 0
+    with pytest.raises(SchemaValidationError):
+        await sdk.save_data(*data)

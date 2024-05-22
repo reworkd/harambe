@@ -10,6 +10,7 @@ from playwright.async_api import (
     ElementHandle,
     TimeoutError as PlaywrightTimeoutError,
 )
+from pydantic import ValidationError
 
 from harambe.handlers import (
     ResourceRequestHandler,
@@ -25,7 +26,7 @@ from harambe.observer import (
     DuplicateHandler,
     ObservationTrigger,
 )
-from harambe.parser.parser import PydanticSchemaParser
+from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
 from harambe.tracker import FileDataTracker
 from harambe.types import (
     URL,
@@ -74,7 +75,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
-        self._schema = schema
+        self._validator = PydanticSchemaParser(schema) if schema is not None else None
         self._saved_data = set()
 
         if not observer:
@@ -100,12 +101,14 @@ class SDK:
 
         url = self.page.url
         for d in data:
-            if self._schema is not None:
-                validator = PydanticSchemaParser(self._schema)
+            if self._validator is not None:
                 try:
-                    validator.validate(d)
-                except ValueError:
-                    continue
+                    self._validator.validate(d)
+                except ValidationError:
+                    raise SchemaValidationError(
+                        data=d,
+                        schema=self._validator.schema,
+                    )
             d["__url"] = url
             await self._notify_observers("on_save_data", d)
 
