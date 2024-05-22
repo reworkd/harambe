@@ -25,8 +25,17 @@ from harambe.observer import (
     DuplicateHandler,
     ObservationTrigger,
 )
+from harambe.parser.parser import PydanticSchemaParser
 from harambe.tracker import FileDataTracker
-from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, SetupType, Stage
+from harambe.types import (
+    URL,
+    AsyncScraperType,
+    Context,
+    ScrapeResult,
+    SetupType,
+    Schema,
+    Stage,
+)
 
 
 class AsyncScraper(Protocol):
@@ -57,6 +66,7 @@ class SDK:
         observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
         scraper: Optional[AsyncScraperType] = None,
         context: Optional[Context] = None,
+        schema: Optional[Schema] = None,
     ):
         self.page = page
         self._id = run_id or uuid.uuid4()
@@ -64,6 +74,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
+        self._schema = schema
         self._saved_data = set()
 
         if not observer:
@@ -89,6 +100,12 @@ class SDK:
 
         url = self.page.url
         for d in data:
+            if self._schema is not None:
+                validator = PydanticSchemaParser(self._schema)
+                try:
+                    validator.validate(d)
+                except ValueError:
+                    continue
             d["__url"] = url
             await self._notify_observers("on_save_data", d)
 
