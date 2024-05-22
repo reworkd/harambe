@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Type
 
-from pydantic import BaseModel, create_model, Field, AnyUrl, Extra
+from pydantic import BaseModel, create_model, Field, AnyUrl, Extra, ValidationError
 from harambe.types import Schema
 
 
@@ -16,10 +16,10 @@ class SchemaParser(ABC):
 
 
 class SchemaValidationError(Exception):
-    def __init__(self, schema, data):
+    def __init__(self, schema, data, message):
         super().__init__(
-            "Data {data} does not match schema {schema}".format(
-                data=data, schema=schema
+            "Data {data} does not match schema {schema}. {message}".format(
+                data=data, schema=schema, message=message
             )
         )
 
@@ -34,7 +34,12 @@ class PydanticSchemaParser(SchemaParser):
         self.model = _schema_to_pydantic_model(schema)
 
     def validate(self, data: Dict[str, Any]) -> None:
-        self.model(**data)
+        try:
+            self.model(**data)
+        except ValidationError as validation_error:
+            raise SchemaValidationError(
+                data=data, schema=self.schema, message=validation_error
+            )
 
 
 def _items_schema_to_python_type(

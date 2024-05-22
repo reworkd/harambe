@@ -1,9 +1,8 @@
 from typing import Any
 
 import pytest
-from pydantic import ValidationError
 
-from harambe.parser.parser import PydanticSchemaParser
+from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
 import tests.parser.schemas as schemas
 from harambe.types import Schema
 
@@ -275,7 +274,7 @@ def test_pydantic_schema_validator_success(
 )
 def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -> None:
     validator = PydanticSchemaParser(schema)
-    with pytest.raises(ValidationError):
+    with pytest.raises(SchemaValidationError):
         validator.validate(data)
 
 
