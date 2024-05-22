@@ -99,3 +99,11 @@ nested_lists_and_objects_schema = {
         },
     }
 }
+
+# Schema that uses a non-existing type
+non_existing_type_schema = {
+    "title": {
+        "type": "this_type_does_not_exist",
+        "description": "Purely to cause error in the test",
+    },
+}

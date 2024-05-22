@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from harambe.parser.parser import PydanticSchemaParser
-from tests.parser.schemas import document_schema, contact_schema
+import tests.parser.schemas as schemas
 from harambe.types import Schema
 
 
@@ -13,13 +13,13 @@ from harambe.types import Schema
     [
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {"title": "Document One", "document_url": "http://example.com/doc1"},
         ),
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {
                 "title": "An interesting document title",
@@ -28,19 +28,19 @@ from harambe.types import Schema
         ),
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {"title": "", "document_url": ""},
         ),
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {"title": None, "document_url": None},
         ),
         (
             # Schema
-            contact_schema,
+            schemas.contact_schema,
             # Data
             {
                 "name": {"first_name": "Jane", "last_name": "Doe"},
@@ -49,7 +49,7 @@ from harambe.types import Schema
         ),
         (
             # Schema
-            contact_schema,
+            schemas.contact_schema,
             # Data
             {
                 "name": {"first_name": None, "last_name": None},
@@ -101,7 +101,7 @@ def test_pydantic_schema_validator_success(
     [
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {
                 "title": "Document One",
@@ -113,7 +113,7 @@ def test_pydantic_schema_validator_success(
         ),
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {
                 "title": "Document Three",
@@ -122,7 +122,7 @@ def test_pydantic_schema_validator_success(
         ),
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {
                 "title": 456,  # ❌ Invalid title type
@@ -131,7 +131,7 @@ def test_pydantic_schema_validator_success(
         ),
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {
                 # ❌ Missing title
@@ -140,13 +140,13 @@ def test_pydantic_schema_validator_success(
         ),
         (
             # Schema
-            document_schema,
+            schemas.document_schema,
             # Data
             {},  # ❌ Missing everything
         ),
         (
             # Schema
-            contact_schema,
+            schemas.contact_schema,
             # Data
             {
                 "name": {"first_name": None, "last_name": "Doe"},
@@ -179,3 +179,14 @@ def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -
     validator = PydanticSchemaParser(schema)
     with pytest.raises(ValidationError):
         validator.validate(data)
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        schemas.non_existing_type_schema,
+    ],
+)
+def test_pydantic_schema_initialization_error(schema: Schema) -> None:
+    with pytest.raises(ValueError):
+        PydanticSchemaParser(schema)
