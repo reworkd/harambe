@@ -58,8 +58,8 @@ def _items_schema_to_python_type(
             )
         ]
     else:
-        # Non complex types should be optional
-        python_type = Optional[get_type(item_type)]
+        # Non complex types aren't optional when they're within a list
+        python_type = get_type(item_type)
 
     return python_type
 

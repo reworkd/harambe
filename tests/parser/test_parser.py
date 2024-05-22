@@ -182,18 +182,18 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # (
-        #     # Schema
-        #     schemas.list_of_strings_schema,
-        #     # Data
-        #     {
-        #         "tags": [
-        #             None,  # ❌ None in list of strings
-        #             "pydantic",
-        #             "typing",
-        #         ]
-        #     },
-        # ),
+        (
+            # Schema
+            schemas.list_of_strings_schema,
+            # Data
+            {
+                "tags": [
+                    None,  # ❌ None in list of strings
+                    "pydantic",
+                    "typing",
+                ]
+            },
+        ),
         # TODO: Support lists and nested objects
         # (list_of_objects_schema, {"users": [{"name": "Alice", "email": 12345}]}),  # Invalid email type
         # (object_with_list_schema, {"team": {"name": "Developers", "members": [None]}}),  # None in sub-list
