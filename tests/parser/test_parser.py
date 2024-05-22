@@ -75,29 +75,50 @@ from harambe.types import Schema
                 ]
             },
         ),
-        # TODO: Support lists and nested objects
-        # (list_of_strings_schema, {"tags": ["python", "pydantic", "typing"]}),
-        #
-        # (list_of_objects_schema,
-        #  {"users": [{"name": "Alice", "email": "alice@example.com"}, {"name": "Bob", "email": "bob@example.com"}]}),
-        #
-        # (object_with_list_schema, {"team": {"name": "Developers", "members": ["Alice", "Bob"]}}),
-        #
-        # (list_of_lists_schema, {"matrix": [[1, 2], [3, 4]]}),
-        #
-        # (nested_lists_and_objects_schema, {
-        #     "departments": [
-        #         {
-        #             "name": "Engineering",
-        #             "teams": [
-        #                 {
-        #                     "team_name": "Backend",
-        #                     "members": ["Alice", "Bob"]
-        #                 }
-        #             ]
-        #         }
-        #     ]
-        # }),
+        (
+            # Schema
+            schemas.list_of_strings_schema,
+            # Data
+            {"tags": ["python", "pydantic", "typing"]},
+        ),
+        (
+            # Schema
+            schemas.list_of_objects_schema,
+            # Data
+            {
+                "users": [
+                    {"name": "Alice", "email": "alice@example.com"},
+                    {"name": "Bob", "email": "bob@example.com"},
+                ]
+            },
+        ),
+        (
+            # Schema
+            schemas.object_with_list_schema,
+            # Data
+            {"team": {"name": "Developers", "members": ["Alice", "Bob"]}},
+        ),
+        (
+            # Schema
+            schemas.list_of_lists_schema,
+            # Data
+            {"matrix": [[1, 2], [3, 4]]},
+        ),
+        (
+            # Schema
+            schemas.nested_lists_and_objects_schema,
+            # Data
+            {
+                "departments": [
+                    {
+                        "name": "Engineering",
+                        "teams": [
+                            {"team_name": "Backend", "members": ["Alice", "Bob"]}
+                        ],
+                    }
+                ]
+            },
+        ),
     ],
 )
 def test_pydantic_schema_validator_success(
@@ -194,23 +215,62 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # TODO: Support lists and nested objects
-        # (list_of_objects_schema, {"users": [{"name": "Alice", "email": 12345}]}),  # Invalid email type
-        # (object_with_list_schema, {"team": {"name": "Developers", "members": [None]}}),  # None in sub-list
-        # (list_of_lists_schema, {"matrix": [[1, "a"], [3, 4]]}),  # Invalid type in nested list
-        # (nested_lists_and_objects_schema, {
-        #     "departments": [
-        #         {
-        #             "name": "Engineering",
-        #             "teams": [
-        #                 {
-        #                     "team_name": "Backend",
-        #                     "members": ["Alice", None]  # None in nested object list
-        #                 }
-        #             ]
-        #         }
-        #     ]
-        # }),
+        (
+            # Schema
+            schemas.list_of_objects_schema,
+            # Data
+            {
+                "users": [
+                    {
+                        "name": "Alice",
+                        "email": 12345,  # ❌ Invalid email type
+                    }
+                ]
+            },
+        ),
+        (
+            # Schema
+            schemas.object_with_list_schema,
+            # Data
+            {
+                "team": {
+                    "name": "Developers",
+                    "members": [None],  # ❌ None in sub-list
+                }
+            },
+        ),
+        (
+            # Schema
+            schemas.list_of_lists_schema,
+            # Data
+            {
+                "matrix": [
+                    [1, "a"],  # ❌ Invalid type in nested list
+                    [3, 4],
+                ]
+            },
+        ),
+        (
+            # Schema
+            schemas.nested_lists_and_objects_schema,
+            # Data
+            {
+                "departments": [
+                    {
+                        "name": "Engineering",
+                        "teams": [
+                            {
+                                "team_name": "Backend",
+                                "members": [
+                                    "Alice",
+                                    None,  # ❌ None in nested object list
+                                ],
+                            }
+                        ],
+                    }
+                ]
+            },
+        ),
     ],
 )
 def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -> None:
