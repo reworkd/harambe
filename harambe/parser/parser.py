@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Type, Optional
 
 from pydantic import BaseModel, create_model, Field, AnyUrl, Extra
+from harambe.types import Schema
 
 
 class SchemaParser(ABC):
@@ -14,12 +15,21 @@ class SchemaParser(ABC):
         pass
 
 
+class SchemaValidationError(Exception):
+    def __init__(self, schema, data):
+        super().__init__(
+            "Data {data} does not match schema {schema}".format(
+                data=data, schema=schema
+            )
+        )
+
+
 class PydanticSchemaParser(SchemaParser):
     """
     A schema parser that uses Pydantic models to validate data against a JSON schema
     """
 
-    def __init__(self, schema: Dict[str, Any]):
+    def __init__(self, schema: Schema):
         self.schema = schema
         self.model = _schema_to_pydantic_model(schema)
 
@@ -28,7 +38,7 @@ class PydanticSchemaParser(SchemaParser):
 
 
 def _schema_to_pydantic_model(
-    schema: Dict[str, Any], model_name: str = "DynamicModel"
+    schema: Schema, model_name: str = "DynamicModel"
 ) -> Type[BaseModel]:
     """
     Convert a JSON schema to a Pydantic model dynamically. All fields are optional
