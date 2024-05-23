@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
+from pydantic import BaseModel, create_model, Field, Extra, ValidationError
 from typing import Any, Dict, List, Optional, Type
 
-from pydantic import BaseModel, create_model, Field, AnyUrl, Extra, ValidationError
 from harambe.types import Schema
+from harambe.parser.type_url import ParserTypeUrl
 
 
 class SchemaParser(ABC):
@@ -115,7 +116,6 @@ def get_type(field: str) -> Type:
 
 OBJECT_TYPE = "object"
 LIST_TYPE = "array"
-COMPLEX_TYPES = [OBJECT_TYPE, LIST_TYPE]
 BASIC_FIELD_TYPE_MAPPING = {
     "string": str,
     "str": str,
@@ -129,6 +129,5 @@ BASIC_FIELD_TYPE_MAPPING = {
     LIST_TYPE: List,
     OBJECT_TYPE: Dict[str, Any],
     # TODO: Add support for date and datetime types
-    # TODO: The URL type should have a custom validator to handle relative URLs
-    "url": AnyUrl,
+    "url": ParserTypeUrl,
 }

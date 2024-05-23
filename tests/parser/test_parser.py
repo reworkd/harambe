@@ -10,12 +10,14 @@ from harambe.types import Schema
 @pytest.mark.parametrize(
     "schema, data",
     [
+        # 0
         (
             # Schema
             schemas.document_schema,
             # Data
             {"title": "Document One", "document_url": "http://example.com/doc1"},
         ),
+        # 1
         (
             # Schema
             schemas.document_schema,
@@ -25,18 +27,21 @@ from harambe.types import Schema
                 "document_url": "https://example.com/doc2",
             },
         ),
+        # 2
         (
             # Schema
             schemas.document_schema,
             # Data
             {"title": "", "document_url": ""},
         ),
+        # 3
         (
             # Schema
             schemas.document_schema,
             # Data
             {"title": None, "document_url": None},
         ),
+        # 4
         (
             # Schema
             schemas.contact_schema,
@@ -46,6 +51,7 @@ from harambe.types import Schema
                 "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890},
             },
         ),
+        # 5
         (
             # Schema
             schemas.contact_schema,
@@ -55,12 +61,14 @@ from harambe.types import Schema
                 "address": {"street": None, "city": None, "zip": None},
             },
         ),
+        # 6
         (
             # Schema
             schemas.documents_schema,
             # Data
             {"documents": []},
         ),
+        # 7
         (
             # Schema
             schemas.documents_schema,
@@ -74,12 +82,14 @@ from harambe.types import Schema
                 ]
             },
         ),
+        # 8
         (
             # Schema
             schemas.list_of_strings_schema,
             # Data
             {"tags": ["python", "pydantic", "typing"]},
         ),
+        # 9
         (
             # Schema
             schemas.list_of_objects_schema,
@@ -91,18 +101,21 @@ from harambe.types import Schema
                 ]
             },
         ),
+        # 10
         (
             # Schema
             schemas.object_with_list_schema,
             # Data
             {"team": {"name": "Developers", "members": ["Alice", "Bob"]}},
         ),
+        # 11
         (
             # Schema
             schemas.list_of_lists_schema,
             # Data
             {"matrix": [[1, 2], [3, 4]]},
         ),
+        # 12
         (
             # Schema
             schemas.nested_lists_and_objects_schema,
@@ -130,6 +143,7 @@ def test_pydantic_schema_validator_success(
 @pytest.mark.parametrize(
     "schema, data",
     [
+        # 0
         (
             # Schema
             schemas.document_schema,
@@ -142,6 +156,7 @@ def test_pydantic_schema_validator_success(
                 },
             },
         ),
+        # 1
         (
             # Schema
             schemas.document_schema,
@@ -151,6 +166,7 @@ def test_pydantic_schema_validator_success(
                 "document_url": 123,  # ❌ Invalid URL type
             },
         ),
+        # 2
         (
             # Schema
             schemas.document_schema,
@@ -160,6 +176,7 @@ def test_pydantic_schema_validator_success(
                 "document_url": "http://example.com/doc4",
             },
         ),
+        # 3
         (
             # Schema
             schemas.document_schema,
@@ -169,12 +186,24 @@ def test_pydantic_schema_validator_success(
                 "document_url": "http://example.com/doc5"
             },
         ),
+        # 4
         (
             # Schema
             schemas.document_schema,
             # Data
             {},  # ❌ Missing everything
         ),
+        # 5
+        (
+            # Schema
+            schemas.document_schema,
+            # Data
+            {
+                "title": "Document Six",
+                "document_url": "gopher://example.com/doc6",  # ❌ Bad URL scheme
+            },
+        ),
+        # 6
         (
             # Schema
             schemas.contact_schema,
@@ -184,6 +213,7 @@ def test_pydantic_schema_validator_success(
                 "address": None,  # ❌ No sub-fields
             },
         ),
+        # 7
         (
             # Schema
             schemas.documents_schema,
@@ -192,6 +222,7 @@ def test_pydantic_schema_validator_success(
                 "documents": None  # ❌ Null list
             },
         ),
+        # 8
         (
             # Schema
             schemas.documents_schema,
@@ -202,6 +233,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
+        # 9
         (
             # Schema
             schemas.list_of_strings_schema,
@@ -214,6 +246,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
+        # 10
         (
             # Schema
             schemas.list_of_objects_schema,
@@ -227,6 +260,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
+        # 11
         (
             # Schema
             schemas.object_with_list_schema,
@@ -238,6 +272,7 @@ def test_pydantic_schema_validator_success(
                 }
             },
         ),
+        # 12
         (
             # Schema
             schemas.list_of_lists_schema,
@@ -249,6 +284,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
+        # 13
         (
             # Schema
             schemas.nested_lists_and_objects_schema,
