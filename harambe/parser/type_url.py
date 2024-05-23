@@ -2,9 +2,9 @@ from pydantic.functional_validators import AfterValidator
 from typing import Optional
 from typing_extensions import Annotated
 import urllib.parse
+from urllib.parse import urljoin, urlparse
 
 from harambe.types import URL
-from harambe.normalize_url import normalize_url
 
 allowed_url_schemes = [
     "data",
@@ -24,7 +24,8 @@ class ParserTypeUrl:
         def _validate_url(url: URL) -> str:
             # Transform relative URLs into absolute using base_url
             if base_url is not None:
-                url = normalize_url(url, base_path=base_url)
+                parsed_base_url = urlparse(base_url, allow_fragments=False)
+                url = urljoin(parsed_base_url.geturl(), url)
 
             # Parse the URL
             try:

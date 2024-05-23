@@ -8,21 +8,6 @@ from harambe.parser.type_url import ParserTypeUrl
 
 OBJECT_TYPE = "object"
 LIST_TYPE = "array"
-BASIC_FIELD_TYPE_MAPPING = {
-    "string": str,
-    "str": str,
-    "boolean": bool,
-    "bool": bool,
-    "integer": int,
-    "int": int,
-    "number": float,
-    "float": float,
-    "double": float,
-    LIST_TYPE: List,
-    OBJECT_TYPE: Dict[str, Any],
-    # TODO: Add support for date and datetime types
-    "url": ParserTypeUrl(),
-}
 
 
 class SchemaParser(ABC):
@@ -51,9 +36,22 @@ class PydanticSchemaParser(SchemaParser):
 
     def __init__(self, schema: Schema, base_url: Optional[URL] = None):
         self.schema = schema
+        self.field_types = {
+            "string": str,
+            "str": str,
+            "boolean": bool,
+            "bool": bool,
+            "integer": int,
+            "int": int,
+            "number": float,
+            "float": float,
+            "double": float,
+            LIST_TYPE: List,
+            OBJECT_TYPE: Dict[str, Any],
+            # TODO: Add support for date and datetime types
+            "url": ParserTypeUrl(base_url=base_url),
+        }
         self.model = self._schema_to_pydantic_model(schema)
-
-        BASIC_FIELD_TYPE_MAPPING["url"] = ParserTypeUrl(base_url=base_url)
 
     def validate(self, data: Dict[str, Any]) -> None:
         try:
@@ -130,7 +128,7 @@ class PydanticSchemaParser(SchemaParser):
         return create_model(model_name, __config__=config, **fields)
 
     def _get_type(self, field: str) -> Type:
-        field_type = BASIC_FIELD_TYPE_MAPPING.get(field)
+        field_type = self.field_types.get(field)
         if not field_type:
             raise ValueError(f"Unsupported field type: {field}")
         return field_type

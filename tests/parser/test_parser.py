@@ -320,7 +320,18 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 14
+    ],
+)
+def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -> None:
+    validator = PydanticSchemaParser(schema, base_url="http://example.com")
+    with pytest.raises(SchemaValidationError):
+        validator.validate(data)
+
+
+@pytest.mark.parametrize(
+    "schema, data",
+    [
+        # 0
         (
             # Schema
             schemas.documents_schema,
@@ -328,16 +339,18 @@ def test_pydantic_schema_validator_success(
             {
                 "documents": [
                     {
-                        "title": "Document One",
-                        "document_url": "/doc1",  # ❌ Relative URL, while no base_url is specified
+                        "title": "Document Seven",
+                        "document_url": "/doc7",  # ❌ Relative URL, with bad base_url specified
                     },
                 ]
             },
         ),
     ],
 )
-def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -> None:
-    validator = PydanticSchemaParser(schema)
+def test_pydantic_schema_validator_bad_base_url_error(
+    schema: Schema, data: dict[str, Any]
+) -> None:
+    validator = PydanticSchemaParser(schema, base_url="gemini://example.com")
     with pytest.raises(SchemaValidationError):
         validator.validate(data)
 
