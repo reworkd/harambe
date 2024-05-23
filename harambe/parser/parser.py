@@ -2,8 +2,27 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, create_model, Field, Extra, ValidationError
 from typing import Any, Dict, List, Optional, Type
 
-from harambe.types import Schema
+from harambe.types import Schema, URL
 from harambe.parser.type_url import ParserTypeUrl
+
+
+OBJECT_TYPE = "object"
+LIST_TYPE = "array"
+BASIC_FIELD_TYPE_MAPPING = {
+    "string": str,
+    "str": str,
+    "boolean": bool,
+    "bool": bool,
+    "integer": int,
+    "int": int,
+    "number": float,
+    "float": float,
+    "double": float,
+    LIST_TYPE: List,
+    OBJECT_TYPE: Dict[str, Any],
+    # TODO: Add support for date and datetime types
+    "url": ParserTypeUrl(),
+}
 
 
 class SchemaParser(ABC):
@@ -30,9 +49,11 @@ class PydanticSchemaParser(SchemaParser):
     A schema parser that uses Pydantic models to validate data against a JSON schema
     """
 
-    def __init__(self, schema: Schema):
+    def __init__(self, schema: Schema, base_url: Optional[URL] = None):
         self.schema = schema
-        self.model = _schema_to_pydantic_model(schema)
+        self.model = self._schema_to_pydantic_model(schema)
+
+        BASIC_FIELD_TYPE_MAPPING["url"] = ParserTypeUrl(base_url=base_url)
 
     def validate(self, data: Dict[str, Any]) -> None:
         try:
@@ -42,92 +63,74 @@ class PydanticSchemaParser(SchemaParser):
                 data=data, schema=self.schema, message=validation_error
             )
 
+    def _items_schema_to_python_type(
+        self, items_info: Schema, model_name: str = "DynamicModelItem"
+    ) -> Type:
+        """
+        Convert a JSON schema's items property to a Python type
+        """
+        item_type = items_info.get("type")
 
-def _items_schema_to_python_type(
-    items_info: Schema, model_name: str = "DynamicModelItem"
-) -> Type:
-    """
-    Convert a JSON schema's items property to a Python type
-    """
-    item_type = items_info.get("type")
-
-    if item_type == OBJECT_TYPE:
-        python_type = _schema_to_pydantic_model(
-            items_info.get("properties", {}),
-            model_name=f"{model_name}Object",
-        )
-    elif item_type == LIST_TYPE:
-        # Lists can't be null
-        python_type = List[
-            _items_schema_to_python_type(
-                items_info.get("items", {}),
+        if item_type == OBJECT_TYPE:
+            python_type = self._schema_to_pydantic_model(
+                items_info.get("properties", {}),
+                model_name=f"{model_name}Object",
             )
-        ]
-    else:
-        # Non complex types aren't optional when they're within a list
-        python_type = get_type(item_type)
-
-    return python_type
-
-
-def _schema_to_pydantic_model(
-    schema: Schema, model_name: str = "DynamicModel"
-) -> Type[BaseModel]:
-    """
-    Convert a JSON schema to a Pydantic model dynamically. All fields are optional
-    """
-    fields = {}
-
-    for field_name, field_info in schema.items():
-        field_description = field_info.get("description", None)
-        field_type = field_info.get("type")
-
-        if field_type == OBJECT_TYPE:
-            python_type = _schema_to_pydantic_model(
-                field_info.get("properties", {}),
-                model_name=f"{model_name}{field_name.capitalize()}",
-            )
-        elif field_type == LIST_TYPE:
+        elif item_type == LIST_TYPE:
             # Lists can't be null
             python_type = List[
-                _items_schema_to_python_type(
-                    field_info.get("items", {}),
+                self._items_schema_to_python_type(
+                    items_info.get("items", {}),
                     model_name=f"{model_name}Item",
                 )
             ]
         else:
-            # Non complex types should be optional
-            python_type = Optional[get_type(field_type)]
+            # Non complex types aren't optional when they're within a list
+            python_type = self._get_type(item_type)
 
-        fields[field_name] = (python_type, Field(..., description=field_description))
+        return python_type
 
-    # Disallow additional fields
-    config = {"extra": Extra.forbid}
+    def _schema_to_pydantic_model(
+        self, schema: Schema, model_name: str = "DynamicModel"
+    ) -> Type[BaseModel]:
+        """
+        Convert a JSON schema to a Pydantic model dynamically. All fields are optional
+        """
+        fields = {}
 
-    return create_model(model_name, __config__=config, **fields)
+        for field_name, field_info in schema.items():
+            field_description = field_info.get("description", None)
+            field_type = field_info.get("type")
 
+            if field_type == OBJECT_TYPE:
+                python_type = self._schema_to_pydantic_model(
+                    field_info.get("properties", {}),
+                    model_name=f"{model_name}{field_name.capitalize()}",
+                )
+            elif field_type == LIST_TYPE:
+                # Lists can't be null
+                python_type = List[
+                    self._items_schema_to_python_type(
+                        field_info.get("items", {}),
+                        model_name=f"{model_name}Item",
+                    )
+                ]
+            else:
+                # Non complex types should be optional
+                python_type = Optional[self._get_type(field_type)]
 
-def get_type(field: str) -> Type:
-    field_type = BASIC_FIELD_TYPE_MAPPING.get(field)
-    if not field_type:
-        raise ValueError(f"Unsupported field type: {field}")
-    return field_type
+            fields[field_name] = (
+                python_type,
+                Field(..., description=field_description),
+            )
 
+        # Disallow additional fields
+        config = {"extra": Extra.forbid}
 
-OBJECT_TYPE = "object"
-LIST_TYPE = "array"
-BASIC_FIELD_TYPE_MAPPING = {
-    "string": str,
-    "str": str,
-    "boolean": bool,
-    "bool": bool,
-    "integer": int,
-    "int": int,
-    "number": float,
-    "float": float,
-    "double": float,
-    LIST_TYPE: List,
-    OBJECT_TYPE: Dict[str, Any],
-    # TODO: Add support for date and datetime types
-    "url": ParserTypeUrl,
-}
+        return create_model(model_name, __config__=config, **fields)
+
+    def _get_type(self, field: str) -> Type:
+        field_type = BASIC_FIELD_TYPE_MAPPING.get(field)
+        if not field_type:
+            raise ValueError(f"Unsupported field type: {field}")
+        return field_type

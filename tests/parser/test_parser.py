@@ -131,12 +131,26 @@ from harambe.types import Schema
                 ]
             },
         ),
+        # 13
+        (
+            # Schema
+            schemas.documents_schema,
+            # Data
+            {
+                "documents": [
+                    {
+                        "title": "Document One",
+                        "document_url": "/doc1",
+                    },
+                ]
+            },
+        ),
     ],
 )
 def test_pydantic_schema_validator_success(
     schema: Schema, data: dict[str, Any]
 ) -> None:
-    validator = PydanticSchemaParser(schema)
+    validator = PydanticSchemaParser(schema, base_url="http://example.com")
     validator.validate(data)
 
 
@@ -303,6 +317,20 @@ def test_pydantic_schema_validator_success(
                             }
                         ],
                     }
+                ]
+            },
+        ),
+        # 14
+        (
+            # Schema
+            schemas.documents_schema,
+            # Data
+            {
+                "documents": [
+                    {
+                        "title": "Document One",
+                        "document_url": "/doc1",  # ❌ Relative URL, while no base_url is specified
+                    },
                 ]
             },
         ),
