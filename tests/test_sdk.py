@@ -100,6 +100,7 @@ async def test_scraper_decorator_preserves_functionality_of_decorated_function(s
 @pytest.mark.asyncio
 async def test_sdk_save_data_saves_valid_data():
     page = AsyncMock(spec=Page)
+    page.url = "https://example.net"
     observer = AsyncMock(spec=OutputObserver)
     schema: Schema = {
         "name": {"type": "string", "description": "The name of the person"},

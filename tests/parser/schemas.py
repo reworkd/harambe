@@ -1,7 +1,7 @@
 document_schema = {
     "title": {"type": "string", "description": "The name of the document"},
     "document_url": {
-        "type": "string",
+        "type": "url",
         "actions": {"download": True},
         "description": "A link to the document",
     },
@@ -15,7 +15,7 @@ documents_schema = {
             "properties": {
                 "title": {"type": "string", "description": "The name of the document"},
                 "document_url": {
-                    "type": "string",
+                    "type": "url",
                     "description": "A link to the document",
                 },
             },
