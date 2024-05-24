@@ -105,6 +105,15 @@ from harambe.parser.type_url import ParserTypeUrl
             # expected
             "mailto:info@example.com",
         ),
+        # 11
+        (
+            # url
+            "//example.com/doc1",
+            # base_url
+            "https://example.com",
+            # expected
+            "https://example.com/doc1",
+        ),
     ],
 )
 def test_pydantic_type_url_validate_url_success(url, base_url, expected):
@@ -134,6 +143,13 @@ def test_pydantic_type_url_validate_url_success(url, base_url, expected):
             "",
             # base_url
             "s4://bucket-name/file-name.pdf",  # ❌ Bad URL scheme
+        ),
+        # 3
+        (
+            # url
+            "htp://example.com/doc1",  # ❌ Bad URL scheme
+            # base_url
+            "https://example.com",
         ),
     ],
 )
