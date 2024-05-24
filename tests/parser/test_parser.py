@@ -150,8 +150,8 @@ from harambe.types import Schema
 def test_pydantic_schema_validator_success(
     schema: Schema, data: dict[str, Any]
 ) -> None:
-    validator = PydanticSchemaParser(schema, base_url="http://example.com")
-    validator.validate(data)
+    validator = PydanticSchemaParser(schema)
+    validator.validate(data, base_url="http://example.com")
 
 
 @pytest.mark.parametrize(
@@ -323,9 +323,9 @@ def test_pydantic_schema_validator_success(
     ],
 )
 def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -> None:
-    validator = PydanticSchemaParser(schema, base_url="http://example.com")
+    validator = PydanticSchemaParser(schema)
     with pytest.raises(SchemaValidationError):
-        validator.validate(data)
+        validator.validate(data, base_url="http://example.com")
 
 
 @pytest.mark.parametrize(
@@ -350,9 +350,9 @@ def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -
 def test_pydantic_schema_validator_bad_base_url_error(
     schema: Schema, data: dict[str, Any]
 ) -> None:
-    validator = PydanticSchemaParser(schema, base_url="gemini://example.com")
+    validator = PydanticSchemaParser(schema)
     with pytest.raises(SchemaValidationError):
-        validator.validate(data)
+        validator.validate(data, base_url="gemini://example.com")
 
 
 @pytest.mark.parametrize(
@@ -361,6 +361,7 @@ def test_pydantic_schema_validator_bad_base_url_error(
         schemas.non_existing_type_schema,
     ],
 )
-def test_pydantic_schema_initialization_error(schema: Schema) -> None:
+def test_pydantic_schema_validator_non_existing_type_error(schema: Schema) -> None:
+    validator = PydanticSchemaParser(schema)
     with pytest.raises(ValueError):
-        PydanticSchemaParser(schema)
+        validator.validate({}, base_url="gemini://example.com")

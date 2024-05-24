@@ -34,7 +34,7 @@ class PydanticSchemaParser(SchemaParser):
     A schema parser that uses Pydantic models to validate data against a JSON schema
     """
 
-    def __init__(self, schema: Schema, base_url: Optional[URL] = None):
+    def __init__(self, schema: Schema):
         self.schema = schema
         self.field_types = {
             "string": str,
@@ -49,11 +49,13 @@ class PydanticSchemaParser(SchemaParser):
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],
             # TODO: Add support for date and datetime types
-            "url": ParserTypeUrl(base_url=base_url),
+            "url": ParserTypeUrl(),
         }
-        self.model = self._schema_to_pydantic_model(schema)
 
-    def validate(self, data: Dict[str, Any]) -> None:
+    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
+        self.field_types["url"] = ParserTypeUrl(base_url=base_url)
+        self.model = self._schema_to_pydantic_model(self.schema)
+
         try:
             self.model(**data)
         except ValidationError as validation_error:

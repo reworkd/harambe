@@ -101,7 +101,7 @@ class SDK:
         url = self.page.url
         for d in data:
             if self._validator is not None:
-                self._validator.validate(d)
+                self._validator.validate(d, base_url=self.page.url)
             d["__url"] = url
             await self._notify_observers("on_save_data", d)
 
