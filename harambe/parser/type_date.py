@@ -218,9 +218,6 @@ time_zones: List[str] = [
 ]
 
 date_formats: List[str] = [
-    "%d/%m/%Y",  # 20/02/1991
-    "%Y-%m-%d",  # 1991-02-20
-    "%d %B, %Y",  # 20 February, 1991
     "%m/%d/%Y %I:%M:%S %p",  # 05/29/2024 02:00:00 PM
     "%m/%d/%Y %I:%M:%S %p (<tz>)",  # 5/22/2024 7:55:50 AM (EST)
     "%m/%d/%Y %I:%M:%S %p (<tz>)",  # 4/30/2024 09:00:02 AM (CT)
