@@ -3,6 +3,7 @@ from pydantic import BaseModel, create_model, Field, Extra, ValidationError
 from typing import Any, Dict, List, Optional, Type
 
 from harambe.types import Schema, URL
+from harambe.parser.type_phone_number import ParserTypePhoneNumber
 from harambe.parser.type_url import ParserTypeUrl
 
 
@@ -50,6 +51,7 @@ class PydanticSchemaParser(SchemaParser):
             OBJECT_TYPE: Dict[str, Any],
             # TODO: Add support for date and datetime types
             "url": ParserTypeUrl(),
+            "phone_number": ParserTypePhoneNumber(),
         }
 
     def validate(self, data: Dict[str, Any], base_url: URL) -> None:
