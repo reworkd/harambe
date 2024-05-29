@@ -260,6 +260,7 @@ class SDK:
     async def run(
         scraper: AsyncScraperType,
         url: str,
+        schema: Schema,
         context: Optional[Context] = None,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
@@ -270,6 +271,7 @@ class SDK:
         invoke the scraper function.
         :param scraper: scraper to run
         :param url: starting url to run the scraper on
+        :param schema: schema used to validate output correctness
         :param context: additional context to pass to the scraper
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
@@ -292,6 +294,7 @@ class SDK:
                 observer=observer,
                 scraper=scraper,
                 context=context,
+                schema=schema,
             )
             if setup:
                 await setup(sdk)
