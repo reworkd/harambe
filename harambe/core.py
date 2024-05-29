@@ -74,7 +74,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
-        self._validator = PydanticSchemaParser(schema) if schema is not None else None
+        self._validator = PydanticSchemaParser(schema) if (schema is not None and schema != {}) else None
         self._saved_data = set()
 
         if not observer:
