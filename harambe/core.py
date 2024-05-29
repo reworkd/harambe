@@ -309,6 +309,7 @@ class SDK:
     @staticmethod
     async def run_from_file(
         scraper: AsyncScraperType,
+        schema: Schema,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
         setup: Optional[SetupType] = None,
@@ -318,6 +319,7 @@ class SDK:
         the listing data from file and pass it to the scraper.
 
         :param scraper: the scraper to run (function)
+        :param schema: schema used to validate output correctness
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
         :return: None: the scraper should save data to the database or file
@@ -352,6 +354,7 @@ class SDK:
                     stage=stage,
                     observer=observer,
                     scraper=scraper,
+                    schema=schema,
                 )
                 if setup:
                     await setup(sdk)
