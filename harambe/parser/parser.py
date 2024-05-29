@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseModel, create_model, Field, Extra, ValidationError
 from typing import Any, Dict, List, Optional, Type
+
+from pydantic import BaseModel, create_model, Field, Extra, ValidationError
 
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_url import ParserTypeUrl
 from harambe.types import Schema, URL
-
 
 OBJECT_TYPE = "object"
 LIST_TYPE = "array"
@@ -49,7 +49,7 @@ class PydanticSchemaParser(SchemaParser):
             "double": float,
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],
-            "date": ParserTypeDate(),
+            "datetime": ParserTypeDate(),
             "url": ParserTypeUrl(),
         }
 
