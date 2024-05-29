@@ -1,233 +1,7 @@
-import datetime
 from pydantic.functional_validators import AfterValidator
-from typing import List
 from typing_extensions import Annotated
 
-time_zones: List[str] = [
-    "ACDT",
-    "ACST",
-    "ACT",
-    "ACT",
-    "ACWST",
-    "ADT",
-    "AEDT",
-    "AEST",
-    "AET",
-    "AFT",
-    "AKDT",
-    "AKST",
-    "ALMT",
-    "AMST",
-    "AMT",
-    "AMT",
-    "ANAT",
-    "AQTT",
-    "ART",
-    "AST",
-    "AST",
-    "AWST",
-    "AZOST",
-    "AZOT",
-    "AZT",
-    "BNT",
-    "BIOT",
-    "BIT",
-    "BOT",
-    "BRST",
-    "BRT",
-    "BST",
-    "BST",
-    "BST",
-    "BTT",
-    "CAT",
-    "CCT",
-    "CDT",
-    "CDT",
-    "CEST",
-    "CET",
-    "CHADT",
-    "CHAST",
-    "CHOT",
-    "CHOST",
-    "CHST",
-    "CHUT",
-    "CIST",
-    "CKT",
-    "CLST",
-    "CLT",
-    "COST",
-    "COT",
-    "CST",
-    "CST",
-    "CST",
-    "CT",
-    "CVT",
-    "CWST",
-    "CXT",
-    "DAVT",
-    "DDUT",
-    "DFT",
-    "EASST",
-    "EAST",
-    "EAT",
-    "ECT",
-    "ECT",
-    "EDT",
-    "EEST",
-    "EET",
-    "EGST",
-    "EGT",
-    "EST",
-    "ET",
-    "FET",
-    "FJT",
-    "FKST",
-    "FKT",
-    "FNT",
-    "GALT",
-    "GAMT",
-    "GET",
-    "GFT",
-    "GILT",
-    "GIT",
-    "GMT",
-    "GST",
-    "GST",
-    "GYT",
-    "HDT",
-    "HAEC",
-    "HST",
-    "HKT",
-    "HMT",
-    "HOVST",
-    "HOVT",
-    "ICT",
-    "IDLW",
-    "IDT",
-    "IOT",
-    "IRDT",
-    "IRKT",
-    "IRST",
-    "IST",
-    "IST",
-    "IST",
-    "JST",
-    "KALT",
-    "KGT",
-    "KOST",
-    "KRAT",
-    "KST",
-    "LHST",
-    "LHST",
-    "LINT",
-    "MAGT",
-    "MART",
-    "MAWT",
-    "MDT",
-    "MET",
-    "MEST",
-    "MHT",
-    "MIST",
-    "MIT",
-    "MMT",
-    "MSK",
-    "MST",
-    "MST",
-    "MT",
-    "MUT",
-    "MVT",
-    "MYT",
-    "NCT",
-    "NDT",
-    "NFT",
-    "NOVT",
-    "NPT",
-    "NST",
-    "NT",
-    "NUT",
-    "NZDT",
-    "NZST",
-    "OMST",
-    "ORAT",
-    "PDT",
-    "PET",
-    "PETT",
-    "PGT",
-    "PHOT",
-    "PHT",
-    "PHST",
-    "PKT",
-    "PMDT",
-    "PMST",
-    "PONT",
-    "PST",
-    "PT",
-    "PWT",
-    "PYST",
-    "PYT",
-    "RET",
-    "ROTT",
-    "SAKT",
-    "SAMT",
-    "SAST",
-    "SBT",
-    "SCT",
-    "SDT",
-    "SGT",
-    "SLST",
-    "SRET",
-    "SRT",
-    "SST",
-    "SST",
-    "SYOT",
-    "TAHT",
-    "THA",
-    "TFT",
-    "TJT",
-    "TKT",
-    "TLT",
-    "TMT",
-    "TRT",
-    "TOT",
-    "TST",
-    "TVT",
-    "ULAST",
-    "ULAT",
-    "UTC",
-    "UYST",
-    "UYT",
-    "UZT",
-    "VET",
-    "VLAT",
-    "VOLT",
-    "VOST",
-    "VUT",
-    "WAKT",
-    "WAST",
-    "WAT",
-    "WEST",
-    "WET",
-    "WIB",
-    "WIT",
-    "WITA",
-    "WGST",
-    "WGT",
-    "WST",
-    "YAKT",
-    "YEKT",
-]
-
-date_formats: List[str] = [
-    "%m/%d/%Y %I:%M:%S %p",  # 05/29/2024 02:00:00 PM
-    "%m/%d/%Y %I:%M:%S %p (<tz>)",  # 5/22/2024 7:55:50 AM (EST)
-    "%m/%d/%Y %I:%M:%S %p (<tz>)",  # 4/30/2024 09:00:02 AM (CT)
-    "%B %d %Y %I:%M%p",  # May 20 2024 2:00PM
-    "%B %d, %Y - %I:%M%p",  # May 14, 2024 - 2:00pm
-    "%B %d, %Y %H:%M:%S",  # December 17, 1995 03:24:00
-    "%Y-%m-%dT%H:%M:%S",  # 1995-12-17T03:24:00
-    "%Y-%m-%dT%H:%M:%S.%fZ",  # 2020-05-12T23:50:21.817Z
-    "%Y-%m-%dT%H:%M:%S.%f%z",  # 2019-01-01T00:00:00.000+00:00
-]
+import dateparser
 
 
 class ParserTypeDate:
@@ -235,25 +9,21 @@ class ParserTypeDate:
         return Annotated[str, AfterValidator(self.validate)]
 
     def validate(date: str):
+        if not isinstance(date, str):
+            raise ValueError("Wrong input type")
+
         # Trim whitespaces
         date = date.strip()
 
         # Make sure it's not empty string
         if len(date) == 0:
             raise ValueError("Empty input")
+
+        # Attempt to parse date string
+        try:
+            dateparser.parse(date)
             return date
+        except ValueError:
+            pass
 
-        # Get rid of time zone name, since it can't be easily parsed by strptime()
-        for time_zone in time_zones:
-            if time_zone in date:
-                date = date.replace(time_zone, "<tz>")
-                break
-
-        # Parse date string
-        for date_format in date_formats:
-            try:
-                datetime.datetime.strptime(date, date_format)
-                return date
-            except ValueError:
-                pass
         raise ValueError(f"Unable to parse input as date: {date}")

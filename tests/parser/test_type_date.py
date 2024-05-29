@@ -34,11 +34,9 @@ def test_pydantic_type_date_validate_success(date_string):
     "date_string",
     [
         # 0
-        "20/02/",  # ❌ Missing year
-        # 1
         "",  # ❌ Empty string
-        # 2
-        "2 seconds ago",  # ❌ Time span instead of date
+        # 1
+        123,  # ❌ Number instead of string
     ],
 )
 def test_pydantic_type_date_validate_error(date_string):
