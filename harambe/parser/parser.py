@@ -2,8 +2,9 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, create_model, Field, Extra, ValidationError
 from typing import Any, Dict, List, Optional, Type
 
-from harambe.types import Schema, URL
+from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_url import ParserTypeUrl
+from harambe.types import Schema, URL
 
 
 OBJECT_TYPE = "object"
@@ -48,7 +49,7 @@ class PydanticSchemaParser(SchemaParser):
             "double": float,
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],
-            # TODO: Add support for date and datetime types
+            "date": ParserTypeDate(),
             "url": ParserTypeUrl(),
         }
 
