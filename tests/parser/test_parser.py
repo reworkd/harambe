@@ -147,6 +147,13 @@ from harambe.types import Schema
                 ]
             },
         ),
+        # 14
+        (
+            # Schema
+            schemas.enums_schema,
+            # Data
+            {"season": "spring"},
+        ),
     ],
 )
 def test_pydantic_schema_validator_success(
@@ -331,6 +338,15 @@ def test_pydantic_schema_validator_success(
                         ],
                     }
                 ]
+            },
+        ),
+        # 14
+        (
+            # Schema
+            schemas.enums_schema,
+            # Data
+            {
+                "season": "autumn"  # ❌ Value that doesn't match any of the enum variants
             },
         ),
     ],
