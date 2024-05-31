@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseModel, create_model, Field, Extra, ValidationError
+from pydantic import BaseModel, create_model, Extra, Field, NameEmail, ValidationError
 from typing import Any, Dict, List, Optional, Type
 
 from harambe.parser.type_date import ParserTypeDate
@@ -62,6 +62,7 @@ class PydanticSchemaParser(SchemaParser):
             "number": float,
             "float": float,
             "double": float,
+            "email": NameEmail,
             "enum": ParserTypeEnum,
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],

@@ -19,6 +19,7 @@ dateparser = "^1.2.0"
 requests = "^2.31.0"
 playwright-stealth = "^1.0.6" # TODO: self host this package
 aiohttp = "^3.9.3"
+email-validator = "^2.1.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.2.1"
