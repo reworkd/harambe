@@ -1,5 +1,6 @@
 from typing import Any, Awaitable, Callable, Dict, Literal
 
+Enum = str
 URL = str
 ScrapeResult = Dict[str, Any]
 Context = Dict[str, Any]
