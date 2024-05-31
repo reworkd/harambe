@@ -37,7 +37,22 @@ class PydanticSchemaParser(SchemaParser):
 
     def __init__(self, schema: Schema):
         self.schema = schema
-        self.field_types = {
+        self.base_url = None
+
+    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
+        self.base_url = base_url
+        self.field_types = self._get_field_types()
+        self.model = self._schema_to_pydantic_model(self.schema)
+
+        try:
+            self.model(**data)
+        except ValidationError as validation_error:
+            raise SchemaValidationError(
+                data=data, schema=self.schema, message=validation_error
+            )
+
+    def _get_field_types(self) -> Dict[str, Type]:
+        return {
             "string": str,
             "str": str,
             "boolean": bool,
@@ -51,19 +66,8 @@ class PydanticSchemaParser(SchemaParser):
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],
             "datetime": ParserTypeDate(),
-            "url": ParserTypeUrl(),
+            "url": ParserTypeUrl(base_url=self.base_url),
         }
-
-    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
-        self.field_types["url"] = ParserTypeUrl(base_url=base_url)
-        self.model = self._schema_to_pydantic_model(self.schema)
-
-        try:
-            self.model(**data)
-        except ValidationError as validation_error:
-            raise SchemaValidationError(
-                data=data, schema=self.schema, message=validation_error
-            )
 
     def _items_schema_to_python_type(
         self, items_info: Schema, model_name: str = "DynamicModelItem"
