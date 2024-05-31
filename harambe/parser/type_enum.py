@@ -7,10 +7,10 @@ from harambe.types import Enum
 
 class ParserTypeEnum:
     def __new__(self, variants: List[Enum]):
-        return Annotated[Enum, AfterValidator(self.validate(variants))]
+        return Annotated[Enum, AfterValidator(self.validate_type(variants))]
 
-    def validate(variants: List[Enum]):
-        def _validate(value: Enum) -> Enum:
+    def validate_type(variants: List[Enum]):
+        def _validate_type(value: Enum) -> Enum:
             # Check if the value exists among variants
             if value not in variants:
                 raise ValueError(
@@ -18,4 +18,4 @@ class ParserTypeEnum:
                 )
             return value
 
-        return _validate
+        return _validate_type

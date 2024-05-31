@@ -12,9 +12,9 @@ phone_number_formats = [
 
 class ParserTypePhoneNumber:
     def __new__(self):
-        return Annotated[str, AfterValidator(self.validate)]
+        return Annotated[str, AfterValidator(self.validate_type)]
 
-    def validate(number: str) -> str:
+    def validate_type(number: str) -> str:
         # Trim whitespaces
         number = number.strip()
         # Attempt to parse phone number

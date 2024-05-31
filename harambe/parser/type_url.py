@@ -18,10 +18,10 @@ allowed_url_schemes = [
 
 class ParserTypeUrl:
     def __new__(self, base_url: Optional[URL] = None):
-        return Annotated[URL, AfterValidator(self.validate_url(base_url))]
+        return Annotated[URL, AfterValidator(self.validate_type(base_url))]
 
-    def validate_url(base_url: Optional[URL]):
-        def _validate_url(url: URL) -> str:
+    def validate_type(base_url: Optional[URL]):
+        def _validate_type(url: URL) -> str:
             # Transform relative URLs into absolute using base_url
             if base_url is not None:
                 parsed_base_url = urlparse(base_url, allow_fragments=False)
@@ -39,4 +39,4 @@ class ParserTypeUrl:
 
             return url
 
-        return _validate_url
+        return _validate_type
