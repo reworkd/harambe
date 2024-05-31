@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
+from pydantic import BaseModel, create_model, Field, Extra, ValidationError
 from typing import Any, Dict, List, Optional, Type
 
-from pydantic import BaseModel, create_model, Field, Extra, ValidationError
-
 from harambe.parser.type_date import ParserTypeDate
+from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_url import ParserTypeUrl
 from harambe.types import Schema, URL
 
@@ -47,6 +47,7 @@ class PydanticSchemaParser(SchemaParser):
             "number": float,
             "float": float,
             "double": float,
+            "enum": ParserTypeEnum,
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],
             "datetime": ParserTypeDate(),
@@ -85,6 +86,9 @@ class PydanticSchemaParser(SchemaParser):
                     model_name=f"{model_name}Item",
                 )
             ]
+        elif item_type == "enum":
+            # Every enum has its own unique variants
+            python_type = self._get_type(item_type)(items_info["variants"])
         else:
             # Non complex types aren't optional when they're within a list
             python_type = self._get_type(item_type)
@@ -116,6 +120,9 @@ class PydanticSchemaParser(SchemaParser):
                         model_name=f"{model_name}Item",
                     )
                 ]
+            elif field_type == "enum":
+                # Every enum has its own unique variants
+                python_type = self._get_type(field_type)(field_info["variants"])
             else:
                 # Non complex types should be optional
                 python_type = Optional[self._get_type(field_type)]

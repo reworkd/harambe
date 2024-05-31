@@ -100,6 +100,19 @@ nested_lists_and_objects_schema = {
     }
 }
 
+# Schema that contains enums
+enums_schema = {
+    "season": {
+        "type": "enum",
+        "variants": [
+            "winter",
+            "spring",
+            "summer",
+            "fall",
+        ],
+    },
+}
+
 # Schema that uses a non-existing type
 non_existing_type_schema = {
     "title": {
