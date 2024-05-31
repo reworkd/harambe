@@ -45,6 +45,16 @@ contact_schema = {
             "zip": {"type": "int", "description": "The zip code of the address"},
         },
     },
+    "phone_numbers": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string"},
+                "number": {"type": "phone_number"},
+            },
+        },
+    },
 }
 
 # Schema with a list of strings

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Type
 
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_enum import ParserTypeEnum
+from harambe.parser.type_phone_number import ParserTypePhoneNumber
 from harambe.parser.type_url import ParserTypeUrl
 from harambe.types import Schema, URL
 
@@ -67,6 +68,7 @@ class PydanticSchemaParser(SchemaParser):
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],
             "datetime": ParserTypeDate(),
+            "phone_number": ParserTypePhoneNumber(),
             "url": ParserTypeUrl(base_url=self.base_url),
         }
 

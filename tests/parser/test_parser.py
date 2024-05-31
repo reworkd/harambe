@@ -49,6 +49,7 @@ from harambe.types import Schema
             {
                 "name": {"first_name": "Jane", "last_name": "Doe"},
                 "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890},
+                "phone_numbers": [{"type": "home", "number": "+1 (415) 555-1234"}],
             },
         ),
         # 5
@@ -59,6 +60,7 @@ from harambe.types import Schema
             {
                 "name": {"first_name": None, "last_name": None},
                 "address": {"street": None, "city": None, "zip": None},
+                "phone_numbers": [{"type": "mobile", "number": "+1 (628) 555-3456"}],
             },
         ),
         # 6
@@ -237,13 +239,24 @@ def test_pydantic_schema_validator_success(
         # 7
         (
             # Schema
+            schemas.contact_schema,
+            # Data
+            {
+                "name": {"first_name": None, "last_name": "Doe"},
+                "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890},
+                "phone_numbers": [{"number": 1234567890}],  # ❌ Bad phone number
+            },
+        ),
+        # 8
+        (
+            # Schema
             schemas.documents_schema,
             # Data
             {
                 "documents": None  # ❌ Null list
             },
         ),
-        # 8
+        # 9
         (
             # Schema
             schemas.documents_schema,
@@ -254,7 +267,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 9
+        # 10
         (
             # Schema
             schemas.list_of_strings_schema,
@@ -267,7 +280,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 10
+        # 11
         (
             # Schema
             schemas.list_of_objects_schema,
@@ -281,7 +294,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 11
+        # 12
         (
             # Schema
             schemas.object_with_list_schema,
@@ -293,7 +306,7 @@ def test_pydantic_schema_validator_success(
                 }
             },
         ),
-        # 12
+        # 13
         (
             # Schema
             schemas.list_of_lists_schema,
@@ -305,7 +318,7 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 13
+        # 14
         (
             # Schema
             schemas.nested_lists_and_objects_schema,
