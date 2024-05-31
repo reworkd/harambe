@@ -26,8 +26,8 @@ from harambe.parser.type_date import ParserTypeDate
         "2019-01-01T00:00:00.000+00:00",
     ],
 )
-def test_pydantic_type_date_validate_success(date_string):
-    assert ParserTypeDate.validate(date_string)
+def test_pydantic_type_date_validate_type_success(date_string):
+    assert ParserTypeDate.validate_type(date_string)
 
 
 @pytest.mark.parametrize(
@@ -39,6 +39,6 @@ def test_pydantic_type_date_validate_success(date_string):
         123,  # ❌ Number instead of string
     ],
 )
-def test_pydantic_type_date_validate_error(date_string):
+def test_pydantic_type_date_validate_type_error(date_string):
     with pytest.raises(ValueError):
-        ParserTypeDate.validate(date_string)
+        ParserTypeDate.validate_type(date_string)

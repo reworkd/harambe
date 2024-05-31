@@ -20,8 +20,8 @@ from harambe.parser.type_phone_number import ParserTypePhoneNumber
         "206-555-7115",
     ],
 )
-def test_pydantic_type_phone_number_validate_success(phone_number):
-    assert ParserTypePhoneNumber.validate(phone_number) == phone_number
+def test_pydantic_type_phone_number_validate_type_success(phone_number):
+    assert ParserTypePhoneNumber.validate_type(phone_number) == phone_number
 
 
 @pytest.mark.parametrize(
@@ -33,6 +33,6 @@ def test_pydantic_type_phone_number_validate_success(phone_number):
         "415-111-1111 Directions",  # ❌ Extra text
     ],
 )
-def test_pydantic_type_phone_number_validate_error(phone_number):
+def test_pydantic_type_phone_number_validate_type_error(phone_number):
     with pytest.raises(ValueError):
-        ParserTypePhoneNumber.validate(phone_number)
+        ParserTypePhoneNumber.validate_type(phone_number)

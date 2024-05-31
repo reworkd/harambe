@@ -6,9 +6,9 @@ import dateparser
 
 class ParserTypeDate:
     def __new__(self):
-        return Annotated[str, AfterValidator(self.validate)]
+        return Annotated[str, AfterValidator(self.validate_type)]
 
-    def validate(date: str):
+    def validate_type(date: str):
         if not isinstance(date, str):
             raise ValueError("Wrong input type")
 
