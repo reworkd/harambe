@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "harambe-sdk"
-version = "0.11.0"
+version = "0.13.1"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = ["awtkns <hello@awtkns.com>"]
 readme = "README.md"
@@ -15,6 +15,7 @@ python = "^3.11"
 playwright = "^1.39.0"
 setuptools = "^69.0.2"
 beautifulsoup4 = "^4.12.2"
+dateparser = "^1.2.0"
 requests = "^2.31.0"
 playwright-stealth = "^1.0.6" # TODO: self host this package
 aiohttp = "^3.9.3"
