@@ -105,6 +105,15 @@ from harambe.parser.type_url import ParserTypeUrl
             # expected
             "mailto:info@example.com",
         ),
+        # 11
+        (
+            # url
+            "//example.com/doc1",
+            # base_url
+            "https://example.com",
+            # expected
+            "https://example.com/doc1",
+        ),
     ],
 )
 def test_pydantic_type_url_validate_url_success(url, base_url, expected):
@@ -112,7 +121,7 @@ def test_pydantic_type_url_validate_url_success(url, base_url, expected):
 
 
 @pytest.mark.parametrize(
-    "url, base_url, expected",
+    "url, base_url",
     [
         # 0
         (
@@ -120,8 +129,6 @@ def test_pydantic_type_url_validate_url_success(url, base_url, expected):
             "",
             # base_url
             "",  # ❌ An empty string
-            # expected
-            "",
         ),
         # 1
         (
@@ -129,8 +136,6 @@ def test_pydantic_type_url_validate_url_success(url, base_url, expected):
             "",
             # base_url
             "www.example.com",  # ❌ Isn't a valid URL
-            # expected
-            "",
         ),
         # 2
         (
@@ -138,11 +143,16 @@ def test_pydantic_type_url_validate_url_success(url, base_url, expected):
             "",
             # base_url
             "s4://bucket-name/file-name.pdf",  # ❌ Bad URL scheme
-            # expected
-            "",
+        ),
+        # 3
+        (
+            # url
+            "htp://example.com/doc1",  # ❌ Bad URL scheme
+            # base_url
+            "https://example.com",
         ),
     ],
 )
-def test_pydantic_type_url_validate_url_error(url, base_url, expected):
+def test_pydantic_type_url_validate_url_error(url, base_url):
     with pytest.raises(ValueError):
-        ParserTypeUrl.validate_url(base_url)(url) == expected
+        ParserTypeUrl.validate_url(base_url)(url)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseModel, create_model, Field, Extra, ValidationError
+from pydantic import BaseModel, create_model, Extra, Field, NameEmail, ValidationError
 from typing import Any, Dict, List, Optional, Type
 
 from harambe.parser.type_date import ParserTypeDate
@@ -38,7 +38,22 @@ class PydanticSchemaParser(SchemaParser):
 
     def __init__(self, schema: Schema):
         self.schema = schema
-        self.field_types = {
+        self.base_url = None
+
+    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
+        self.base_url = base_url
+        self.field_types = self._get_field_types()
+        self.model = self._schema_to_pydantic_model(self.schema)
+
+        try:
+            self.model(**data)
+        except ValidationError as validation_error:
+            raise SchemaValidationError(
+                data=data, schema=self.schema, message=validation_error
+            )
+
+    def _get_field_types(self) -> Dict[str, Type]:
+        return {
             "string": str,
             "str": str,
             "boolean": bool,
@@ -48,24 +63,14 @@ class PydanticSchemaParser(SchemaParser):
             "number": float,
             "float": float,
             "double": float,
+            "email": NameEmail,
             "enum": ParserTypeEnum,
             LIST_TYPE: List,
             OBJECT_TYPE: Dict[str, Any],
             "datetime": ParserTypeDate(),
-            "url": ParserTypeUrl(),
             "phone_number": ParserTypePhoneNumber(),
+            "url": ParserTypeUrl(base_url=self.base_url),
         }
-
-    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
-        self.field_types["url"] = ParserTypeUrl(base_url=base_url)
-        self.model = self._schema_to_pydantic_model(self.schema)
-
-        try:
-            self.model(**data)
-        except ValidationError as validation_error:
-            raise SchemaValidationError(
-                data=data, schema=self.schema, message=validation_error
-            )
 
     def _items_schema_to_python_type(
         self, items_info: Schema, model_name: str = "DynamicModelItem"

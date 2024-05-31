@@ -66,7 +66,7 @@ list_of_objects_schema = {
         "type": "array",
         "items": {
             "type": "object",
-            "properties": {"name": {"type": "string"}, "email": {"type": "string"}},
+            "properties": {"name": {"type": "string"}, "email": {"type": "email"}},
         },
     }
 }
