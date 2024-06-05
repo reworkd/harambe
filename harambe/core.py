@@ -194,6 +194,7 @@ class SDK:
         self,
         clickable: ElementHandle,
         override_filename: str | None = None,
+        override_url: str | None = None,
     ) -> DownloadMeta:
         """
         Capture the download of a click event. This will click the element, download the resulting file
@@ -212,7 +213,7 @@ class SDK:
 
         res = await self._notify_observers(
             "on_download",
-            download.url,
+            override_url if override_url else download.url,
             override_filename if override_filename else download.suggested_filename,
             content,
             check_duplication=False,
