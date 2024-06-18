@@ -86,7 +86,7 @@ class FileDataTracker(DataTracker):
 
         # Save the updated data back to the JSON file
         with domain_file.open("w") as file:
-            json.dump(data, file, indent=4)
+            json.dump(data, file, indent=4, ensure_ascii=False)
 
     def load_data(self, url: str, stage: str) -> List[Dict]:
         """Load data for a domain and stage from a JSON file"""
