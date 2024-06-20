@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseModel, create_model, Extra, Field, NameEmail, ValidationError
 from typing import Any, Dict, List, Optional, Type
+
+from pydantic import BaseModel, create_model, Extra, Field, NameEmail, ValidationError
 
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_enum import ParserTypeEnum
@@ -79,6 +80,8 @@ class PydanticSchemaParser(SchemaParser):
         Convert a JSON schema's items property to a Python type
         """
         item_type = items_info.get("type")
+        if item_type is None:
+            raise ValueError(f"Item type for array `{model_name}` is missing")
 
         if item_type == OBJECT_TYPE:
             python_type = self._schema_to_pydantic_model(
@@ -116,14 +119,14 @@ class PydanticSchemaParser(SchemaParser):
 
             if field_type == OBJECT_TYPE:
                 python_type = self._schema_to_pydantic_model(
-                    field_info.get("properties", {}),
+                    field_info.get("properties", {}) or {},
                     model_name=f"{model_name}{field_name.capitalize()}",
                 )
             elif field_type == LIST_TYPE:
                 # Lists can't be null
                 python_type = List[
                     self._items_schema_to_python_type(
-                        field_info.get("items", {}),
+                        field_info.get("items", {}) or {},
                         model_name=f"{model_name}Item",
                     )
                 ]
