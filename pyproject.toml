@@ -20,6 +20,7 @@ requests = "^2.32.3"
 playwright-stealth = "^1.0.6" # TODO: self host this package
 aiohttp = "^3.9.5"
 email-validator = "^2.2.0"
+phonenumbers = "^8.13.39"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.10"
