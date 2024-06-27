@@ -12,6 +12,9 @@ class ParserTypeDate:
 
     @staticmethod
     def validate_type(date: str) -> str:
+        # Cast to string incase the date is a datetime float/number
+        date = str(date)
+
         # Trim whitespaces
         date = date.strip()
 
