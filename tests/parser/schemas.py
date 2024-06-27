@@ -130,3 +130,60 @@ non_existing_type_schema = {
         "description": "Purely to cause error in the test",
     },
 }
+
+datetime_schema = {
+    "event": {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "description": "The name of the event"},
+            "date": {"type": "datetime", "description": "The date of the event"},
+        },
+    }
+}
+
+phone_number_schema = {
+    "contact": {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "description": "The name of the contact"},
+            "phone": {"type": "phone_number", "description": "The phone number"},
+        },
+    }
+}
+
+url_schema = {
+    "resource": {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "description": "The name of the resource"},
+            "link": {"type": "url", "description": "A link to the resource"},
+        },
+    }
+}
+
+object_with_nested_types_schema = {
+    "profile": {
+        "type": "object",
+        "properties": {
+            "user": {"type": "string", "description": "Username"},
+            "contact": {"type": "phone_number", "description": "Contact number"},
+            "event_date": {"type": "datetime", "description": "Event date"},
+            "website": {"type": "url", "description": "Website URL"},
+        },
+    }
+}
+
+list_with_nested_types_schema = {
+    "events": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "dates": {"type": "array", "items": {"type": "datetime"}},
+                "contacts": {"type": "array", "items": {"type": "phone_number"}},
+                "links": {"type": "array", "items": {"type": "url"}},
+            },
+        },
+    }
+}
