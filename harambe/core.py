@@ -25,8 +25,17 @@ from harambe.observer import (
     DuplicateHandler,
     ObservationTrigger,
 )
+from harambe.parser.parser import PydanticSchemaParser
 from harambe.tracker import FileDataTracker
-from harambe.types import URL, AsyncScraperType, Context, ScrapeResult, Stage
+from harambe.types import (
+    URL,
+    AsyncScraperType,
+    Context,
+    ScrapeResult,
+    SetupType,
+    Schema,
+    Stage,
+)
 
 
 class AsyncScraper(Protocol):
@@ -57,6 +66,7 @@ class SDK:
         observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
         scraper: Optional[AsyncScraperType] = None,
         context: Optional[Context] = None,
+        schema: Optional[Schema] = None,
     ):
         self.page = page
         self._id = run_id or uuid.uuid4()
@@ -64,6 +74,11 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
+        self._validator = (
+            PydanticSchemaParser(schema)
+            if (schema is not None and schema != {})
+            else None
+        )
         self._saved_data = set()
 
         if not observer:
@@ -89,6 +104,8 @@ class SDK:
 
         url = self.page.url
         for d in data:
+            if self._validator is not None:
+                self._validator.validate(d, base_url=self.page.url)
             d["__url"] = url
             await self._notify_observers("on_save_data", d)
 
@@ -105,7 +122,10 @@ class SDK:
         context["__url"] = self.page.url
 
         for url in urls:
-            await self._notify_observers("on_queue_url", url, context)
+            normalized_url = (
+                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
+            )
+            await self._notify_observers("on_queue_url", normalized_url, context)
 
     async def paginate(
         self,
@@ -173,6 +193,8 @@ class SDK:
     async def capture_download(
         self,
         clickable: ElementHandle,
+        override_filename: str | None = None,
+        override_url: str | None = None,
     ) -> DownloadMeta:
         """
         Capture the download of a click event. This will click the element, download the resulting file
@@ -190,7 +212,11 @@ class SDK:
                 content = f.read()
 
         res = await self._notify_observers(
-            "on_download", download.url, download.suggested_filename, content
+            "on_download",
+            override_url if override_url else download.url,
+            override_filename if override_filename else download.suggested_filename,
+            content,
+            check_duplication=False,
         )
         return res[0]
 
@@ -212,7 +238,11 @@ class SDK:
         return res[0]
 
     async def _notify_observers(
-        self, method: ObservationTrigger, *args: Any, **kwargs: Any
+        self,
+        method: ObservationTrigger,
+        *args: Any,
+        check_duplication: bool = True,
+        **kwargs: Any,
     ) -> Any:
         """
         Notify all observers of an event. This will call the method on each observer that is subscribed. Note that
@@ -223,7 +253,10 @@ class SDK:
         :param kwargs: keyword arguments to pass to the method
         :return: the result of the method call
         """
-        duplicated = await getattr(self._deduper, method)(*args, **kwargs)
+        duplicated = False
+        if check_duplication:
+            duplicated = await getattr(self._deduper, method)(*args, **kwargs)
+
         if not duplicated:
             return await asyncio.gather(
                 *[getattr(o, method)(*args, **kwargs) for o in self._observers]
@@ -233,18 +266,22 @@ class SDK:
     async def run(
         scraper: AsyncScraperType,
         url: str,
+        schema: Schema,
         context: Optional[Context] = None,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
+        setup: Optional[SetupType] = None,
     ) -> None:
         """
         Convenience method for running a scraper. This will launch a browser and
         invoke the scraper function.
         :param scraper: scraper to run
         :param url: starting url to run the scraper on
+        :param schema: schema used to validate output correctness
         :param context: additional context to pass to the scraper
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
+        :param setup: setup function to run before the scraper
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -253,21 +290,22 @@ class SDK:
         context = context or {}
 
         async with playwright_harness(
-            headless=headless, cdp_endpoint=cdp_endpoint
+            headless=headless,
+            cdp_endpoint=cdp_endpoint,
         ) as page:
-            await page.goto(url)
-            await scraper(
-                SDK(
-                    page,
-                    domain=domain,
-                    stage=stage,
-                    observer=observer,
-                    scraper=scraper,
-                    context=context,
-                ),
-                url,
-                context,
+            sdk = SDK(
+                page,
+                domain=domain,
+                stage=stage,
+                observer=observer,
+                scraper=scraper,
+                context=context,
+                schema=schema,
             )
+            if setup:
+                await setup(sdk)
+            await page.goto(url)
+            await scraper(sdk, url, context)
 
     async def get_content_type(self, url: str) -> str:
         async with aiohttp.ClientSession() as session:
@@ -277,14 +315,17 @@ class SDK:
     @staticmethod
     async def run_from_file(
         scraper: AsyncScraperType,
+        schema: Schema,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
+        setup: Optional[SetupType] = None,
     ) -> None:
         """
         Convenience method for running a detail scraper from file. This will load
         the listing data from file and pass it to the scraper.
 
         :param scraper: the scraper to run (function)
+        :param schema: schema used to validate output correctness
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
         :return: None: the scraper should save data to the database or file
@@ -309,18 +350,23 @@ class SDK:
 
         listing_data = tracker.load_data(domain, prev)
         async with playwright_harness(
-            headless=headless, cdp_endpoint=cdp_endpoint
+            headless=headless,
+            cdp_endpoint=cdp_endpoint,
         ) as page:
             for listing in listing_data:
+                sdk = SDK(
+                    page,
+                    domain=domain,
+                    stage=stage,
+                    observer=observer,
+                    scraper=scraper,
+                    schema=schema,
+                )
+                if setup:
+                    await setup(sdk)
                 await page.goto(listing["url"])
                 await scraper(
-                    SDK(
-                        page,
-                        domain=domain,
-                        stage=stage,
-                        observer=observer,
-                        scraper=scraper,
-                    ),
+                    sdk,
                     listing["url"],
                     listing["context"],
                 )

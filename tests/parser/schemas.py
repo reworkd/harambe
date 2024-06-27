@@ -1,7 +1,7 @@
 document_schema = {
     "title": {"type": "string", "description": "The name of the document"},
     "document_url": {
-        "type": "string",
+        "type": "url",
         "actions": {"download": True},
         "description": "A link to the document",
     },
@@ -15,7 +15,7 @@ documents_schema = {
             "properties": {
                 "title": {"type": "string", "description": "The name of the document"},
                 "document_url": {
-                    "type": "string",
+                    "type": "url",
                     "description": "A link to the document",
                 },
             },
@@ -45,6 +45,16 @@ contact_schema = {
             "zip": {"type": "int", "description": "The zip code of the address"},
         },
     },
+    "phone_numbers": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string"},
+                "number": {"type": "phone_number"},
+            },
+        },
+    },
 }
 
 # Schema with a list of strings
@@ -56,7 +66,7 @@ list_of_objects_schema = {
         "type": "array",
         "items": {
             "type": "object",
-            "properties": {"name": {"type": "string"}, "email": {"type": "string"}},
+            "properties": {"name": {"type": "string"}, "email": {"type": "email"}},
         },
     }
 }
@@ -98,4 +108,25 @@ nested_lists_and_objects_schema = {
             },
         },
     }
+}
+
+# Schema that contains enums
+enums_schema = {
+    "season": {
+        "type": "enum",
+        "variants": [
+            "winter",
+            "spring",
+            "summer",
+            "fall",
+        ],
+    },
+}
+
+# Schema that uses a non-existing type
+non_existing_type_schema = {
+    "title": {
+        "type": "this_type_does_not_exist",
+        "description": "Purely to cause error in the test",
+    },
 }
