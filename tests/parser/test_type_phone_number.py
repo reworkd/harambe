@@ -15,9 +15,41 @@ from harambe.parser.type_phone_number import ParserTypePhoneNumber
         # 3
         "(+4) 1111111111 (Extension: 323)",
         # 4
-        "206-555-7115, ext. 239",
+        "206-555-7115, ext. 239",  # Domestic, with extension
         # 5
-        "206-555-7115",
+        "212-456-7890",  # Domestic
+        # 6
+        "456-7890",  # Local Phone Number
+        # 7
+        "+1-212-456-7890",  # International Phone Number
+        # 8
+        "1-212-456-7890",  # Dialed in the US
+        # 9
+        "001-212-456-7890",  # Dialed in Germany
+        # 10
+        "191-212-456-7890",  # Dialed in France
+        # 11
+        "2124567890",
+        # 12
+        "212-456-7890",
+        # 13
+        "(212)456-7890",
+        # 14
+        "(212)-456-7890",
+        # 15
+        "212.456.7890",
+        # 16
+        "212 456 7890",
+        # 17
+        "+12124567890",
+        # 18
+        "+12124567890",
+        # 19
+        "+1 212.456.7890",
+        # 20
+        "+212-456-7890",
+        # 21
+        "1-212-456-7890",
     ],
 )
 def test_pydantic_type_phone_number_validate_type_success(phone_number):
