@@ -3,8 +3,13 @@ from typing import Dict, Any
 import pytest
 
 from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
-from tests.parser.schemas import datetime_schema, phone_number_schema, url_schema, object_with_nested_types_schema, \
-    list_with_nested_types_schema
+from tests.parser.schemas import (
+    datetime_schema,
+    phone_number_schema,
+    url_schema,
+    object_with_nested_types_schema,
+    list_with_nested_types_schema,
+)
 
 
 @pytest.mark.parametrize(
@@ -26,7 +31,12 @@ from tests.parser.schemas import datetime_schema, phone_number_schema, url_schem
         (
             url_schema,
             {"resource": {"name": "API Documentation", "link": "/docs"}},
-            {"resource": {"name": "API Documentation", "link": "http://example.com/docs"}},
+            {
+                "resource": {
+                    "name": "API Documentation",
+                    "link": "http://example.com/docs",
+                }
+            },
         ),
         # # Test object with nested types
         (
@@ -67,7 +77,10 @@ from tests.parser.schemas import datetime_schema, phone_number_schema, url_schem
                         "name": "Event 1",
                         "dates": ["2024-06-27T10:00:00", "2024-07-01T15:00:00"],
                         "contacts": ["+1 800-555-1234", "+1 800-555-5678"],
-                        "links": ["http://example.com/event1", "http://example.com/event1details"],
+                        "links": [
+                            "http://example.com/event1",
+                            "http://example.com/event1details",
+                        ],
                     }
                 ]
             },
@@ -75,9 +88,7 @@ from tests.parser.schemas import datetime_schema, phone_number_schema, url_schem
     ],
 )
 def test_parser_with_updated_types_success(
-    schema: Dict[str, Any],
-    data: Dict[str, Any],
-    expected: Dict[str, Any]
+    schema: Dict[str, Any], data: Dict[str, Any], expected: Dict[str, Any]
 ) -> None:
     validator = PydanticSchemaParser(schema)
     validated_data = validator.validate(data, base_url="http://example.com")
@@ -130,7 +141,9 @@ def test_parser_with_updated_types_success(
         ),
     ],
 )
-def parser_with_updated_types_error(schema: Dict[str, Any], data: Dict[str, Any]) -> None:
+def parser_with_updated_types_error(
+    schema: Dict[str, Any], data: Dict[str, Any]
+) -> None:
     validator = PydanticSchemaParser(schema)
     with pytest.raises(SchemaValidationError):
         validator.validate(data, base_url="http://example.com")

@@ -27,15 +27,15 @@ class ParserTypeDate:
 
         if parsed_date is None:
             # Remove timezone abbreviation in parentheses if present
-            date = re.sub(r'\s*\(.*\)$', '', date).strip()
+            date = re.sub(r"\s*\(.*\)$", "", date).strip()
 
             # List of datetime formats to try
             datetime_formats = [
-                '%m/%d/%Y %I:%M:%S %p',  # 4/30/2024 09:00:02 AM
-                '%Y-%m-%dT%H:%M:%S',  # 2024-04-30T09:00:02
-                '%Y-%m-%d %H:%M:%S',  # 2024-04-30 09:00:02
-                '%B %d, %Y - %I:%M%p',  # May 14, 2024 - 2:00pm
-                '%m/%d/%Y',  # 4/30/2024
+                "%m/%d/%Y %I:%M:%S %p",  # 4/30/2024 09:00:02 AM
+                "%Y-%m-%dT%H:%M:%S",  # 2024-04-30T09:00:02
+                "%Y-%m-%d %H:%M:%S",  # 2024-04-30 09:00:02
+                "%B %d, %Y - %I:%M%p",  # May 14, 2024 - 2:00pm
+                "%m/%d/%Y",  # 4/30/2024
             ]
 
             # Attempt to parse using datetime with specific formats
