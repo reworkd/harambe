@@ -1,5 +1,7 @@
-from pydantic.functional_validators import AfterValidator
 import re
+
+import phonenumbers
+from pydantic.functional_validators import AfterValidator
 from typing_extensions import Annotated
 
 phone_number_formats = [
@@ -12,12 +14,28 @@ phone_number_formats = [
 
 
 class ParserTypePhoneNumber:
-    def __new__(self):
-        return Annotated[str, AfterValidator(self.validate_type)]
+    def __new__(cls):
+        return Annotated[str, AfterValidator(cls.validate_type)]
 
+    @staticmethod
     def validate_type(number: str) -> str:
         # Trim whitespaces
         formatted_number = number.strip()
+
+        # First, try using the phonenumbers library
+        try:
+            phone_number = phonenumbers.parse(
+                formatted_number, None
+            )  # 'None' implies no specific region
+            if phonenumbers.is_valid_number(phone_number):
+                # Return the phone number in international format
+                return phonenumbers.format_number(
+                    phone_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL
+                )
+        except phonenumbers.phonenumberutil.NumberParseException:
+            pass
+
+        # If phonenumbers library fails, fall back to regex validation
         # Remove plus sign
         formatted_number = number.replace("+", "")
         # Attempt to parse phone number

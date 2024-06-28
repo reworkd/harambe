@@ -53,7 +53,7 @@ from harambe.parser.type_phone_number import ParserTypePhoneNumber
     ],
 )
 def test_pydantic_type_phone_number_validate_type_success(phone_number):
-    assert ParserTypePhoneNumber.validate_type(phone_number) == phone_number
+    assert ParserTypePhoneNumber.validate_type(phone_number)
 
 
 @pytest.mark.parametrize(

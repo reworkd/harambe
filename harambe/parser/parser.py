@@ -19,7 +19,7 @@ class SchemaParser(ABC):
     """
 
     @abstractmethod
-    def validate(self, data: Dict[str, Any]) -> None:
+    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
         pass
 
 
@@ -39,21 +39,24 @@ class PydanticSchemaParser(SchemaParser):
 
     def __init__(self, schema: Schema):
         self.schema = schema
-        self.base_url = None
+        self.model = None
+        self.field_types = None
 
-    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
-        self.base_url = base_url
-        self.field_types = self._get_field_types()
+    def validate(self, data: Dict[str, Any], base_url: URL) -> Dict[str, Any]:
+        # Set these values here for convenience to avoid passing them around. A bit hacky
+        self.field_types = self._get_field_types(base_url)
+
         self.model = self._schema_to_pydantic_model(self.schema)
 
         try:
-            self.model(**data)
+            return self.model(**data).dict()
         except ValidationError as validation_error:
             raise SchemaValidationError(
                 data=data, schema=self.schema, message=validation_error
             )
 
-    def _get_field_types(self) -> Dict[str, Type]:
+    @staticmethod
+    def _get_field_types(base_url: str) -> Dict[str, Type]:
         return {
             "string": str,
             "str": str,
@@ -70,7 +73,7 @@ class PydanticSchemaParser(SchemaParser):
             OBJECT_TYPE: Dict[str, Any],
             "datetime": ParserTypeDate(),
             "phone_number": ParserTypePhoneNumber(),
-            "url": ParserTypeUrl(base_url=self.base_url),
+            "url": ParserTypeUrl(base_url=base_url),
         }
 
     def _items_schema_to_python_type(
