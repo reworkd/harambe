@@ -79,7 +79,7 @@ class SDK:
             if (schema is not None and schema != {})
             else None
         )
-        self._saved_data = set()
+        self._saved_data: set[ScrapeResult] = set()
 
         if not observer:
             observer = [LoggingObserver()]
@@ -159,6 +159,8 @@ class SDK:
 
             if next_url:
                 await self._notify_observers("on_paginate", next_url)
+                if not self._scraper:
+                    return
 
                 await self._scraper(
                     self, next_url, self._context

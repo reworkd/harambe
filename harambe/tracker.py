@@ -88,7 +88,7 @@ class FileDataTracker(DataTracker):
         with domain_file.open("w") as file:
             json.dump(data, file, indent=4)
 
-    def load_data(self, url: str, stage: str) -> List[Dict]:
+    def load_data(self, url: str | None, stage: str | None) -> List[Dict]:
         """Load data for a domain and stage from a JSON file"""
         domain_file = self.get_storage_filepath(stage)
         if domain_file.exists():

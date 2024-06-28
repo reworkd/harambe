@@ -7,7 +7,7 @@ from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
 from harambe.parser.type_url import ParserTypeUrl
-from harambe.types import Schema, URL
+from harambe.types import Schema, URL, ScrapeResult
 
 OBJECT_TYPE = "object"
 LIST_TYPE = "array"
@@ -24,7 +24,7 @@ class SchemaParser(ABC):
 
 
 class SchemaValidationError(Exception):
-    def __init__(self, schema, data, message):
+    def __init__(self, schema: Schema, data: ScrapeResult, message: str):
         super().__init__(
             "Data {data} does not match schema {schema}. {message}".format(
                 data=data, schema=schema, message=message

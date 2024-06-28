@@ -22,6 +22,11 @@ ObservationTrigger = Literal[
 ]
 
 
+class DownloadMeta(TypedDict):
+    url: str
+    filename: str
+
+
 @runtime_checkable
 class OutputObserver(Protocol):
     @abstractmethod
@@ -75,8 +80,8 @@ class LocalStorageObserver(OutputObserver):
 
     async def on_download(
         self, download_url: str, filename: str, content: bytes
-    ) -> "DownloadMeta":
-        data = {
+    ) -> DownloadMeta:
+        data: DownloadMeta = {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
         }
@@ -88,7 +93,7 @@ class LocalStorageObserver(OutputObserver):
 
 
 class InMemoryObserver(OutputObserver):
-    def __init__(self):
+    def __init__(self) -> None:
         self._data: List[Dict[str, Any]] = []
         self._urls: List[Tuple[URL, Context]] = []
         self._files: List[Tuple[str, bytes]] = []
@@ -126,7 +131,7 @@ class InMemoryObserver(OutputObserver):
 
 
 class DuplicateHandler:
-    def __init__(self):
+    def __init__(self) -> None:
         self._saved_data: set[bytes] = set()
         self.rows_on_page = 0
         self.previously_saved_rows_on_page = 0
@@ -169,8 +174,3 @@ class DuplicateHandler:
 
         data_str = json.dumps(data, separators=(",", ":"), sort_keys=True)
         return hashlib.md5(data_str.encode()).digest()
-
-
-class DownloadMeta(TypedDict):
-    url: str
-    filename: str
