@@ -12,6 +12,15 @@ def proxy_from_url(url: str) -> ProxySettings:
     parsed = urlparse(url, allow_fragments=False)
 
     if not parsed.hostname:
+        parsed = urlparse(f"http://{url}", allow_fragments=False)
+
+    if not all(
+        [
+            parsed.hostname,
+            parsed.username,
+            parsed.password,
+        ]
+    ):
         raise ValueError(f"Invalid proxy URL: {url}")
 
     proxy: ProxySettings = {

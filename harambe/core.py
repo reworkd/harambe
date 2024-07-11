@@ -271,6 +271,7 @@ class SDK:
         context: Optional[Context] = None,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
+        proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
     ) -> None:
         """
@@ -282,6 +283,7 @@ class SDK:
         :param context: additional context to pass to the scraper
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
+        :param proxy: proxy to use for the browser
         :param setup: setup function to run before the scraper
         :return none: everything should be saved to the database or file
         """
@@ -293,6 +295,7 @@ class SDK:
         async with playwright_harness(
             headless=headless,
             cdp_endpoint=cdp_endpoint,
+            proxy=proxy,
         ) as page:
             sdk = SDK(
                 page,
@@ -319,6 +322,7 @@ class SDK:
         schema: Schema,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
+        proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
     ) -> None:
         """
@@ -329,6 +333,7 @@ class SDK:
         :param schema: schema used to validate output correctness
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
+        :param proxy: proxy to use for the browser
         :return: None: the scraper should save data to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -353,6 +358,7 @@ class SDK:
         async with playwright_harness(
             headless=headless,
             cdp_endpoint=cdp_endpoint,
+            proxy=proxy,
         ) as page:
             for listing in listing_data:
                 sdk = SDK(
