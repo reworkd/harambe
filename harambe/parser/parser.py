@@ -130,7 +130,7 @@ class PydanticSchemaParser(SchemaParser):
                 python_type = List[
                     self._items_schema_to_python_type(
                         field_info.get("items", {}) or {},
-                        model_name=f"{model_name}Item",
+                        model_name=f"{field_name}Item",
                     )
                 ]
             elif field_type == "enum":

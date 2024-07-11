@@ -141,14 +141,6 @@ class Schemas:
             "type": "string",
             "description": "A unique identifier for the job posting."
         },
-        "company_description": {
-            "type": "string",
-            "description": "A brief description of the company within the job post."
-        },
-        "level": {
-            "type": "string",
-            "description": "The tier of the job within the company's structure."
-        },
         "department": {
             "type": "string",
             "description": "The department within the company for the job position."
@@ -159,19 +151,14 @@ class Schemas:
         },
         "job_description": {
             "type": "string",
-            "description": "Overview of the job role"
+            "description": "Detailed overview of the job role, including responsibilities and required skills."
         },
         "locations": {
-            "type": "string",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
             "description": "A list of cities or specific locations where the job is available."
-        },
-        "salary_range": {
-            "type": "object",
-            "properties": {
-                "min": {"type": "string", "description": "Minimum salary offered."},
-                "max": {"type": "string", "description": "Maximum salary offered."},
-                "currency": {"type": "string", "description": "The currency of the salary."}
-            }
         },
         "job_type": {
             "type": "string",
@@ -185,33 +172,21 @@ class Schemas:
             "type": "string",
             "description": "The URL where applicants can apply for the job."
         },
-        "work_hours": {
-            "type": "string",
-            "description": "The expected work hours for the job."
-        },
         "job_benefits": {
             "type": "string",
             "description": "A list of benefits provided with the job."
         },
         "qualifications": {
             "type": "string",
-            "description": "A list of required qualifications for the job."
+            "description": "A list of certifications or professional requirements for the job."
         },
-        "preferred_qualifications": {
+        "preferred_skills": {
             "type": "string",
-            "description": "A list of preferred (but not mandatory) qualifications for the job."
-        },
-        "role": {
-            "type": "string",
-            "description": "Details about the role including responsibilities and required skills."
+            "description": "A list of preferred (but not mandatory) skills and qualifications for the job."
         },
         "skills": {
             "type": "string",
-            "description": "A list of knowledge, skills or abilities required for the job."
-        },
-        "education": {
-            "type": "string",
-            "description": "Listed requirements for education or past experience"
+            "description": "A list of technical abilities or soft skills required for the job."
         },
         "recruiter_email": {
             "type": "string",
