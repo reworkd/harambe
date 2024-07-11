@@ -153,8 +153,8 @@ class SDK:
                 if next_url.startswith("?"):
                     # TODO: merge query params
                     next_url = self.page.url.split("?")[0] + next_url
-                    await self.page.goto(next_url)
-                    await self.page.wait_for_timeout(timeout)
+                await self.page.goto(next_url)
+                await self.page.wait_for_timeout(timeout)
 
             if next_url:
                 await self._notify_observers("on_paginate", next_url)
