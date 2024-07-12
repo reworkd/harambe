@@ -1,6 +1,6 @@
 import pytest
 
-from harambe.harness import proxy_from_url
+from harambe.proxy import proxy_from_url
 
 
 @pytest.mark.parametrize(

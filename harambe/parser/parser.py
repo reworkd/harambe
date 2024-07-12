@@ -150,7 +150,7 @@ class PydanticSchemaParser(SchemaParser):
 
         return create_model(model_name, __config__=config, **fields)
 
-    def _get_type(self, field: str) -> Type:
+    def _get_type(self, field: str) -> Type[Any]:
         field_type = self.field_types.get(field)
         if not field_type:
             raise ValueError(f"Unsupported field type: {field}")

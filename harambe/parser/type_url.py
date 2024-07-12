@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Type, Callable
 from urllib.parse import urljoin, urlparse
 
 from pydantic.functional_validators import AfterValidator
@@ -17,11 +17,11 @@ allowed_url_schemes = [
 
 
 class ParserTypeUrl:
-    def __new__(cls, base_url: Optional[URL] = None):
+    def __new__(cls, base_url: Optional[URL] = None) -> Type[str]:
         return Annotated[str, AfterValidator(cls.validate_type(base_url))]
 
     @staticmethod
-    def validate_type(base_url: Optional[URL]):
+    def validate_type(base_url: Optional[URL]) -> Callable[[URL], str]:
         def _validate_type(url: URL) -> str:
             # Transform relative URLs into absolute using base_url
             if base_url is not None:
