@@ -181,7 +181,7 @@ async def test_narcotics(server, observer, harness):
     assert len(observer.data) == 1
     assert observer.data[0] == {
         "title": "NARCOTICS CONTROL COMMISSION ACT, 2020 (ACT 1019)",
-        "document_url": f"/bitstream/handle/123456789/1921/meth.pdf?sequence=1&isAllowed=y",
+        "document_url": "/bitstream/handle/123456789/1921/meth.pdf?sequence=1&isAllowed=y",
         "__url": f"{server}/narcotics",
     }
 
