@@ -36,7 +36,7 @@ def test_proxy_from_url_valid(url, expected):
         "http://user@hostname:8080",
         "user@hostname:8080",
         "http://hostname",
-        "hostname" "",
+        "hostname",
     ],
 )
 def test_proxy_from_url_invalid(url):
