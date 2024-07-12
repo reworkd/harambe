@@ -1,7 +1,9 @@
-from typing import Any
+from typing import Any, Optional
 
 from bs4 import Tag, BeautifulSoup
-from curl_cffi.requests import AsyncSession
+
+# noinspection PyProtectedMember
+from curl_cffi.requests import AsyncSession, HeaderTypes
 
 from harambe.contrib.types import AbstractElementHandle, Selectable, AbstractPage
 
@@ -37,15 +39,18 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     _soup: BeautifulSoup
     _url: str
 
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(
+        self, session: AsyncSession, extra_headers: Optional[HeaderTypes] = None
+    ) -> None:
         self._session = session
+        self._extra_headers = extra_headers
 
     @property
     def url(self) -> str:
         return self._url
 
     async def goto(self, url: str) -> None:
-        res = await self._session.get(url)
+        res = await self._session.get(url, headers=self._extra_headers)
         self._url = res.url
         self._soup = BeautifulSoup(res.text, "html.parser")
 
@@ -63,3 +68,6 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
     async def wait_for_selector(self, selector: str, **kwargs: Any) -> None:
         pass
+
+    async def set_extra_http_headers(self, headers: dict[str, str]) -> None:
+        self._extra_headers = headers

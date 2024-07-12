@@ -15,5 +15,5 @@ async def soup_harness(
     if cdp_endpoint:
         raise ValueError("CDP endpoint is not supported for Soup")
 
-    async with AsyncSession(proxy=proxy) as s:
+    async with AsyncSession(proxy=proxy, impersonate="chrome") as s:
         yield SoupPage(s)

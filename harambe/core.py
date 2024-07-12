@@ -302,6 +302,7 @@ class SDK:
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
+        headers = getattr(scraper, "extra_headers", None)
         context = context or {}
 
         if isinstance(url, Path):
@@ -323,6 +324,10 @@ class SDK:
             )
             if setup:
                 await setup(sdk)
+
+            if headers:
+                await page.set_extra_http_headers(headers)
+
             await page.goto(url)
             await scraper(sdk, url, context)
 
@@ -355,6 +360,7 @@ class SDK:
         """
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
+        headers = getattr(scraper, "extra_headers", None)
         observer: Optional[OutputObserver] = getattr(scraper, "observer", None)
 
         if stage != "detail" and stage != "listing":
@@ -388,6 +394,8 @@ class SDK:
                 )
                 if setup:
                     await setup(sdk)
+
+                await page.set_extra_http_headers(headers)
                 await page.goto(listing["url"])
                 await scraper(
                     sdk,
@@ -424,6 +432,27 @@ class SDK:
             wrapper.domain = domain
             wrapper.stage = stage
             wrapper.observer = observer
+            return wrapper
+
+        return decorator
+
+    @staticmethod
+    def with_headers(
+        headers: dict[str, str],
+    ) -> Callable[[AsyncScraperType], AsyncScraperType]:
+        """
+        Decorator for scrapers. This will add the headers to the function.
+        All scrapers should be decorated with this decorator.
+        :param headers: the headers to use for the scraper
+        :return: the decorated function
+        """
+
+        def decorator(func: AsyncScraperType) -> AsyncScraperType:
+            @wraps(func)
+            async def wrapper(sdk: "SDK", url: URL, context: Context) -> None:
+                return await func(sdk, url, context)
+
+            wrapper.extra_headers = headers
             return wrapper
 
         return decorator

@@ -55,3 +55,7 @@ class AbstractPage(Selectable[T], abc.ABC):
     @abc.abstractmethod
     async def content(self) -> str:
         raise NotImplementedError()
+
+    @abc.abstractmethod
+    async def set_extra_http_headers(self, headers: dict[str, str]) -> None:
+        raise NotImplementedError()
