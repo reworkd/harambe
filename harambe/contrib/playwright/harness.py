@@ -1,38 +1,12 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-from urllib.parse import urlparse
 
-from playwright.async_api import async_playwright, Page, ProxySettings
+from playwright.async_api import async_playwright
 from playwright_stealth import stealth_async
 
+from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
-
-
-def proxy_from_url(url: str) -> ProxySettings:
-    parsed = urlparse(url, allow_fragments=False)
-
-    if not parsed.hostname:
-        parsed = urlparse(f"http://{url}", allow_fragments=False)
-
-    if not all(
-        [
-            parsed.hostname,
-            parsed.username,
-            parsed.password,
-        ]
-    ):
-        raise ValueError(f"Invalid proxy URL: {url}")
-
-    proxy: ProxySettings = {
-        "server": parsed.hostname,
-        "username": parsed.username,
-        "password": parsed.password,
-    }
-
-    if parsed.port:
-        proxy["server"] += f":{parsed.port}"
-
-    return proxy
+from harambe.proxy import proxy_from_url
 
 
 @asynccontextmanager
@@ -40,7 +14,7 @@ async def playwright_harness(
     headless: bool,
     cdp_endpoint: str | None,
     proxy: str | None = None,
-) -> AsyncGenerator[Page, None]:
+) -> AsyncGenerator[PlaywrightPage, None]:
     """
     Context manager for Playwright. Starts a new browser, context, and page, and closes them when done.
     Also does some basic setup like setting the viewport, user agent, ignoring HTTPS errors, creation of HAR file, and stealth.

@@ -8,16 +8,17 @@ from typing import Any, Callable, List, Optional, Protocol, Union, Awaitable
 
 import aiohttp
 from playwright.async_api import (
-    Page,
     ElementHandle,
     TimeoutError as PlaywrightTimeoutError,
+    Page,
 )
 
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
-from harambe.harness import playwright_harness
+
+from harambe.contrib import playwright_harness, WebHarness
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     LocalStorageObserver,
@@ -27,6 +28,7 @@ from harambe.observer import (
     DuplicateHandler,
     ObservationTrigger,
 )
+
 from harambe.parser.parser import PydanticSchemaParser
 from harambe.tracker import FileDataTracker
 from harambe.types import (
@@ -160,7 +162,8 @@ class SDK:
                 if next_url.startswith("?"):
                     # TODO: merge query params
                     next_url = self.page.url.split("?")[0] + next_url
-                await self.page.goto(next_url)
+
+                await self.page.goto(normalize_url(next_url, self.page.url))
                 await self.page.wait_for_timeout(timeout)
 
             if next_url:
@@ -175,7 +178,7 @@ class SDK:
             raise TimeoutError(
                 f"{e.args[0]} You may increase the timeout by passing `timeout` in ms to `SDK.paginate`. Alternatively, this may mean that the next page element or URL was not found and pagination is complete."
             ) from e
-        except (TimeoutError, StopAsyncIteration):
+        except (TimeoutError, AttributeError, StopAsyncIteration):
             return
 
     async def capture_url(
@@ -280,6 +283,7 @@ class SDK:
         cdp_endpoint: Optional[str] = None,
         proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
+        harness: WebHarness = playwright_harness,
     ) -> "SDK":
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -292,6 +296,7 @@ class SDK:
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
         :param proxy: proxy to use for the browser
         :param setup: setup function to run before the scraper
+        :param harness: the harness to use for the browser
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -302,7 +307,7 @@ class SDK:
         if isinstance(url, Path):
             url = f"file://{url.resolve()}"
 
-        async with playwright_harness(
+        async with harness(
             headless=headless,
             cdp_endpoint=cdp_endpoint,
             proxy=proxy,

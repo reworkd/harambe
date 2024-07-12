@@ -1,4 +1,5 @@
 import re
+from typing import Type
 
 import phonenumbers
 from pydantic.functional_validators import AfterValidator
@@ -14,7 +15,7 @@ phone_number_formats = [
 
 
 class ParserTypePhoneNumber:
-    def __new__(cls):
+    def __new__(cls) -> Type[str]:
         return Annotated[str, AfterValidator(cls.validate_type)]
 
     @staticmethod
