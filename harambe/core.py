@@ -1,7 +1,9 @@
 import asyncio
+import inspect
 import tempfile
 import uuid
 from functools import wraps
+from pathlib import Path
 from typing import Any, Callable, List, Optional, Protocol, Union, Awaitable
 
 import aiohttp
@@ -108,7 +110,9 @@ class SDK:
             d["__url"] = url
             await self._notify_observers("on_save_data", d)
 
-    async def enqueue(self, *urls: URL, context: Optional[Context] = None) -> None:
+    async def enqueue(
+        self, *urls: URL | Awaitable[URL], context: Optional[Context] = None
+    ) -> None:
         """
         Enqueue url to be scraped. This will be passed to the on_enqueue callback.
         This should be called on the listing page. It will save the url and context
@@ -121,6 +125,9 @@ class SDK:
         context["__url"] = self.page.url
 
         for url in urls:
+            if inspect.isawaitable(url):
+                url = await url
+
             normalized_url = (
                 normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
             )
@@ -266,14 +273,14 @@ class SDK:
     @staticmethod
     async def run(
         scraper: AsyncScraperType,
-        url: str,
+        url: str | Path,
         schema: Schema,
         context: Optional[Context] = None,
         headless: bool = False,
         cdp_endpoint: Optional[str] = None,
         proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
-    ) -> None:
+    ) -> "SDK":
         """
         Convenience method for running a scraper. This will launch a browser and
         invoke the scraper function.
@@ -291,6 +298,9 @@ class SDK:
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
         context = context or {}
+
+        if isinstance(url, Path):
+            url = f"file://{url.resolve()}"
 
         async with playwright_harness(
             headless=headless,
@@ -311,6 +321,8 @@ class SDK:
             await page.goto(url)
             await scraper(sdk, url, context)
 
+        return sdk
+
     async def get_content_type(self, url: str) -> str:
         async with aiohttp.ClientSession() as session:
             async with session.head(normalize_url(url, self.page.url)) as response:
@@ -324,7 +336,7 @@ class SDK:
         cdp_endpoint: Optional[str] = None,
         proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
-    ) -> None:
+    ) -> "SDK":
         """
         Convenience method for running a detail scraper from file. This will load
         the listing data from file and pass it to the scraper.
@@ -378,17 +390,26 @@ class SDK:
                     listing["context"],
                 )
 
+        return sdk
+
     @staticmethod
     def scraper(
-        domain: str, stage: Stage
+        domain: str,
+        stage: Stage,
+        observer: Optional[OutputObserver | List[OutputObserver]] = None,
     ) -> Callable[[AsyncScraperType], AsyncScraperType]:
         """
         Decorator for scrapers. This will add the domain and stage to the function.
         All scrapers should be decorated with this decorator.
         :param domain: the url that the scraper is for (eg: https://example.org)
         :param stage: the stage of the scraper (eg: listing or detail)
+        :param observer: the observer to use for the scraper
         :return: the decorated function
         """
+        if not observer:
+            observer = [LocalStorageObserver(domain, stage), LoggingObserver()]
+        if not isinstance(observer, list):
+            observer = [observer]
 
         def decorator(func: AsyncScraperType) -> AsyncScraperType:
             @wraps(func)
@@ -397,7 +418,7 @@ class SDK:
 
             wrapper.domain = domain
             wrapper.stage = stage
-            wrapper.observer = [LocalStorageObserver(domain, stage), LoggingObserver()]
+            wrapper.observer = observer
             return wrapper
 
         return decorator

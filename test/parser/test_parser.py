@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
-import tests.parser.schemas as schemas
+import test.parser.schemas as schemas
 from harambe.types import Schema
 
 

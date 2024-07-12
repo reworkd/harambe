@@ -3,7 +3,7 @@ from typing import Dict, Any
 import pytest
 
 from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
-from tests.parser.schemas import (
+from test.parser.schemas import (
     datetime_schema,
     phone_number_schema,
     url_schema,

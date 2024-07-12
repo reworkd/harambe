@@ -47,6 +47,7 @@ async def playwright_harness(
 
     :param headless: launch browser in headless mode
     :param cdp_endpoint: Chrome DevTools Protocol endpoint to connect to (if using a remote browser)
+    :param proxy: proxy server to use
     :return: async generator yielding a Playwright page
     """
 

@@ -33,6 +33,7 @@ pytest-asyncio = "^0.21.2"
 pytest-mock = "^3.14.0"
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]
@@ -50,7 +51,7 @@ warn_unused_ignores = false
 warn_return_any = false
 namespace_packages = true
 files = "harambe"
-exclude = ["tests", "extractors"]
+exclude = ["test", "extractors"]
 
 [build-system]
 requires = ["poetry-core"]
