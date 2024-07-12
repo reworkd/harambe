@@ -25,7 +25,7 @@ async def server(mock_html_folder):
         return web.FileResponse(file_path)
 
     app = web.Application()
-    app.router.add_route('*', '/{tail:.*}', handle)
+    app.router.add_route("*", "/{tail:.*}", handle)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "127.0.0.1", 8081)
@@ -56,9 +56,7 @@ async def test_save_data(server, observer, harness):
                 {"fruit": await fruit.inner_text(), "price": await price.inner_text()}
             )
 
-    await SDK.run(
-        scraper=scraper, url=url, schema={}, headless=True, harness=harness
-    )
+    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
 
     assert len(observer.data) == 3
 
@@ -111,7 +109,11 @@ async def test_enqueue_coro(server, observer, harness):
         await sdk.enqueue((await page.query_selector("a")).get_attribute("href"))
 
     await SDK.run(
-        scraper=scraper, url=f"{server}/table", schema={}, headless=True, harness=harness
+        scraper=scraper,
+        url=f"{server}/table",
+        schema={},
+        headless=True,
+        harness=harness,
     )
     assert len(observer.urls) == 1
     assert observer.urls[0][0] == f"{server}/other"
@@ -131,7 +133,11 @@ async def test_paginate(server, observer, harness):
         await sdk.paginate(pager)
 
     await SDK.run(
-        scraper=scraper, url=f"{server}/table", schema={}, headless=True, harness=harness
+        scraper=scraper,
+        url=f"{server}/table",
+        schema={},
+        headless=True,
+        harness=harness,
     )
 
     assert len(observer.data) == 2
@@ -165,7 +171,11 @@ async def test_narcotics(server, observer, harness):
             await sdk.save_data(item)
 
     await SDK.run(
-        scraper=scraper, url=f"{server}/narcotics", schema={}, headless=True, harness=harness
+        scraper=scraper,
+        url=f"{server}/narcotics",
+        schema={},
+        headless=True,
+        harness=harness,
     )
 
     assert len(observer.data) == 1
@@ -183,21 +193,26 @@ async def test_regulations(server, observer, harness):
         page = sdk.page
         await page.wait_for_selector("table.table.mb-0.table-hover.table-striped")
 
-        links = await page.query_selector_all("a[title='Go to the Regulations page'] + ul a")
+        links = await page.query_selector_all(
+            "a[title='Go to the Regulations page'] + ul a"
+        )
         for link in links:
             href = await link.get_attribute("href")
             await sdk.enqueue(href)
 
     await SDK.run(
-        scraper=scraper, url=f"{server}/regulations", schema={}, headless=True, harness=harness
+        scraper=scraper,
+        url=f"{server}/regulations",
+        schema={},
+        headless=True,
+        harness=harness,
     )
 
     assert not observer.data
     assert len(observer.urls) == 3
     assert observer.urls[0][0] == f"{server}/regulations/act/"
     assert observer.urls[1][0] == f"{server}/regulations/regulations/"
-    assert observer.urls[2][0
-           ] == f"{server}/regulations/guidelines/"
+    assert observer.urls[2][0] == f"{server}/regulations/guidelines/"
     assert observer.urls[0][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[1][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[2][1] == {"__url": f"{server}/regulations"}

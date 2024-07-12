@@ -34,7 +34,6 @@ class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
 
 
 class SoupPage(AbstractPage[SoupElementHandle]):
-
     _soup: BeautifulSoup
     _url: str
 
