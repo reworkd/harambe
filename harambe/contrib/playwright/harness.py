@@ -1,12 +1,15 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Callable, Awaitable, Optional
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, BrowserContext
 from playwright_stealth import stealth_async
 
 from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
 from harambe.proxy import proxy_from_url
+
+Callback = Callable[[BrowserContext], Awaitable[None]]
+PageFactory = Callable[..., Awaitable[PlaywrightPage]]
 
 
 @asynccontextmanager
@@ -14,15 +17,16 @@ async def playwright_harness(
     headless: bool,
     cdp_endpoint: str | None,
     proxy: str | None = None,
-) -> AsyncGenerator[PlaywrightPage, None]:
+    stealth: bool = True,
+    default_timeout: int = 30000,
+    abort_unnecessary_requests: bool = True,
+    on_start: Optional[Callback] = None,
+    on_end: Optional[Callback] = None,
+) -> AsyncGenerator[PageFactory, None]:
     """
     Context manager for Playwright. Starts a new browser, context, and page, and closes them when done.
-    Also does some basic setup like setting the viewport, user agent, ignoring HTTPS errors, creation of HAR file, and stealth.
-
-    :param headless: launch browser in headless mode
-    :param cdp_endpoint: Chrome DevTools Protocol endpoint to connect to (if using a remote browser)
-    :param proxy: proxy server to use
-    :return: async generator yielding a Playwright page
+    Also does some basic setup like setting the viewport, user agent, ignoring HTTPS errors,
+    creation of HAR file, and stealth.
     """
 
     async with async_playwright() as p:
@@ -40,14 +44,25 @@ async def playwright_harness(
             proxy=proxy_from_url(proxy) if proxy else None,
         )
 
-        ctx.set_default_timeout(60000)
-        await ctx.route("**/*", UnnecessaryResourceHandler().handle)
+        ctx.set_default_timeout(default_timeout)
 
-        page = await ctx.new_page()
-        await stealth_async(page)
+        if abort_unnecessary_requests:
+            await ctx.route("**/*", UnnecessaryResourceHandler().handle)
+
+        async def page_factory() -> PlaywrightPage:
+            page = await ctx.new_page()
+            if stealth:
+                await stealth_async(page)
+            return page  # type: ignore
 
         try:
-            yield page
+            if on_start:
+                await on_start(ctx)
+            yield page_factory
         finally:
-            await ctx.close()
-            await browser.close()
+            try:
+                if on_end:
+                    await on_end(ctx)
+            finally:
+                await ctx.close()
+                await browser.close()

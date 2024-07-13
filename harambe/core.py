@@ -312,7 +312,8 @@ class SDK:
             headless=headless,
             cdp_endpoint=cdp_endpoint,
             proxy=proxy,
-        ) as page:
+        ) as page_factory:
+            page = await page_factory()
             sdk = SDK(
                 page,
                 domain=domain,
@@ -382,7 +383,8 @@ class SDK:
             headless=headless,
             cdp_endpoint=cdp_endpoint,
             proxy=proxy,
-        ) as page:
+        ) as page_factory:
+            page = await page_factory()
             for listing in listing_data:
                 sdk = SDK(
                     page,
