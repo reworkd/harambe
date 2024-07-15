@@ -18,8 +18,9 @@ DEFAULT_VIEWPORT: ViewportSize = {"width": 1280, "height": 1024}
 
 @asynccontextmanager
 async def playwright_harness(
-    headless: bool,
-    cdp_endpoint: str | None,
+    *,
+    headless: bool = True,
+    cdp_endpoint: str | None = None,
     proxy: str | None = None,
     cookies: Sequence[SetCookieParam] = (),
     stealth: bool = True,
