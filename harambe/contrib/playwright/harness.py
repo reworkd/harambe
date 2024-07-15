@@ -1,13 +1,13 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Callable, Awaitable, Optional, Sequence, Any
 
-from playwright._impl._api_structures import SetCookieParam
 from playwright.async_api import async_playwright, BrowserContext, ViewportSize
 from playwright_stealth import stealth_async
 
 from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
 from harambe.proxy import proxy_from_url
+from harambe.types import SetCookieParam
 
 Callback = Callable[[BrowserContext], Awaitable[None]]
 PageFactory = Callable[..., Awaitable[PlaywrightPage]]
