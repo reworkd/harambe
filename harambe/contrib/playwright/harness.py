@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Callable, Awaitable, Optional
+from typing import AsyncGenerator, Callable, Awaitable, Optional, Sequence
 
-from playwright.async_api import async_playwright, BrowserContext
+from playwright._impl._api_structures import SetCookieParam
+from playwright.async_api import async_playwright, BrowserContext, ViewportSize
 from playwright_stealth import stealth_async
 
 from harambe.contrib.playwright.impl import PlaywrightPage
@@ -11,15 +12,21 @@ from harambe.proxy import proxy_from_url
 Callback = Callable[[BrowserContext], Awaitable[None]]
 PageFactory = Callable[..., Awaitable[PlaywrightPage]]
 
+DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+DEFAULT_VIEWPORT: ViewportSize = {"width": 1280, "height": 1024}
+
 
 @asynccontextmanager
 async def playwright_harness(
     headless: bool,
     cdp_endpoint: str | None,
     proxy: str | None = None,
+    cookies: Sequence[SetCookieParam] = (),
     stealth: bool = True,
     default_timeout: int = 30000,
     abort_unnecessary_requests: bool = True,
+    user_agent: str = DEFAULT_USER_AGENT,
+    viewport: Optional[ViewportSize] = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
 ) -> AsyncGenerator[PageFactory, None]:
@@ -37,14 +44,16 @@ async def playwright_harness(
         )
 
         ctx = await browser.new_context(
-            viewport={"width": 1280, "height": 1024},
+            viewport=viewport or DEFAULT_VIEWPORT,
             ignore_https_errors=True,
-            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-            " (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+            user_agent=user_agent,
             proxy=proxy_from_url(proxy) if proxy else None,
         )
 
         ctx.set_default_timeout(default_timeout)
+
+        if cookies:
+            await ctx.add_cookies(*cookies)
 
         if abort_unnecessary_requests:
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)

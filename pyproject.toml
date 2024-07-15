@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "harambe-sdk"
-version = "0.15.3"
+version = "0.15.4"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = ["awtkns <hello@awtkns.com>"]
 readme = "README.md"
@@ -21,7 +21,7 @@ playwright-stealth = "^1.0.6" # TODO: self host this package
 aiohttp = "^3.9.5"
 email-validator = "^2.2.0"
 phonenumbers = "^8.13.40"
-curl-cffi = "^0.7.0"
+curl-cffi = "^0.7.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.10"
