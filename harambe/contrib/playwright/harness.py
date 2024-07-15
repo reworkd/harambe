@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Callable, Awaitable, Optional, Sequence
+from typing import AsyncGenerator, Callable, Awaitable, Optional, Sequence, Any
 
 from playwright._impl._api_structures import SetCookieParam
 from playwright.async_api import async_playwright, BrowserContext, ViewportSize
@@ -59,7 +59,7 @@ async def playwright_harness(
         if abort_unnecessary_requests:
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)
 
-        async def page_factory() -> PlaywrightPage:
+        async def page_factory(*_: Any, **__: Any) -> PlaywrightPage:
             page = await ctx.new_page()
             if stealth:
                 await stealth_async(page)
