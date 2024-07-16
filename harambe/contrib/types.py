@@ -2,7 +2,7 @@ import abc
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from contextlib import _AsyncGeneratorContextManager
-from typing import TypeVar, Generic, Callable, Any
+from typing import TypeVar, Generic, Callable, Any, Optional
 
 T = TypeVar("T", bound="AbstractElementHandle")
 WebHarness = Callable[
@@ -13,6 +13,10 @@ WebHarness = Callable[
 class AbstractElementHandle(abc.ABC):
     @abc.abstractmethod
     async def inner_text(self) -> str:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    async def text_content(self) -> str:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -30,7 +34,7 @@ class Selectable(Generic[T], abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    async def query_selector(self, selector: str) -> T:
+    async def query_selector(self, selector: str) -> T | None:
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -57,5 +61,13 @@ class AbstractPage(Selectable[T], abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    async def text_content(self, selector, **kwargs: Any) -> Optional[str]:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     async def set_extra_http_headers(self, headers: dict[str, str]) -> None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    async def set_default_timeout(self, timeout: float) -> None:
         raise NotImplementedError()

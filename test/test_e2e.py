@@ -216,3 +216,46 @@ async def test_regulations(server, observer, harness):
     assert observer.urls[0][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[1][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[2][1] == {"__url": f"{server}/regulations"}
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_text_content(server, observer, harness):
+    url = f"{server}/table"
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+        content = await page.text_content("table")
+        await sdk.save_data({"page_content": content})
+
+        table = await page.query_selector("table")
+        await sdk.save_data({"table_content": await table.text_content()})
+
+    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+    assert len(observer.data) == 2
+
+    assert observer.data[0]["page_content"] == observer.data[1]["table_content"]
+    for text in ["Apple", "Orange", "Banana"]:
+        assert (
+            text in observer.data[0]["page_content"]
+        ), f"{text} not in {observer.data[0]['page_content']}"
+        assert (
+            text in observer.data[1]["table_content"]
+        ), f"{text} not in {observer.data[1]['table_content']}"
+
+
+@pytest.mark.parametrize("harness", [soup_harness])
+async def test_text_content_when_selector_does_not_exist(server, observer, harness):
+    url = f"{server}/table"
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+        page.set_default_timeout(1)
+
+        content = await page.text_content("table.non-existent")
+        await sdk.save_data({"page_content": content})
+
+    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+    assert len(observer.data) == 1
+    assert observer.data[0]["page_content"] is None

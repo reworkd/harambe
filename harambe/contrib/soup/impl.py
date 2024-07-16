@@ -13,11 +13,18 @@ class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
         self._tag = tag
 
     @classmethod
+    def from_tag(cls, tag: Tag | None) -> Optional["SoupElementHandle"]:
+        return cls(tag) if tag else None
+
+    @classmethod
     def from_tags(cls, tag: list[Tag]) -> list["SoupElementHandle"]:
         return [cls(t) for t in tag]
 
     async def inner_text(self) -> str:
         return self._tag.get_text()
+
+    async def text_content(self) -> str:
+        return await self.inner_text()
 
     async def get_attribute(self, name: str) -> str:
         return self._tag.get(name)
@@ -25,8 +32,8 @@ class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
     async def query_selector_all(self, selector: str) -> list["SoupElementHandle"]:
         return self.from_tags(self._tag.select(selector))
 
-    async def query_selector(self, selector: str) -> "SoupElementHandle":
-        return SoupElementHandle(self._tag.select_one(selector))
+    async def query_selector(self, selector: str) -> Optional["SoupElementHandle"]:
+        return self.from_tag(self._tag.select_one(selector))
 
     async def click(self) -> None:
         raise NotImplementedError()
@@ -57,8 +64,8 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     async def query_selector_all(self, selector: str) -> list[SoupElementHandle]:
         return SoupElementHandle.from_tags(self._soup.select(selector))
 
-    async def query_selector(self, selector: str) -> SoupElementHandle:
-        return SoupElementHandle(self._soup.select_one(selector))
+    async def query_selector(self, selector: str) -> SoupElementHandle | None:
+        return SoupElementHandle.from_tag(self._soup.select_one(selector))
 
     async def wait_for_timeout(self, timeout: int) -> None:
         pass
@@ -66,8 +73,17 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     async def content(self) -> str:
         return str(self._soup)
 
+    async def text_content(self, selector, **kwargs: Any) -> str | None:
+        if el := await self.query_selector(selector):
+            return await el.text_content()
+
+        return None
+
     async def wait_for_selector(self, selector: str, **kwargs: Any) -> None:
         pass
 
     async def set_extra_http_headers(self, headers: dict[str, str]) -> None:
         self._extra_headers = headers
+
+    async def set_default_timeout(self, timeout: float) -> None:
+        pass

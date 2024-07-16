@@ -13,12 +13,12 @@ from playwright.async_api import (
     Page,
 )
 
+from harambe.contrib import playwright_harness, WebHarness
+from harambe.contrib.types import AbstractPage
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
-
-from harambe.contrib import playwright_harness, WebHarness
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     LocalStorageObserver,
@@ -28,7 +28,6 @@ from harambe.observer import (
     DuplicateHandler,
     ObservationTrigger,
 )
-
 from harambe.parser.parser import PydanticSchemaParser
 from harambe.tracker import FileDataTracker
 from harambe.types import (
@@ -62,7 +61,7 @@ class SDK:
 
     def __init__(
         self,
-        page: Page,
+        page: AbstractPage[Any],
         run_id: Optional[str] = None,
         domain: Optional[str] = None,
         stage: Optional[Stage] = None,
@@ -71,7 +70,7 @@ class SDK:
         context: Optional[Context] = None,
         schema: Optional[Schema] = None,
     ):
-        self.page = page
+        self.page: Page = page  # type: ignore
         self._id = run_id or uuid.uuid4()
         self._domain = domain
         self._stage = stage
