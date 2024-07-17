@@ -1,3 +1,4 @@
+import functools
 import re
 from typing import List, Optional, Union
 from urllib.parse import urljoin
@@ -93,3 +94,17 @@ async def get_links(page: PageLocator, selector: str) -> List[str]:
 async def get_link(page: PageLocator, selector: str) -> str:
     data = await get_links(page, selector)
     return data[0] if data else ""
+
+
+def swallow_exceptions(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyboardInterrupt:
+            raise
+        except Exception as e:
+            print(f"Exception swallowed in {func.__name__}: {e}")
+            return None
+
+    return wrapper

@@ -5,6 +5,7 @@ from bs4 import Tag, BeautifulSoup
 # noinspection PyProtectedMember
 from curl_cffi.requests import AsyncSession, HeaderTypes
 
+from harambe.contrib.soup.tracing import Tracer
 from harambe.contrib.types import AbstractElementHandle, Selectable, AbstractPage
 
 
@@ -47,17 +48,28 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     _url: str
 
     def __init__(
-        self, session: AsyncSession, extra_headers: Optional[HeaderTypes] = None
+        self,
+        session: AsyncSession,
+        extra_headers: Optional[HeaderTypes] = None,
+        tracer: Tracer = Tracer(),
     ) -> None:
         self._session = session
         self._extra_headers = extra_headers
+        self._tracer = tracer
+
+    @property
+    def tracing(self) -> Tracer:
+        return self._tracer
 
     @property
     def url(self) -> str:
         return self._url
 
     async def goto(self, url: str) -> None:
-        res = await self._session.get(url, headers=self._extra_headers)
+        res = await self._session.get(
+            url, headers=self._extra_headers, impersonate="chrome"
+        )
+        self._tracer.log_request(res)
         self._url = res.url
         self._soup = BeautifulSoup(res.text, "html.parser")
 
