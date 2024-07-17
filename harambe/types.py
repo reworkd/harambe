@@ -1,13 +1,13 @@
-from typing import Any, Awaitable, Callable, Dict, Literal, TypedDict, Optional
+from typing import Any, Awaitable, Callable, Literal, TypedDict, Optional
 
 Enum = str
 URL = str
-ScrapeResult = Dict[str, Any]
-Context = Dict[str, Any]
+ScrapeResult = dict[str, Any]
+Context = dict[str, Any]
 Stage = Literal["category", "listing", "detail"]
 AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # noqa: F821
 SetupType = Callable[["SDK"], Awaitable[None]]  # noqa: F821
-Schema = Dict[str, Any]
+Schema = dict[str, Any]
 
 
 class SetCookieParam(TypedDict, total=False):

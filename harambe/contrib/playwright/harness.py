@@ -54,7 +54,7 @@ async def playwright_harness(
         ctx.set_default_timeout(default_timeout)
 
         if cookies:
-            await ctx.add_cookies(*cookies)
+            await ctx.add_cookies(cookies)
 
         if abort_unnecessary_requests:
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)

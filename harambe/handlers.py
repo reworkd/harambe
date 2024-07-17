@@ -1,6 +1,6 @@
 import re
 from abc import ABC
-from typing import Literal, Any
+from typing import Literal, Any, Self
 
 from playwright.async_api import Route, Page
 
@@ -41,11 +41,11 @@ class ResourceRequestHandler(AbstractHandler):
         self._initial_pages = [p.url for p in page.context.pages]
         self._new_pages = []
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         await self.page.context.route(self.url_pattern, self.handle)
         return self
 
-    async def __aexit__(self, *_: Any, **__: Any):
+    async def __aexit__(self, *_: Any, **__: Any) -> None:
         await self.page.context.unroute(self.url_pattern, self.handle)
         await self.page.bring_to_front()
         for page in self.page.context.pages:
