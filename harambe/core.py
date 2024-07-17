@@ -358,9 +358,9 @@ class SDK:
         :param proxy: proxy to use for the browser
         :return: None: the scraper should save data to the database or file
         """
-        domain = getattr(scraper, "domain", None)
-        stage = getattr(scraper, "stage", None)
-        headers = getattr(scraper, "extra_headers", None)
+        domain: str = getattr(scraper, "domain", "")
+        stage: str = getattr(scraper, "stage", "")
+        headers: dict[str, str] = getattr(scraper, "extra_headers", {})
         observer: Optional[OutputObserver] = getattr(scraper, "observer", None)
 
         if stage != "detail" and stage != "listing":

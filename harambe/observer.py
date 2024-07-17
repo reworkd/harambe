@@ -3,7 +3,6 @@ import json
 from abc import abstractmethod
 from typing import (
     Any,
-    Dict,
     List,
     Protocol,
     Tuple,
@@ -30,11 +29,11 @@ class DownloadMeta(TypedDict):
 @runtime_checkable
 class OutputObserver(Protocol):
     @abstractmethod
-    async def on_save_data(self, data: Dict[str, Any]):
+    async def on_save_data(self, data: dict[str, Any]) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
+    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -49,10 +48,10 @@ class OutputObserver(Protocol):
 
 
 class LoggingObserver(OutputObserver):
-    async def on_save_data(self, data: Dict[str, Any]):
+    async def on_save_data(self, data: dict[str, Any]) -> None:
         print(data)
 
-    async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
+    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
         print(f"Enqueuing: {url} with context {context}")
 
     async def on_download(
@@ -72,10 +71,10 @@ class LocalStorageObserver(OutputObserver):
     def __init__(self, domain: str, stage: Stage):
         self._tracker = FileDataTracker(domain, stage)
 
-    async def on_save_data(self, data: Dict[str, Any]) -> None:
+    async def on_save_data(self, data: dict[str, Any]) -> None:
         self._tracker.save_data(data)
 
-    async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
+    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
         self._tracker.save_data({"url": url, "context": context})
 
     async def on_download(
@@ -94,14 +93,14 @@ class LocalStorageObserver(OutputObserver):
 
 class InMemoryObserver(OutputObserver):
     def __init__(self) -> None:
-        self._data: List[Dict[str, Any]] = []
+        self._data: List[dict[str, Any]] = []
         self._urls: List[Tuple[URL, Context]] = []
         self._files: List[Tuple[str, bytes]] = []
 
-    async def on_save_data(self, data: Dict[str, Any]) -> None:
+    async def on_save_data(self, data: dict[str, Any]) -> None:
         self._data.append(data)
 
-    async def on_queue_url(self, url: URL, context: Dict[str, Any]) -> None:
+    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
         self._urls.append((url, context))
 
     async def on_download(
@@ -118,7 +117,7 @@ class InMemoryObserver(OutputObserver):
         pass
 
     @property
-    def data(self) -> List[Dict[str, Any]]:
+    def data(self) -> List[dict[str, Any]]:
         return self._data
 
     @property

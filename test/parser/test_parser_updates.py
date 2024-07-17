@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any
 
 import pytest
 
@@ -88,7 +88,7 @@ from test.parser.schemas import (
     ],
 )
 def test_parser_with_updated_types_success(
-    schema: Dict[str, Any], data: Dict[str, Any], expected: Dict[str, Any]
+    schema: dict[str, Any], data: dict[str, Any], expected: dict[str, Any]
 ) -> None:
     validator = PydanticSchemaParser(schema)
     validated_data = validator.validate(data, base_url="http://example.com")
@@ -142,7 +142,7 @@ def test_parser_with_updated_types_success(
     ],
 )
 def parser_with_updated_types_error(
-    schema: Dict[str, Any], data: Dict[str, Any]
+    schema: dict[str, Any], data: dict[str, Any]
 ) -> None:
     validator = PydanticSchemaParser(schema)
     with pytest.raises(SchemaValidationError):

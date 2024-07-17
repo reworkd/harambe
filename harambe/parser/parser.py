@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, List, Optional, Type
 
 from pydantic import BaseModel, create_model, Extra, Field, NameEmail, ValidationError
 
@@ -19,7 +19,7 @@ class SchemaParser(ABC):
     """
 
     @abstractmethod
-    def validate(self, data: Dict[str, Any], base_url: URL) -> None:
+    def validate(self, data: dict[str, Any], base_url: URL) -> None:
         pass
 
 
@@ -42,7 +42,7 @@ class PydanticSchemaParser(SchemaParser):
         self.model = None
         self.field_types = None
 
-    def validate(self, data: Dict[str, Any], base_url: URL) -> Dict[str, Any]:
+    def validate(self, data: dict[str, Any], base_url: URL) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
 
@@ -56,7 +56,7 @@ class PydanticSchemaParser(SchemaParser):
             )
 
     @staticmethod
-    def _get_field_types(base_url: str) -> Dict[str, Type]:
+    def _get_field_types(base_url: str) -> dict[str, Type]:
         return {
             "string": str,
             "str": str,
@@ -70,7 +70,7 @@ class PydanticSchemaParser(SchemaParser):
             "email": NameEmail,
             "enum": ParserTypeEnum,
             LIST_TYPE: List,
-            OBJECT_TYPE: Dict[str, Any],
+            OBJECT_TYPE: dict[str, Any],
             "datetime": ParserTypeDate(),
             "phone_number": ParserTypePhoneNumber(),
             "url": ParserTypeUrl(base_url=base_url),

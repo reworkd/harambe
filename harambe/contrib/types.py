@@ -5,9 +5,7 @@ from contextlib import _AsyncGeneratorContextManager
 from typing import TypeVar, Generic, Callable, Any, Optional
 
 T = TypeVar("T", bound="AbstractElementHandle")
-WebHarness = Callable[
-    [bool, str | None, str | None], _AsyncGeneratorContextManager["AbstractPage[T]"]
-]
+WebHarness = Callable[..., _AsyncGeneratorContextManager["AbstractPage[T]"]]
 
 
 class AbstractElementHandle(abc.ABC):
