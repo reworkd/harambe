@@ -84,7 +84,7 @@ class LocalStorageObserver(OutputObserver):
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
         }
-        self._tracker.save_data(data)
+        self._tracker.save_data(data)  # type: ignore
         return data
 
     async def on_paginate(self, next_url: str) -> None:
@@ -106,12 +106,11 @@ class InMemoryObserver(OutputObserver):
     async def on_download(
         self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
-        data = {
+        self._files.append((filename, content))
+        return {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
         }
-        self._files.append((filename, content))
-        return data
 
     async def on_paginate(self, next_url: str) -> None:
         pass

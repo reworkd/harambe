@@ -39,7 +39,7 @@ class ResourceRequestHandler(AbstractHandler):
         self.resource_type = resource_type
 
         self._initial_pages = [p.url for p in page.context.pages]
-        self._new_pages = []
+        self._new_pages: list[str] = []
 
     async def __aenter__(self) -> Self:
         await self.page.context.route(self.url_pattern, self.handle)

@@ -20,7 +20,7 @@ def write_json_lines(file_path: Path, data: list[Any]) -> None:
 class Tracer:
     def __init__(self) -> None:
         self._is_tracing = False
-        self._network_traces = []
+        self._network_traces: list[Any] = []
         self._resources: list[tuple[str, bytes]] = []
 
     def start(self) -> None:
@@ -57,7 +57,7 @@ class Tracer:
 
     @swallow_exceptions
     def log_request(self, response: requests.Response) -> None:
-        if not self._is_tracing:
+        if not self._is_tracing or not response.request:
             return
 
         started_date_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")

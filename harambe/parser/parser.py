@@ -19,7 +19,7 @@ class SchemaParser(ABC):
     """
 
     @abstractmethod
-    def validate(self, data: dict[str, Any], base_url: URL) -> None:
+    def validate(self, data: dict[str, Any], base_url: URL) -> Any:
         pass
 
 
@@ -37,26 +37,26 @@ class PydanticSchemaParser(SchemaParser):
     A schema parser that uses Pydantic models to validate data against a JSON schema
     """
 
+    model: Type[BaseModel]
+
     def __init__(self, schema: Schema):
         self.schema = schema
-        self.model = None
-        self.field_types = None
+        self.field_types: dict[str, Any] = {}
 
     def validate(self, data: dict[str, Any], base_url: URL) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
-
         self.model = self._schema_to_pydantic_model(self.schema)
 
         try:
-            return self.model(**data).dict()
+            return self.model(**data).model_dump()
         except ValidationError as validation_error:
             raise SchemaValidationError(
-                data=data, schema=self.schema, message=validation_error
+                data=data, schema=self.schema, message=str(validation_error)
             )
 
     @staticmethod
-    def _get_field_types(base_url: str) -> dict[str, Type]:
+    def _get_field_types(base_url: str) -> dict[str, Any]:
         return {
             "string": str,
             "str": str,
@@ -78,7 +78,7 @@ class PydanticSchemaParser(SchemaParser):
 
     def _items_schema_to_python_type(
         self, items_info: Schema, model_name: str = "DynamicModelItem"
-    ) -> Type:
+    ) -> Type[Any]:
         """
         Convert a JSON schema's items property to a Python type
         """
@@ -93,7 +93,7 @@ class PydanticSchemaParser(SchemaParser):
             )
         elif item_type == LIST_TYPE:
             # Lists can't be null
-            python_type = List[
+            python_type = List[  # type: ignore
                 self._items_schema_to_python_type(
                     items_info.get("items", {}),
                     model_name=f"{model_name}Item",
@@ -127,7 +127,7 @@ class PydanticSchemaParser(SchemaParser):
                 )
             elif field_type == LIST_TYPE:
                 # Lists can't be null
-                python_type = List[
+                python_type = List[  # type: ignore
                     self._items_schema_to_python_type(
                         field_info.get("items", {}) or {},
                         model_name=f"{model_name}Item",
@@ -138,7 +138,7 @@ class PydanticSchemaParser(SchemaParser):
                 python_type = self._get_type(field_type)(field_info["variants"])
             else:
                 # Non complex types should be optional
-                python_type = Optional[self._get_type(field_type)]
+                python_type = Optional[self._get_type(field_type)]  # type: ignore
 
             fields[field_name] = (
                 python_type,
@@ -148,7 +148,7 @@ class PydanticSchemaParser(SchemaParser):
         # Disallow additional fields
         config = {"extra": Extra.forbid}
 
-        return create_model(model_name, __config__=config, **fields)
+        return create_model(model_name, __config__=config, **fields)  # type: ignore
 
     def _get_type(self, field: str) -> Type[Any]:
         field_type = self.field_types.get(field)

@@ -2,10 +2,12 @@ import abc
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from contextlib import _AsyncGeneratorContextManager
-from typing import TypeVar, Generic, Callable, Any, Optional
+from typing import TypeVar, Generic, Callable, Any, Optional, Awaitable
 
 T = TypeVar("T", bound="AbstractElementHandle")
-WebHarness = Callable[..., _AsyncGeneratorContextManager["AbstractPage[T]"]]
+WebHarness = Callable[
+    ..., _AsyncGeneratorContextManager[Callable[[], Awaitable["AbstractPage[Any]"]]]
+]
 
 
 class AbstractElementHandle(abc.ABC):
@@ -59,7 +61,7 @@ class AbstractPage(Selectable[T], abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    async def text_content(self, selector, **kwargs: Any) -> Optional[str]:
+    async def text_content(self, selector: str, **kwargs: Any) -> Optional[str]:
         raise NotImplementedError()
 
     @abc.abstractmethod

@@ -19,7 +19,7 @@ def proxy_from_url(url: str) -> ProxySettings:
         raise ValueError(f"Invalid proxy URL: {url}")
 
     proxy: ProxySettings = {
-        "server": parsed.hostname,
+        "server": parsed.hostname,  # type: ignore
         "username": parsed.username,
         "password": parsed.password,
     }

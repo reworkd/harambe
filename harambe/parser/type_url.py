@@ -1,4 +1,4 @@
-from typing import Optional, Type, Callable
+from typing import Optional, Callable, Any
 from urllib.parse import urljoin, urlparse
 
 from pydantic.functional_validators import AfterValidator
@@ -17,7 +17,7 @@ allowed_url_schemes = [
 
 
 class ParserTypeUrl:
-    def __new__(cls, base_url: Optional[URL] = None) -> Type[str]:
+    def __new__(cls, base_url: Optional[URL] = None) -> Any:
         return Annotated[str, AfterValidator(cls.validate_type(base_url))]
 
     @staticmethod

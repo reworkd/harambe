@@ -23,6 +23,7 @@ async def playwright_harness(
     cdp_endpoint: str | None = None,
     proxy: str | None = None,
     cookies: Sequence[SetCookieParam] = (),
+    headers: dict[str, str] | None = None,
     stealth: bool = True,
     default_timeout: int = 30000,
     abort_unnecessary_requests: bool = True,
@@ -30,6 +31,7 @@ async def playwright_harness(
     viewport: Optional[ViewportSize] = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
+    **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
     Context manager for Playwright. Starts a new browser, context, and page, and closes them when done.
@@ -63,6 +65,8 @@ async def playwright_harness(
             page = await ctx.new_page()
             if stealth:
                 await stealth_async(page)
+            if headers:
+                await page.set_extra_http_headers(headers)
             return page  # type: ignore
 
         try:

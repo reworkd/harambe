@@ -1,6 +1,6 @@
 import functools
 import re
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Callable, ParamSpec, TypeVar
 from urllib.parse import urljoin
 
 from playwright.async_api import Locator, Page
@@ -11,7 +11,7 @@ PageLocator = Union[Locator, Page]
 class PlaywrightUtils:
     @staticmethod
     async def parse_by_regex(page: PageLocator, selector: str) -> str:
-        return await parse_by_regex(page, selector)
+        return await parse_by_regex(page, selector)  # type: ignore
 
     @staticmethod
     async def parse_attr(page: PageLocator, selector: str) -> str:
@@ -57,7 +57,7 @@ async def parse_attr(page: PageLocator, selector: str) -> str:
     xpath, attr = selector.split(r"/@")
     data = await get_attr(page, xpath, attr)
     if data.startswith("/"):
-        data = urljoin(page.url, data)
+        data = urljoin(page.url, data)  # type: ignore
     return data
 
 
@@ -87,8 +87,8 @@ async def get_attr(page: PageLocator, selector: str, attr: str) -> str:
 async def get_links(page: PageLocator, selector: str) -> List[str]:
     urls = await get_attrs(page, selector, attr="href")
     if isinstance(page, Locator):
-        page.url = ""
-    return [urljoin(page.url, url) for url in urls if url]
+        setattr(page, "url", "")
+    return [urljoin(page.url, url) for url in urls if url]  # type: ignore
 
 
 async def get_link(page: PageLocator, selector: str) -> str:
@@ -96,9 +96,13 @@ async def get_link(page: PageLocator, selector: str) -> str:
     return data[0] if data else ""
 
 
-def swallow_exceptions(func):
+P = ParamSpec("P")
+T = TypeVar("T")
+
+
+def swallow_exceptions(func: Callable[P, T]) -> Callable[P, Optional[T]]:
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Optional[T]:
         try:
             return func(*args, **kwargs)
         except KeyboardInterrupt:

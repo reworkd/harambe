@@ -1,12 +1,23 @@
-from typing import Any, Awaitable, Callable, Literal, TypedDict, Optional
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Literal,
+    TypedDict,
+    Optional,
+    NotRequired,
+    Sequence,
+)
+
+from playwright.async_api import ViewportSize
 
 Enum = str
 URL = str
 ScrapeResult = dict[str, Any]
 Context = dict[str, Any]
 Stage = Literal["category", "listing", "detail"]
-AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # noqa: F821
-SetupType = Callable[["SDK"], Awaitable[None]]  # noqa: F821
+AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # type: ignore # noqa: F821
+SetupType = Callable[["SDK"], Awaitable[None]]  # type: ignore # noqa: F821
 Schema = dict[str, Any]
 
 
@@ -20,3 +31,15 @@ class SetCookieParam(TypedDict, total=False):
     httpOnly: Optional[bool]
     secure: Optional[bool]
     sameSite: Optional[Literal["Lax", "None", "Strict"]]
+
+
+class HarnessOptions(TypedDict):
+    headless: NotRequired[bool]
+    cdp_endpoint: NotRequired[str]
+    proxy: NotRequired[str]
+    cookies: NotRequired[Sequence[SetCookieParam]]
+    headers: NotRequired[dict[str, str]]
+    stealth: NotRequired[bool]
+    default_timeout: NotRequired[int]
+    user_agent: NotRequired[str]
+    viewport: NotRequired[ViewportSize]

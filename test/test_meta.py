@@ -23,15 +23,6 @@ def test_find_scrapers():
         assert scraper["package"] == meta.url_to_package(scraper["domain"])
 
 
-def test_load_scrapers():
-    scrapers = meta.walk_package_for_decorators(Path(__file__))
-
-    for scraper in scrapers:
-        func = meta.load_scraper(scraper)
-        assert func
-        assert callable(func)
-
-
 @pytest.mark.parametrize(
     "url, expected",
     [

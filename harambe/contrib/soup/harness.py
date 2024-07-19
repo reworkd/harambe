@@ -16,6 +16,7 @@ async def soup_harness(
     *,
     proxy: str | None = None,
     cookies: Sequence[SetCookieParam] = (),
+    headers: dict[str, str] | None = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
     **__: Any,
@@ -33,7 +34,10 @@ async def soup_harness(
         tracer = Tracer()
 
         async def factory(*_: Any, **__: Any) -> SoupPage:
-            return SoupPage(s, tracer=tracer)
+            page = SoupPage(s, tracer=tracer)
+            if headers:
+                await page.set_extra_http_headers(headers)
+            return page
 
         try:
             if on_start:

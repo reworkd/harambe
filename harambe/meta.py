@@ -1,10 +1,7 @@
 import ast
-import importlib
 from pathlib import Path
 from typing import List, TypedDict, cast
 from urllib.parse import urlparse
-
-from harambe.types import AsyncScraperType
 
 
 class DecoratedScraper(TypedDict):
@@ -84,20 +81,3 @@ def url_to_package(url: str) -> str:
 
     package_name = ".".join(reversed_parts)
     return package_name
-
-
-# noinspection PyUnresolvedReferences
-def load_scraper(dec: DecoratedScraper) -> AsyncScraperType:
-    module_name = "harambe.contrib." + dec["package"]
-    file_path = dec["file_path"]
-    function_name = dec["function_name"]
-
-    loader = importlib.machinery.SourceFileLoader(module_name, file_path)
-    spec = importlib.util.spec_from_loader(module_name, loader)
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-
-    if function := getattr(module, function_name, None):
-        return function
-
-    raise AttributeError(f"Function {function_name} not found in {module_name}")

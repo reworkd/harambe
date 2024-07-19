@@ -4,7 +4,17 @@ import tempfile
 import uuid
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Protocol, Union, Awaitable
+from typing import (
+    Any,
+    Callable,
+    List,
+    Optional,
+    Protocol,
+    Union,
+    Awaitable,
+    Unpack,
+    cast,
+)
 
 import aiohttp
 from playwright.async_api import (
@@ -38,6 +48,7 @@ from harambe.types import (
     SetupType,
     Schema,
     Stage,
+    HarnessOptions,
 )
 
 
@@ -130,7 +141,9 @@ class SDK:
                 url = await url
 
             normalized_url = (
-                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
+                normalize_url(cast(str, url), self.page.url)
+                if hasattr(self.page, "url")
+                else url
             )
             await self._notify_observers("on_queue_url", normalized_url, context)
 
@@ -278,11 +291,9 @@ class SDK:
         url: str | Path,
         schema: Schema,
         context: Optional[Context] = None,
-        headless: bool = False,
-        cdp_endpoint: Optional[str] = None,
-        proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
         harness: WebHarness = playwright_harness,
+        **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -290,10 +301,7 @@ class SDK:
         :param scraper: scraper to run
         :param url: starting url to run the scraper on
         :param schema: schema used to validate output correctness
-        :param context: additional context to pass to the scraper
-        :param headless: whether to run the browser headless
-        :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
-        :param proxy: proxy to use for the browser
+        :param context: additional context to pass to the scrapers
         :param setup: setup function to run before the scraper
         :param harness: the harness to use for the browser
         :return none: everything should be saved to the database or file
@@ -301,17 +309,14 @@ class SDK:
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
         observer = getattr(scraper, "observer", None)
-        headers = getattr(scraper, "extra_headers", None)
         context = context or {}
+
+        harness_options.setdefault("headers", getattr(scraper, "extra_headers", None))  # type: ignore
 
         if isinstance(url, Path):
             url = f"file://{url.resolve()}"
 
-        async with harness(
-            headless=headless,
-            cdp_endpoint=cdp_endpoint,
-            proxy=proxy,
-        ) as page_factory:
+        async with harness(**harness_options) as page_factory:
             page = await page_factory()
             sdk = SDK(
                 page,
@@ -324,9 +329,6 @@ class SDK:
             )
             if setup:
                 await setup(sdk)
-
-            if headers:
-                await page.set_extra_http_headers(headers)
 
             await page.goto(url)
             await scraper(sdk, url, context)
@@ -388,7 +390,7 @@ class SDK:
                 sdk = SDK(
                     page,
                     domain=domain,
-                    stage=stage,
+                    stage=stage,  # type: ignore
                     observer=observer,
                     scraper=scraper,
                     schema=schema,
@@ -430,9 +432,9 @@ class SDK:
             async def wrapper(sdk: "SDK", url: URL, context: Context) -> None:
                 return await func(sdk, url, context)
 
-            wrapper.domain = domain
-            wrapper.stage = stage
-            wrapper.observer = observer
+            wrapper.domain = domain  # type: ignore
+            wrapper.stage = stage  # type: ignore
+            wrapper.observer = observer  # type: ignore
             return wrapper
 
         return decorator
@@ -453,7 +455,7 @@ class SDK:
             async def wrapper(sdk: "SDK", url: URL, context: Context) -> None:
                 return await func(sdk, url, context)
 
-            wrapper.extra_headers = headers
+            wrapper.extra_headers = headers  # type: ignore
             return wrapper
 
         return decorator

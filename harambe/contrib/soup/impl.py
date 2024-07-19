@@ -85,7 +85,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     async def content(self) -> str:
         return str(self._soup)
 
-    async def text_content(self, selector, **kwargs: Any) -> str | None:
+    async def text_content(self, selector: str, **kwargs: Any) -> str | None:
         if el := await self.query_selector(selector):
             return await el.text_content()
 

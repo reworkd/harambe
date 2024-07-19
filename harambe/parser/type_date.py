@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from typing import Any
 
 import dateparser
 from pydantic.functional_validators import AfterValidator
@@ -7,7 +8,7 @@ from typing_extensions import Annotated
 
 
 class ParserTypeDate:
-    def __new__(cls):
+    def __new__(cls) -> Any:
         return Annotated[str, AfterValidator(cls.validate_type)]
 
     @staticmethod

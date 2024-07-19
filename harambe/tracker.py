@@ -70,7 +70,7 @@ class FileDataTracker(DataTracker):
         with domain_file.open("w") as file:
             json.dump(list(self.visited_urls.get(domain, set())), file, indent=4)
 
-    def save_data(self, *new_data: dict[str, Any]) -> None:
+    def save_data(self, *new_data: dict[str, Any]) -> None:  # type: ignore
         """Append data for a domain and stage to a JSON file"""
         domain_file = self.get_storage_filepath(self.stage)
 
@@ -90,7 +90,7 @@ class FileDataTracker(DataTracker):
 
     def load_data(self, url: str | None, stage: str | None) -> list[dict[str, Any]]:
         """Load data for a domain and stage from a JSON file"""
-        domain_file = self.get_storage_filepath(stage)
+        domain_file = self.get_storage_filepath(stage)  # type: ignore
         if domain_file.exists():
             with domain_file.open("r") as file:
                 return json.load(file)
