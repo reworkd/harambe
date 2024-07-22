@@ -13,7 +13,7 @@ Callback = Callable[[BrowserContext], Awaitable[None]]
 PageFactory = Callable[..., Awaitable[PlaywrightPage]]
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-DEFAULT_VIEWPORT: ViewportSize = {"width": 1280, "height": 1024}
+DEFAULT_VIEWPORT: ViewportSize = {"width": 1440, "height": 1024}
 
 
 @asynccontextmanager
