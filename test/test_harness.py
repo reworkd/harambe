@@ -20,3 +20,9 @@ async def test_with_cookies(web_harness):
         ]
     ) as page_factory:
         assert page_factory
+
+
+async def test_default_url(web_harness):
+    async with web_harness() as page_factory:
+        page = await page_factory()
+        assert page.url == "about:blank"

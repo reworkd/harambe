@@ -56,6 +56,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         self._session = session
         self._extra_headers = extra_headers
         self._tracer = tracer
+        self._url = "about:blank"
 
     @property
     def tracing(self) -> Tracer:
