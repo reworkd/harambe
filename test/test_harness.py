@@ -1,6 +1,6 @@
 import pytest
 
-from harambe.contrib import playwright_harness, soup_harness, WebHarness
+from harambe.contrib import WebHarness, playwright_harness, soup_harness
 
 
 @pytest.fixture(params=[playwright_harness, soup_harness])

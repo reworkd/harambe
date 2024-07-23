@@ -1,7 +1,7 @@
 import json
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Any
+from typing import Any, List
 
 from harambe.meta import url_to_netloc
 

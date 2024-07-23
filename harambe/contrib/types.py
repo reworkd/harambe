@@ -2,7 +2,7 @@ import abc
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from contextlib import _AsyncGeneratorContextManager
-from typing import TypeVar, Generic, Callable, Any, Optional, Awaitable
+from typing import Any, Awaitable, Callable, Generic, Optional, TypeVar
 
 T = TypeVar("T", bound="AbstractElementHandle")
 WebHarness = Callable[

@@ -1,5 +1,6 @@
+from typing import Any, List
+
 from pydantic.functional_validators import AfterValidator
-from typing import List, Any
 from typing_extensions import Annotated
 
 from harambe.types import Enum

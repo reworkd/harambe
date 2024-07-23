@@ -3,10 +3,10 @@ from typing import (
     Awaitable,
     Callable,
     Literal,
-    TypedDict,
-    Optional,
     NotRequired,
+    Optional,
     Sequence,
+    TypedDict,
 )
 
 from playwright.async_api import ViewportSize

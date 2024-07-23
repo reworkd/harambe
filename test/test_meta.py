@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from harambe import meta, SDK
+from harambe import SDK, meta
 
 
 @SDK.scraper(domain="com.example", stage="listing")

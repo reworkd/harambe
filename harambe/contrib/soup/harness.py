@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Any, Callable, Awaitable, Sequence, Optional
+from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence
 
 from curl_cffi.requests import AsyncSession
 

@@ -4,17 +4,16 @@ from abc import abstractmethod
 from typing import (
     Any,
     List,
+    Literal,
     Protocol,
     Tuple,
-    runtime_checkable,
     TypedDict,
-    Literal,
+    runtime_checkable,
 )
 from urllib.parse import quote
 
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Stage
-
 
 ObservationTrigger = Literal[
     "on_save_data", "on_queue_url", "on_download", "on_paginate"

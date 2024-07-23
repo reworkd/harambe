@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Any
+from typing import Any, Callable, Optional
 from urllib.parse import urljoin, urlparse
 
 from pydantic.functional_validators import AfterValidator

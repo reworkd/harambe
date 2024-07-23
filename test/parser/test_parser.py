@@ -1,9 +1,9 @@
+import test.parser.schemas as schemas
 from typing import Any
 
 import pytest
 
 from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
-import test.parser.schemas as schemas
 from harambe.types import Schema
 
 

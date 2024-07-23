@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Callable, Awaitable, Optional, Sequence, Any
+from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence
 
-from playwright.async_api import async_playwright, BrowserContext, ViewportSize
+from playwright.async_api import BrowserContext, ViewportSize, async_playwright
 from playwright_stealth import stealth_async
 
 from harambe.contrib.playwright.impl import PlaywrightPage

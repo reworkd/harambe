@@ -1,6 +1,6 @@
 import functools
 import re
-from typing import List, Optional, Union, Callable, ParamSpec, TypeVar
+from typing import Callable, List, Optional, ParamSpec, TypeVar, Union
 from urllib.parse import urljoin
 
 from playwright.async_api import Locator, Page

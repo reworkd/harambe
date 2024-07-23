@@ -6,12 +6,12 @@ from functools import wraps
 from pathlib import Path
 from typing import (
     Any,
+    Awaitable,
     Callable,
     List,
     Optional,
     Protocol,
     Union,
-    Awaitable,
     Unpack,
     cast,
 )
@@ -19,11 +19,13 @@ from typing import (
 import aiohttp
 from playwright.async_api import (
     ElementHandle,
-    TimeoutError as PlaywrightTimeoutError,
     Page,
 )
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeoutError,
+)
 
-from harambe.contrib import playwright_harness, WebHarness
+from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.types import AbstractPage
 from harambe.handlers import (
     ResourceRequestHandler,
@@ -31,12 +33,12 @@ from harambe.handlers import (
 )
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
-    LocalStorageObserver,
-    LoggingObserver,
-    OutputObserver,
     DownloadMeta,
     DuplicateHandler,
+    LocalStorageObserver,
+    LoggingObserver,
     ObservationTrigger,
+    OutputObserver,
 )
 from harambe.parser.parser import PydanticSchemaParser
 from harambe.tracker import FileDataTracker
@@ -44,11 +46,11 @@ from harambe.types import (
     URL,
     AsyncScraperType,
     Context,
+    HarnessOptions,
+    Schema,
     ScrapeResult,
     SetupType,
-    Schema,
     Stage,
-    HarnessOptions,
 )
 
 

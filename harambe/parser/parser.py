@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Type
 
-from pydantic import BaseModel, create_model, Extra, Field, NameEmail, ValidationError
+from pydantic import BaseModel, Extra, Field, NameEmail, ValidationError, create_model
 
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
 from harambe.parser.type_url import ParserTypeUrl
-from harambe.types import Schema, URL, ScrapeResult
+from harambe.types import URL, Schema, ScrapeResult
 
 OBJECT_TYPE = "object"
 LIST_TYPE = "array"

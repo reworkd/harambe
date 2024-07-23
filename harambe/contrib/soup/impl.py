@@ -1,12 +1,12 @@
 from typing import Any, Optional
 
-from bs4 import Tag, BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 # noinspection PyProtectedMember
 from curl_cffi.requests import AsyncSession, HeaderTypes
 
 from harambe.contrib.soup.tracing import Tracer
-from harambe.contrib.types import AbstractElementHandle, Selectable, AbstractPage
+from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectable
 
 
 class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):

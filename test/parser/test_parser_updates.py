@@ -1,15 +1,15 @@
+from test.parser.schemas import (
+    datetime_schema,
+    list_with_nested_types_schema,
+    object_with_nested_types_schema,
+    phone_number_schema,
+    url_schema,
+)
 from typing import Any
 
 import pytest
 
 from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
-from test.parser.schemas import (
-    datetime_schema,
-    phone_number_schema,
-    url_schema,
-    object_with_nested_types_schema,
-    list_with_nested_types_schema,
-)
 
 
 @pytest.mark.parametrize(

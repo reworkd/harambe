@@ -1,6 +1,6 @@
 import pytest
 
-from harambe.observer import InMemoryObserver, DuplicateHandler
+from harambe.observer import DuplicateHandler, InMemoryObserver
 
 
 @pytest.mark.asyncio

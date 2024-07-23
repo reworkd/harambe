@@ -1,8 +1,8 @@
 import re
 from abc import ABC
-from typing import Literal, Any, Self
+from typing import Any, Literal, Self
 
-from playwright.async_api import Route, Page
+from playwright.async_api import Page, Route
 
 ResourceType = Literal[
     "document",
