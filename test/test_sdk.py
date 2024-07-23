@@ -58,7 +58,8 @@ async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer():
 
     assert observer.on_queue_url.call_count == len(urls)
     observer.on_queue_url.assert_has_awaits(
-        [call(urls[0], context, options), call(urls[1], context, options)], any_order=False
+        [call(urls[0], context, options), call(urls[1], context, options)],
+        any_order=False,
     )
 
     assert observer.on_queue_url.call_count == len(urls)

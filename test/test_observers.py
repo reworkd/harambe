@@ -18,7 +18,9 @@ async def in_memory_on_queue_url():
     observer = InMemoryObserver()
 
     await observer.on_queue_url("https://example.com", {"foo": "bar"}, {"test": "test"})
-    await observer.on_queue_url("https://example.org", {"baz": "qux"}, {"other": "other"})
+    await observer.on_queue_url(
+        "https://example.org", {"baz": "qux"}, {"other": "other"}
+    )
 
     assert observer.urls == [
         ("https://example.com", {"foo": "bar"}, {"test": "test"}),
@@ -44,7 +46,9 @@ async def test_stop_pagination_observer_duplicate_data_error():
 async def test_stop_pagination_observer_duplicate_url_error():
     observer = DuplicateHandler()
 
-    unduplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
+    unduplicated = await observer.on_queue_url(
+        "https://example.com", {"foo": "bar"}, {}
+    )
     await observer.on_paginate("https://example.com/page2")
     duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
 
@@ -110,7 +114,9 @@ async def test_duplicate_data_without_pagination():
     duplicated = await observer.on_save_data({"foo": "bar"})
     assert not un_duplicated and duplicated
 
-    un_duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
+    un_duplicated = await observer.on_queue_url(
+        "https://example.com", {"foo": "bar"}, {}
+    )
     duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
     assert not un_duplicated and duplicated
 

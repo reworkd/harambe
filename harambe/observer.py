@@ -137,7 +137,9 @@ class DuplicateHandler:
     async def on_save_data(self, data: dict[str, Any]) -> bool:
         return self._add_data(data)
 
-    async def on_queue_url(self, url: URL, _: Optional[Context], __: Optional[Options]) -> bool:
+    async def on_queue_url(
+        self, url: URL, _: Optional[Context], __: Optional[Options]
+    ) -> bool:
         return self._add_data(url)
 
     # noinspection PyTypeChecker

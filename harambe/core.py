@@ -153,7 +153,9 @@ class SDK:
                 if hasattr(self.page, "url")
                 else url
             )
-            await self._notify_observers("on_queue_url", normalized_url, context, options)
+            await self._notify_observers(
+                "on_queue_url", normalized_url, context, options
+            )
 
     async def paginate(
         self,
