@@ -52,12 +52,14 @@ async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer():
     sdk = SDK(page, observer=observer)
     urls = ["https://example.org", "https://example.com"]
     context = {"foo": "bar"}
+    options = {"zoo": "zar"}
 
-    await sdk.enqueue(*urls, context=context)
+    await sdk.enqueue(*urls, context=context, options=options)
 
     assert observer.on_queue_url.call_count == len(urls)
     observer.on_queue_url.assert_has_awaits(
-        [call(urls[0], context), call(urls[1], context)], any_order=False
+        [call(urls[0], context, options), call(urls[1], context, options)],
+        any_order=False,
     )
 
     assert observer.on_queue_url.call_count == len(urls)

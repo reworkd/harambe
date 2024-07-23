@@ -5,6 +5,7 @@ from typing import (
     Any,
     List,
     Literal,
+    Optional,
     Protocol,
     Tuple,
     TypedDict,
@@ -13,7 +14,7 @@ from typing import (
 from urllib.parse import quote
 
 from harambe.tracker import FileDataTracker
-from harambe.types import URL, Context, Stage
+from harambe.types import URL, Context, Options, Stage
 
 ObservationTrigger = Literal[
     "on_save_data", "on_queue_url", "on_download", "on_paginate"
@@ -32,7 +33,7 @@ class OutputObserver(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
-    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
+    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -50,8 +51,8 @@ class LoggingObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
         print(data)
 
-    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
-        print(f"Enqueuing: {url} with context {context}")
+    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
+        print(f"Enqueuing: {url} with context {context} and options {options}")
 
     async def on_download(
         self, download_url: str, filename: str, content: bytes
@@ -73,8 +74,8 @@ class LocalStorageObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._tracker.save_data(data)
 
-    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
-        self._tracker.save_data({"url": url, "context": context})
+    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
+        self._tracker.save_data({"url": url, "context": context, "options": options})
 
     async def on_download(
         self, download_url: str, filename: str, content: bytes
@@ -93,14 +94,14 @@ class LocalStorageObserver(OutputObserver):
 class InMemoryObserver(OutputObserver):
     def __init__(self) -> None:
         self._data: List[dict[str, Any]] = []
-        self._urls: List[Tuple[URL, Context]] = []
+        self._urls: List[Tuple[URL, Context, Options]] = []
         self._files: List[Tuple[str, bytes]] = []
 
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._data.append(data)
 
-    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> None:
-        self._urls.append((url, context))
+    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
+        self._urls.append((url, context, options))
 
     async def on_download(
         self, download_url: str, filename: str, content: bytes
@@ -119,7 +120,7 @@ class InMemoryObserver(OutputObserver):
         return self._data
 
     @property
-    def urls(self) -> List[Tuple[URL, Context]]:
+    def urls(self) -> List[Tuple[URL, Context, Options]]:
         return self._urls
 
     @property
@@ -136,7 +137,9 @@ class DuplicateHandler:
     async def on_save_data(self, data: dict[str, Any]) -> bool:
         return self._add_data(data)
 
-    async def on_queue_url(self, url: URL, context: dict[str, Any]) -> bool:
+    async def on_queue_url(
+        self, url: URL, _: Optional[Context], __: Optional[Options]
+    ) -> bool:
         return self._add_data(url)
 
     # noinspection PyTypeChecker

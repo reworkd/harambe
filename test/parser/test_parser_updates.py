@@ -1,3 +1,8 @@
+from typing import Any
+
+import pytest
+
+from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
 from test.parser.schemas import (
     datetime_schema,
     list_with_nested_types_schema,
@@ -5,11 +10,6 @@ from test.parser.schemas import (
     phone_number_schema,
     url_schema,
 )
-from typing import Any
-
-import pytest
-
-from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
 
 
 @pytest.mark.parametrize(

@@ -37,7 +37,7 @@ async def server(mock_html_folder):
 
 
 @pytest.fixture
-async def observer():
+def observer():
     return InMemoryObserver()
 
 
@@ -251,7 +251,7 @@ async def test_text_content_when_selector_does_not_exist(server, observer, harne
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
-        page.set_default_timeout(1)
+        await page.set_default_timeout(1)
 
         content = await page.text_content("table.non-existent")
         await sdk.save_data({"page_content": content})
