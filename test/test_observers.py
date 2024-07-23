@@ -17,12 +17,12 @@ async def in_memory_on_save_data():
 async def in_memory_on_queue_url():
     observer = InMemoryObserver()
 
-    await observer.on_queue_url("https://example.com", {"foo": "bar"})
-    await observer.on_queue_url("https://example.org", {"baz": "qux"})
+    await observer.on_queue_url("https://example.com", {"foo": "bar"}, {"test": "test"})
+    await observer.on_queue_url("https://example.org", {"baz": "qux"}, {"other": "other"})
 
     assert observer.urls == [
-        ("https://example.com", {"foo": "bar"}),
-        ("https://example.org", {"baz": "qux"}),
+        ("https://example.com", {"foo": "bar"}, {"test": "test"}),
+        ("https://example.org", {"baz": "qux"}, {"other": "other"}),
     ]
 
 
@@ -44,9 +44,9 @@ async def test_stop_pagination_observer_duplicate_data_error():
 async def test_stop_pagination_observer_duplicate_url_error():
     observer = DuplicateHandler()
 
-    unduplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"})
+    unduplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
     await observer.on_paginate("https://example.com/page2")
-    duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"})
+    duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
 
     assert not unduplicated and duplicated
 
@@ -106,17 +106,17 @@ async def test_ignore_underscore_attributes():
 @pytest.mark.asyncio
 async def test_duplicate_data_without_pagination():
     observer = DuplicateHandler()
-    unduplicated = await observer.on_save_data({"foo": "bar"})
+    un_duplicated = await observer.on_save_data({"foo": "bar"})
     duplicated = await observer.on_save_data({"foo": "bar"})
-    assert not unduplicated and duplicated
+    assert not un_duplicated and duplicated
 
-    unduplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"})
-    duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"})
-    assert not unduplicated and duplicated
+    un_duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
+    duplicated = await observer.on_queue_url("https://example.com", {"foo": "bar"}, {})
+    assert not un_duplicated and duplicated
 
-    unduplicated = await observer.on_download("https://example.com", "foo.txt", b"foo")
+    un_duplicated = await observer.on_download("https://example.com", "foo.txt", b"foo")
     duplicated = await observer.on_download("https://example.com", "foo.txt", b"foo")
-    assert not unduplicated and duplicated
+    assert not un_duplicated and duplicated
 
     await observer.on_paginate("https://example.com/page2")
 

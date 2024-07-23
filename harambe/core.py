@@ -47,6 +47,7 @@ from harambe.types import (
     AsyncScraperType,
     Context,
     HarnessOptions,
+    Options,
     Schema,
     ScrapeResult,
     SetupType,
@@ -125,7 +126,10 @@ class SDK:
             await self._notify_observers("on_save_data", d)
 
     async def enqueue(
-        self, *urls: URL | Awaitable[URL], context: Optional[Context] = None
+        self,
+        *urls: URL | Awaitable[URL],
+        context: Optional[Context] = None,
+        options: Optional[Options] = None,
     ) -> None:
         """
         Enqueue url to be scraped. This will be passed to the on_enqueue callback.
@@ -133,9 +137,11 @@ class SDK:
         so that the detail page can be scraped later.
 
         :param urls: urls to enqueue
-        :param context: additional context to pass to the detail page
+        :param context: additional context to pass to the next run of the next stage/url
+        :param options: job level options to pass to the next stage/url
         """
         context = context or {}
+        options = options or {}
         context["__url"] = self.page.url
 
         for url in urls:
@@ -147,7 +153,7 @@ class SDK:
                 if hasattr(self.page, "url")
                 else url
             )
-            await self._notify_observers("on_queue_url", normalized_url, context)
+            await self._notify_observers("on_queue_url", normalized_url, context, options)
 
     async def paginate(
         self,
@@ -360,6 +366,7 @@ class SDK:
         :param headless: whether to run the browser headless
         :param cdp_endpoint: endpoint to connect to the browser (if using a remote browser)
         :param proxy: proxy to use for the browser
+        :param setup: optional setup
         :return: None: the scraper should save data to the database or file
         """
         domain: str = getattr(scraper, "domain", "")

@@ -15,6 +15,7 @@ Enum = str
 URL = str
 ScrapeResult = dict[str, Any]
 Context = dict[str, Any]
+Options = dict[str, Any]
 Stage = Literal["category", "listing", "detail"]
 AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # type: ignore # noqa: F821
 SetupType = Callable[["SDK"], Awaitable[None]]  # type: ignore # noqa: F821
