@@ -358,6 +358,7 @@ class SDK:
         cdp_endpoint: Optional[str] = None,
         proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
+        **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
         Convenience method for running a detail scraper from file. This will load
@@ -395,6 +396,7 @@ class SDK:
             headless=headless,
             cdp_endpoint=cdp_endpoint,
             proxy=proxy,
+            **harness_options
         ) as page_factory:
             page = await page_factory()
             for listing in listing_data:

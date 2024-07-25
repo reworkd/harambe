@@ -174,12 +174,11 @@ def test_pydantic_schema_validator_success(
             {
                 "title": "Document One",
                 "document_url": "http://example.com/doc1",
-                "items": {  # ❌ Extra field
+                "items": {  # ❌ Extra complex field
                     "title": "Extra field"
                 },
             },
         ),
-        # 1
         (
             # Schema
             schemas.document_schema,
@@ -256,7 +255,30 @@ def test_pydantic_schema_validator_success(
                 "documents": None  # ❌ Null list
             },
         ),
-        # 9
+        (
+            schemas.documents_schema,
+            {
+                # ❌ Invalid type in list
+                "documents": [
+                    {
+                        "title": "Document Seven",
+                        "document_url": 1234, # ❌ Invalid URL type
+                    },
+                ]
+            },
+        ),
+        (
+            schemas.documents_schema,
+            {
+                "documents": [
+                    {
+                        "title": "Document Seven",
+                        "document_url": "www.test.com",
+                        "extra": "Extra field",  # ❌ Extra field in list
+                    },
+                ]
+            },
+        ),
         (
             # Schema
             schemas.documents_schema,

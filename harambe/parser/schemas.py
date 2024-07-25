@@ -68,6 +68,52 @@ class Schemas:
         },
     }
 
+    government_contracts_small = {
+        "id": {
+            "type": "string",
+        },
+        "title": {
+            "type": "string",
+        },
+        "description": {
+            "type": "string",
+        },
+        "location": {
+            "type": "string",
+        },
+        "type": {
+            "type": "string",
+        },
+        "category": {
+            "type": "string",
+        },
+        "posted_date": {
+            "type": "string",
+        },
+        "due_date": {
+            "type": "string",
+        },
+        "agency": {
+            "type": "string",
+        },
+        "contact_name": {
+            "type": "string",
+        },
+        "contact_email": {
+            "type": "string",
+        },
+        "contact_number": {
+            "type": "string",
+        },
+        "attachments": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"title": {"type": "string"}, "url": {"type": "string"}},
+            },
+        },
+    }
+
     school_directory = {
         "first_name": {
             "type": "string",
