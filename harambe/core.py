@@ -409,7 +409,8 @@ class SDK:
                 if setup:
                     await setup(sdk)
 
-                await page.set_extra_http_headers(headers)
+                if headers:
+                    await page.set_extra_http_headers(headers)
                 await page.goto(listing["url"])
                 await scraper(
                     sdk,
