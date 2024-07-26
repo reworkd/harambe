@@ -24,7 +24,7 @@ async def playwright_harness(
     proxy: str | None = None,
     cookies: Sequence[SetCookieParam] = (),
     headers: dict[str, str] | None = None,
-    stealth: bool = True,
+    stealth: bool = False,
     default_timeout: int = 30000,
     abort_unnecessary_requests: bool = True,
     user_agent: str = DEFAULT_USER_AGENT,

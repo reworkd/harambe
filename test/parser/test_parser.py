@@ -166,11 +166,16 @@ def test_pydantic_schema_validator_success(
 @pytest.mark.parametrize(
     "schema, data",
     [
-        # 0
         (
-            # Schema
             schemas.document_schema,
-            # Data
+            {
+                "title": "Document Three",
+                "document_url": 123,
+                "test": "Extra field",  # ❌ Extra field
+            },
+        ),
+        (
+            schemas.document_schema,
             {
                 "title": "Document One",
                 "document_url": "http://example.com/doc1",
@@ -180,77 +185,54 @@ def test_pydantic_schema_validator_success(
             },
         ),
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {
                 "title": "Document Three",
                 "document_url": 123,  # ❌ Invalid URL type
             },
         ),
-        # 2
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {
                 "title": 456,  # ❌ Invalid title type
                 "document_url": "http://example.com/doc4",
             },
         ),
-        # 3
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {
                 # ❌ Missing title
                 "document_url": "http://example.com/doc5"
             },
         ),
-        # 4
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {},  # ❌ Missing everything
         ),
-        # 5
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {
                 "title": "Document Six",
                 "document_url": "gopher://example.com/doc6",  # ❌ Bad URL scheme
             },
         ),
-        # 6
         (
-            # Schema
             schemas.contact_schema,
-            # Data
             {
                 "name": {"first_name": None, "last_name": "Doe"},
                 "address": None,  # ❌ No sub-fields
             },
         ),
-        # 7
         (
-            # Schema
             schemas.contact_schema,
-            # Data
             {
                 "name": {"first_name": None, "last_name": "Doe"},
                 "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890},
                 "phone_numbers": [{"number": 1234567890}],  # ❌ Bad phone number
             },
         ),
-        # 8
         (
-            # Schema
             schemas.documents_schema,
-            # Data
             {
                 "documents": None  # ❌ Null list
             },
@@ -280,20 +262,15 @@ def test_pydantic_schema_validator_success(
             },
         ),
         (
-            # Schema
             schemas.documents_schema,
-            # Data
             {
                 "documents": [
                     None  # ❌ Null item in list
                 ]
             },
         ),
-        # 10
         (
-            # Schema
             schemas.list_of_strings_schema,
-            # Data
             {
                 "tags": [
                     None,  # ❌ None in list of strings
@@ -302,11 +279,8 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 11
         (
-            # Schema
             schemas.list_of_objects_schema,
-            # Data
             {
                 "users": [
                     {
@@ -316,11 +290,8 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 12
         (
-            # Schema
             schemas.object_with_list_schema,
-            # Data
             {
                 "team": {
                     "name": "Developers",
@@ -328,11 +299,8 @@ def test_pydantic_schema_validator_success(
                 }
             },
         ),
-        # 13
         (
-            # Schema
             schemas.list_of_lists_schema,
-            # Data
             {
                 "matrix": [
                     [1, "a"],  # ❌ Invalid type in nested list
@@ -340,11 +308,8 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 14
         (
-            # Schema
             schemas.nested_lists_and_objects_schema,
-            # Data
             {
                 "departments": [
                     {
@@ -362,11 +327,8 @@ def test_pydantic_schema_validator_success(
                 ]
             },
         ),
-        # 14
         (
-            # Schema
             schemas.enums_schema,
-            # Data
             {
                 "season": "autumn"  # ❌ Value that doesn't match any of the enum variants
             },

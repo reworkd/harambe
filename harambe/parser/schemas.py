@@ -109,7 +109,7 @@ class Schemas:
             "type": "array",
             "items": {
                 "type": "object",
-                "properties": {"title": {"type": "string"}, "url": {"type": "string"}},
+                "properties": {"title": {"type": "string"}, "url": {"type": "url"}},
             },
         },
     }
