@@ -66,7 +66,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     def url(self) -> str:
         return self._url
 
-    async def goto(self, url: str) -> None:
+    async def goto(self, url: str, **kwargs: Any) -> None:
         res = await self._session.get(
             url, headers=self._extra_headers, impersonate="chrome"
         )

@@ -354,9 +354,6 @@ class SDK:
     async def run_from_file(
         scraper: AsyncScraperType,
         schema: Schema,
-        headless: bool = False,
-        cdp_endpoint: Optional[str] = None,
-        proxy: Optional[str] = None,
         setup: Optional[SetupType] = None,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
@@ -392,12 +389,7 @@ class SDK:
             )
 
         listing_data = tracker.load_data(domain, prev)
-        async with playwright_harness(
-            headless=headless,
-            cdp_endpoint=cdp_endpoint,
-            proxy=proxy,
-            **harness_options
-        ) as page_factory:
+        async with playwright_harness(**harness_options) as page_factory:
             page = await page_factory()
             for listing in listing_data:
                 sdk = SDK(

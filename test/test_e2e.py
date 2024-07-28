@@ -259,3 +259,16 @@ async def test_text_content_when_selector_does_not_exist(server, observer, harne
     await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
     assert len(observer.data) == 1
     assert observer.data[0]["page_content"] is None
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_page_goto_with_options(server, harness):
+    url = f"{server}/table"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+        await page.goto(
+            "https://example.com", timeout=1000, referer="https://google.com"
+        )
+
+    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)

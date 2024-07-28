@@ -49,7 +49,7 @@ class AbstractPage(Selectable[T], abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    async def goto(self, url: str) -> None:
+    async def goto(self, url: str, **kwargs: Any) -> None:
         raise NotImplementedError()
 
     @abc.abstractmethod

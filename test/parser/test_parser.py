@@ -244,7 +244,7 @@ def test_pydantic_schema_validator_success(
                 "documents": [
                     {
                         "title": "Document Seven",
-                        "document_url": 1234, # ❌ Invalid URL type
+                        "document_url": 1234,  # ❌ Invalid URL type
                     },
                 ]
             },
