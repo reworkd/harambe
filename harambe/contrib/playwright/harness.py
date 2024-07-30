@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence
 
-from playwright.async_api import BrowserContext, ViewportSize, async_playwright
+from playwright.async_api import BrowserContext, ViewportSize, async_playwright, Page
 from playwright_stealth import stealth_async
 
 from harambe.contrib.playwright.impl import PlaywrightPage
@@ -10,6 +10,7 @@ from harambe.proxy import proxy_from_url
 from harambe.types import SetCookieParam
 
 Callback = Callable[[BrowserContext], Awaitable[None]]
+PageCallback = Callable[[Page], Awaitable[None]]
 PageFactory = Callable[..., Awaitable[PlaywrightPage]]
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
@@ -31,6 +32,7 @@ async def playwright_harness(
     viewport: Optional[ViewportSize] = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
+    on_new_page: Optional[PageCallback] = None,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -63,6 +65,8 @@ async def playwright_harness(
 
         async def page_factory(*_: Any, **__: Any) -> PlaywrightPage:
             page = await ctx.new_page()
+            if on_new_page:
+                await on_new_page(page)
             if stealth:
                 await stealth_async(page)
             if headers:

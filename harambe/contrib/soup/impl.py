@@ -24,6 +24,9 @@ class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
     async def inner_text(self) -> str:
         return self._tag.get_text()
 
+    async def inner_html(self) -> str:
+        return self._tag.decode_contents()
+
     async def text_content(self) -> str:
         return await self.inner_text()
 
@@ -79,6 +82,12 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
     async def query_selector(self, selector: str) -> SoupElementHandle | None:
         return SoupElementHandle.from_tag(self._soup.select_one(selector))
+
+    async def inner_text(self, selector: str) -> str | None:
+        if el := await self.query_selector(selector):
+            return await el.inner_text()
+
+        return None
 
     async def wait_for_timeout(self, timeout: int) -> None:
         pass
