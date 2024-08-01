@@ -10,71 +10,52 @@ from harambe.types import Schema
 @pytest.mark.parametrize(
     "schema, data",
     [
-        # 0
+
         (
-            # Schema
+            {"price": {"type": "number", "description": "The price of the product"}},
+            {"price": '1,515.99'},
+        ),
+        (
             schemas.document_schema,
-            # Data
             {"title": "Document One", "document_url": "http://example.com/doc1"},
         ),
-        # 1
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {
                 "title": "An interesting document title",
                 "document_url": "https://example.com/doc2",
             },
         ),
-        # 2
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {"title": "", "document_url": ""},
         ),
-        # 3
         (
-            # Schema
             schemas.document_schema,
-            # Data
             {"title": None, "document_url": None},
         ),
-        # 4
         (
-            # Schema
             schemas.contact_schema,
-            # Data
             {
                 "name": {"first_name": "Jane", "last_name": "Doe"},
                 "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890},
                 "phone_numbers": [{"type": "home", "number": "+1 (415) 555-1234"}],
             },
         ),
-        # 5
         (
-            # Schema
             schemas.contact_schema,
-            # Data
             {
                 "name": {"first_name": None, "last_name": None},
                 "address": {"street": None, "city": None, "zip": None},
                 "phone_numbers": [{"type": "mobile", "number": "+1 (628) 555-3456"}],
             },
         ),
-        # 6
         (
-            # Schema
             schemas.documents_schema,
-            # Data
             {"documents": []},
         ),
-        # 7
         (
-            # Schema
             schemas.documents_schema,
-            # Data
             {
                 "documents": [
                     {
@@ -84,18 +65,12 @@ from harambe.types import Schema
                 ]
             },
         ),
-        # 8
         (
-            # Schema
             schemas.list_of_strings_schema,
-            # Data
             {"tags": ["python", "pydantic", "typing"]},
         ),
-        # 9
         (
-            # Schema
             schemas.list_of_objects_schema,
-            # Data
             {
                 "users": [
                     {"name": "Alice", "email": "alice@example.com"},
@@ -103,25 +78,16 @@ from harambe.types import Schema
                 ]
             },
         ),
-        # 10
         (
-            # Schema
             schemas.object_with_list_schema,
-            # Data
             {"team": {"name": "Developers", "members": ["Alice", "Bob"]}},
         ),
-        # 11
         (
-            # Schema
             schemas.list_of_lists_schema,
-            # Data
             {"matrix": [[1, 2], [3, 4]]},
         ),
-        # 12
         (
-            # Schema
             schemas.nested_lists_and_objects_schema,
-            # Data
             {
                 "departments": [
                     {
@@ -133,11 +99,8 @@ from harambe.types import Schema
                 ]
             },
         ),
-        # 13
         (
-            # Schema
             schemas.documents_schema,
-            # Data
             {
                 "documents": [
                     {
@@ -147,11 +110,8 @@ from harambe.types import Schema
                 ]
             },
         ),
-        # 14
         (
-            # Schema
             schemas.enums_schema,
-            # Data
             {"season": "spring"},
         ),
     ],

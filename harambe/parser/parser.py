@@ -5,6 +5,7 @@ from pydantic import BaseModel, Extra, Field, NameEmail, ValidationError, create
 
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_enum import ParserTypeEnum
+from harambe.parser.type_number import ParserTypeNumber
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
 from harambe.parser.type_url import ParserTypeUrl
 from harambe.types import URL, Schema, ScrapeResult
@@ -64,9 +65,9 @@ class PydanticSchemaParser(SchemaParser):
             "bool": bool,
             "integer": int,
             "int": int,
-            "number": float,
-            "float": float,
-            "double": float,
+            "number": ParserTypeNumber,
+            "float": ParserTypeNumber,
+            "double": ParserTypeNumber,
             "email": NameEmail,
             "enum": ParserTypeEnum,
             LIST_TYPE: List,
