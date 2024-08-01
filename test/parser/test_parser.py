@@ -10,10 +10,9 @@ from harambe.types import Schema
 @pytest.mark.parametrize(
     "schema, data",
     [
-
         (
             {"price": {"type": "number", "description": "The price of the product"}},
-            {"price": '1,515.99'},
+            {"price": "1,515.99"},
         ),
         (
             schemas.document_schema,
