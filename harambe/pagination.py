@@ -1,6 +1,6 @@
 import hashlib
 import json
-from typing import Any, Optional, Sequence, Iterable
+from typing import Any, Optional, Iterable
 
 from harambe.types import URL, Context, Options
 
