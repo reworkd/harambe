@@ -34,12 +34,12 @@ from harambe.handlers import (
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
-    DuplicateHandler,
     LocalStorageObserver,
     LoggingObserver,
     ObservationTrigger,
     OutputObserver,
 )
+from harambe.pagination import DuplicateHandler
 from harambe.parser.parser import PydanticSchemaParser
 from harambe.tracker import FileDataTracker
 from harambe.types import (
@@ -288,7 +288,7 @@ class SDK:
         """
         duplicated = False
         if check_duplication:
-            duplicated = await getattr(self._deduper, method)(*args, **kwargs)
+            duplicated = getattr(self._deduper, method)(*args, **kwargs)
 
         if not duplicated:
             return await asyncio.gather(

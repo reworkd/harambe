@@ -1,11 +1,8 @@
-import hashlib
-import json
 from abc import abstractmethod
 from typing import (
     Any,
     List,
     Literal,
-    Optional,
     Protocol,
     Tuple,
     TypedDict,
@@ -126,51 +123,3 @@ class InMemoryObserver(OutputObserver):
     @property
     def files(self) -> List[Tuple[str, bytes]]:
         return self._files
-
-
-class DuplicateHandler:
-    def __init__(self) -> None:
-        self._saved_data: set[bytes] = set()
-        self.rows_on_page = 0
-        self.previously_saved_rows_on_page = 0
-
-    async def on_save_data(self, data: dict[str, Any]) -> bool:
-        return self._add_data(data)
-
-    async def on_queue_url(
-        self, url: URL, _: Optional[Context], __: Optional[Options]
-    ) -> bool:
-        return self._add_data(url)
-
-    # noinspection PyTypeChecker
-    async def on_download(
-        self, download_url: str, filename: str, content: bytes
-    ) -> bool:
-        return self._add_data((download_url, filename))
-
-    async def on_paginate(self, next_url: str) -> bool:
-        if self.rows_on_page == self.previously_saved_rows_on_page:
-            raise StopAsyncIteration()
-
-        self.rows_on_page = 0
-        self.previously_saved_rows_on_page = 0
-        return False
-
-    def _add_data(self, data: Any) -> bool:
-        self.rows_on_page += 1
-
-        hash_value = self.compute_hash(data)
-        if hash_value in self._saved_data:
-            self.previously_saved_rows_on_page += 1
-            return True  # return True if data is duplicated
-        else:
-            self._saved_data.add(hash_value)
-            return False
-
-    @staticmethod
-    def compute_hash(data: Any) -> bytes:
-        if isinstance(data, dict):
-            data = {k: v for k, v in data.items() if not k.startswith("__")}
-
-        data_str = json.dumps(data, separators=(",", ":"), sort_keys=True)
-        return hashlib.md5(data_str.encode()).digest()
