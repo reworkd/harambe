@@ -88,9 +88,9 @@ from harambe.types import Schema
         (
             schemas.nested_lists_and_objects_schema,
             {
-                "departments": [
+                " departments": [
                     {
-                        "name": "Engineering",
+                        "name ": "Engineering",
                         "teams": [
                             {"team_name": "Backend", "members": ["Alice", "Bob"]}
                         ],
@@ -105,6 +105,17 @@ from harambe.types import Schema
                     {
                         "title": "Document One",
                         "document_url": "/doc1",
+                    },
+                ]
+            },
+        ),
+        (
+            schemas.documents_schema,
+            {
+                "documents ": [
+                    {
+                        " title  ": "Document One",
+                        " document_url ": "/doc1",  # ✅ handles extra spaces
                     },
                 ]
             },

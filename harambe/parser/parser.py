@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Type
+from typing import Any, List, Optional, Type, Union, Dict
 
 from pydantic import BaseModel, Extra, Field, NameEmail, ValidationError, create_model
 
@@ -50,7 +50,7 @@ class PydanticSchemaParser(SchemaParser):
         self.model = self._schema_to_pydantic_model(self.schema)
 
         try:
-            return self.model(**data).model_dump()
+            return self.model(**trim_dict_keys(data)).model_dump()
         except ValidationError as validation_error:
             raise SchemaValidationError(
                 data=data, schema=self.schema, message=str(validation_error)
@@ -156,3 +156,13 @@ class PydanticSchemaParser(SchemaParser):
         if not field_type:
             raise ValueError(f"Unsupported field type: {field}")
         return field_type
+
+
+# TODO: Make this a root pre validator
+def trim_dict_keys(data: Union[Dict[str, Any], Any]) -> Union[Dict[str, Any], Any]:
+    if isinstance(data, dict):
+        return {key.strip(): trim_dict_keys(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [trim_dict_keys(item) for item in data]
+    else:
+        return data
