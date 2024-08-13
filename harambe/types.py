@@ -45,5 +45,6 @@ class HarnessOptions(TypedDict, total=False):
     headers: Optional[dict[str, str]]
     viewport: Optional[ViewportSize]
     abort_unnecessary_requests: bool
+    disable_go_to_url: bool
     on_start: Optional[Callback]
     on_end: Optional[Callback]
