@@ -308,6 +308,7 @@ class SDK:
         context: Optional[Context] = None,
         setup: Optional[SetupType] = None,
         harness: WebHarness = playwright_harness,
+        disable_goto_url: bool = False,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
@@ -319,6 +320,7 @@ class SDK:
         :param context: additional context to pass to the scrapers
         :param setup: setup function to run before the scraper
         :param harness: the harness to use for the browser
+        :param disable_goto_url: whether to disable the initial goto url
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -345,7 +347,8 @@ class SDK:
             if setup:
                 await setup(sdk)
 
-            await page.goto(url)
+            if not disable_goto_url:
+                await page.goto(url)
             await scraper(sdk, url, context)
 
         return sdk
