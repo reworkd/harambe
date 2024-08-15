@@ -5,6 +5,7 @@ from ast import NodeTransformer
 from collections.abc import Callable
 from typing import Any, TypedDict
 
+
 class Locals(TypedDict):
     SDK: Any
     observer: Any
@@ -12,12 +13,11 @@ class Locals(TypedDict):
 
 def float_override(value: Any) -> float:
     if isinstance(value, str):
-        value = value.strip().replace("$", '').replace(',', '')
+        value = value.strip().replace("$", "").replace(",", "")
     return float(value)
 
 
 class OverrideBuiltinsVisitor(NodeTransformer):
-
     def __init__(self):
         super().__init__()
         self.builtins = {}
@@ -35,7 +35,6 @@ transformer = OverrideBuiltinsVisitor()
 transformer.register(float, float_override)
 
 
-
 def override_builtins(func: callable, locals_: Locals) -> callable:
     source_code = inspect.getsource(func)
     normalized_source = textwrap.dedent(source_code)
@@ -45,11 +44,12 @@ def override_builtins(func: callable, locals_: Locals) -> callable:
     compiled = compile(ast.fix_missing_locations(tree), filename="<ast>", mode="exec")
 
     exec_globals = locals_.copy()
-    exec_globals.update({
-        "float_override": float_override,
-        func.__name__: func,
-    })
+    exec_globals.update(
+        {
+            "float_override": float_override,
+            func.__name__: func,
+        }
+    )
 
     exec(compiled, exec_globals)
     return exec_globals[func.__name__]
-
