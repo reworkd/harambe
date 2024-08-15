@@ -13,7 +13,6 @@ from typing import (
     Protocol,
     Union,
     Unpack,
-    cast,
 )
 
 import aiohttp
@@ -149,9 +148,7 @@ class SDK:
                 url = await url
 
             normalized_url = (
-                normalize_url(url, self.page.url)
-                if hasattr(self.page, "url")
-                else url
+                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
             )
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options

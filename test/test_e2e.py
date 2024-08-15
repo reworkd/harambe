@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import cast
 
 import pytest
 from aiohttp import web
@@ -6,6 +7,7 @@ from aiohttp import web
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
+from harambe.types import BrowserType
 
 
 @pytest.fixture(scope="module")
@@ -41,8 +43,9 @@ def observer():
     return InMemoryObserver()
 
 
+@pytest.mark.parametrize("browser_type", ["chromium", "firefox", "webkit"])
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_save_data(server, observer, harness):
+async def test_save_data(server, observer, harness, browser_type):
     url = f"{server}/table"
 
     @SDK.scraper("test", "detail", observer=observer)
@@ -56,7 +59,15 @@ async def test_save_data(server, observer, harness):
                 {"fruit": await fruit.inner_text(), "price": await price.inner_text()}
             )
 
-    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+    browser_type = cast(BrowserType, browser_type)
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        browser_type=browser_type,
+    )
 
     assert len(observer.data) == 3
 

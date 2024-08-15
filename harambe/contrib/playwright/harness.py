@@ -7,7 +7,7 @@ from playwright_stealth import stealth_async
 from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
 from harambe.proxy import proxy_from_url
-from harambe.types import SetCookieParam
+from harambe.types import SetCookieParam, BrowserType
 
 Callback = Callable[[BrowserContext], Awaitable[None]]
 PageCallback = Callable[[Page], Awaitable[None]]
@@ -33,6 +33,7 @@ async def playwright_harness(
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
     on_new_page: Optional[PageCallback] = None,
+    browser_type: BrowserType = "chromium",
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -45,7 +46,7 @@ async def playwright_harness(
         browser = await (
             p.chromium.connect_over_cdp(endpoint_url=cdp_endpoint)
             if cdp_endpoint
-            else p.chromium.launch(headless=headless)
+            else getattr(p, browser_type).launch(headless=headless)
         )
 
         ctx = await browser.new_context(
