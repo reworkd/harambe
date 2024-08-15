@@ -1,6 +1,7 @@
 import ast
 import inspect
 import textwrap
+from _ast import AST
 from ast import NodeTransformer
 from collections.abc import Callable
 from typing import Any, TypedDict
@@ -18,14 +19,20 @@ def float_override(value: Any) -> float:
 
 
 class OverrideBuiltinsVisitor(NodeTransformer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.builtins = {}
 
-    def register(self, builtin: Callable, replacement: Callable):
+    def register(self, builtin: Callable, replacement: Callable) -> None:
         self.builtins[builtin.__name__] = replacement.__name__
 
-    def visit_Name(self, node):
+    def should_override(self, source_code: str) -> bool:
+        for k in self.builtins.keys():
+            if k in source_code:
+                return True
+        return False
+
+    def visit_Name(self, node: AST) -> AST:
         if node.id in self.builtins:
             return ast.Name(id=self.builtins[node.id], ctx=node.ctx)
         return node
@@ -37,6 +44,10 @@ transformer.register(float, float_override)
 
 def override_builtins(func: callable, locals_: Locals) -> callable:
     source_code = inspect.getsource(func)
+
+    if not transformer.should_override(source_code):
+        return func
+
     normalized_source = textwrap.dedent(source_code)
     tree = ast.parse(normalized_source)
 
