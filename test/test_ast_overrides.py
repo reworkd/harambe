@@ -1,4 +1,3 @@
-
 from harambe import SDK
 from harambe.ast_overrides import float_override, override_builtins
 import pytest

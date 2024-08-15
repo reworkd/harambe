@@ -150,7 +150,7 @@ class SDK:
                 url = await url
 
             normalized_url = (
-                normalize_url(cast(str, url), self.page.url)
+                normalize_url(url, self.page.url)
                 if hasattr(self.page, "url")
                 else url
             )
