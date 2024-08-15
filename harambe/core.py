@@ -25,6 +25,7 @@ from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
+from harambe.ast_overrides import override_builtins
 from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.types import AbstractPage
 from harambe.handlers import (
@@ -347,6 +348,8 @@ class SDK:
 
             if not harness_options.get("disable_go_to_url", False):
                 await page.goto(url)
+
+            scraper = override_builtins(scraper, {"SDK": SDK, "observer": observer})
             await scraper(sdk, url, context)
 
         return sdk
