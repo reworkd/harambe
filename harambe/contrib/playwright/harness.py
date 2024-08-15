@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence
+from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
 
 from playwright.async_api import BrowserContext, ViewportSize, async_playwright, Page
 from playwright_stealth import stealth_async
@@ -33,7 +33,7 @@ async def playwright_harness(
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
     on_new_page: Optional[PageCallback] = None,
-    browser_type: BrowserType = "chromium",
+    browser_type: Optional[BrowserType] = None,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -41,12 +41,11 @@ async def playwright_harness(
     Also does some basic setup like setting the viewport, user agent, ignoring HTTPS errors,
     creation of HAR file, and stealth.
     """
-
     async with async_playwright() as p:
         browser = await (
             p.chromium.connect_over_cdp(endpoint_url=cdp_endpoint)
             if cdp_endpoint
-            else getattr(p, browser_type).launch(headless=headless)
+            else getattr(p, cast(str, browser_type or "chromium")).launch(headless=headless)
         )
 
         ctx = await browser.new_context(
