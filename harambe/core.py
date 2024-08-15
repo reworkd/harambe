@@ -289,12 +289,7 @@ class SDK:
         """
         duplicated = False
         if check_duplication:
-            res = getattr(self._deduper, method)(*args, **kwargs)
-            # Check if res is a coroutine and await it if so
-            if inspect.isawaitable(res):
-                duplicated = await res
-            else:
-                duplicated = res
+            duplicated = getattr(self._deduper, method)(*args, **kwargs)
 
         if not duplicated:
             return await asyncio.gather(
