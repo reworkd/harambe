@@ -153,7 +153,7 @@ class SDK:
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options
             )
-    async def wait(self, selector, timeout=30000):
+    async def wait_for_full_page_load(self, selector: str, timeout: Optional[int] = 30000) -> None:
         """
         Waits for the page to fully load, scrolls to the bottom, and waits for a specific selector to appear.
 
@@ -213,7 +213,7 @@ class SDK:
                     await self._scraper(
                         self, next_url, self._context
                     )  # TODO: eventually fix this to not be recursive
-                except (TimeoutError, AttributeError) as e: # if the error is due to a problem with the scraping code
+                except Exception as e: # if the error is due to a problem with the scraping code
                     raise Exception(e)
         except PlaywrightTimeoutError as e:
             raise TimeoutError(
