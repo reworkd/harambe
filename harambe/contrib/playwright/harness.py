@@ -45,7 +45,9 @@ async def playwright_harness(
         browser = await (
             p.chromium.connect_over_cdp(endpoint_url=cdp_endpoint)
             if cdp_endpoint
-            else getattr(p, cast(str, browser_type or "chromium")).launch(headless=headless)
+            else getattr(p, cast(str, browser_type or "chromium")).launch(
+                headless=headless
+            )
         )
 
         ctx = await browser.new_context(
