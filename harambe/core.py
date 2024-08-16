@@ -153,7 +153,27 @@ class SDK:
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options
             )
+    async def wait(self, selector, timeout=30000):
+        """
+        Waits for the page to fully load, scrolls to the bottom, and waits for a specific selector to appear.
 
+        Args:
+            selector (str): The CSS selector to wait for on the page.
+            timeout (int, optional): Maximum time to wait for each state or selector in milliseconds. Default is 30000 ms.
+
+        Returns:
+            None
+
+        Raises:
+            playwright.async_api.TimeoutError: If the timeout is exceeded while waiting for any of the states or the selector.
+        """
+        # Wait for the initial full load
+        await self.page.wait_for_load_state('load')
+        # Scroll to bottom and wait for additional loads
+        await self.page.evaluate('document.body.scrollHeight')
+        # Wait for the specific selector
+        await self.page.wait_for_selector(selector, timeout=timeout)
+    
     async def paginate(
         self,
         get_next_page_element: Callable[..., Awaitable[URL | ElementHandle | None]],
@@ -189,10 +209,12 @@ class SDK:
                 await self._notify_observers("on_paginate", next_url)
                 if not self._scraper:
                     return
-
-                await self._scraper(
-                    self, next_url, self._context
-                )  # TODO: eventually fix this to not be recursive
+                try:
+                    await self._scraper(
+                        self, next_url, self._context
+                    )  # TODO: eventually fix this to not be recursive
+                except (TimeoutError, AttributeError) as e: # if the error is due to a problem with the scraping code
+                    raise Exception(e)
         except PlaywrightTimeoutError as e:
             raise TimeoutError(
                 f"{e.args[0]} You may increase the timeout by passing `timeout` in ms to `SDK.paginate`. Alternatively, this may mean that the next page element or URL was not found and pagination is complete."
