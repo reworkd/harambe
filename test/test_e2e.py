@@ -283,3 +283,17 @@ async def test_page_goto_with_options(server, harness):
         )
 
     await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_currency_validator(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.save_data({"price": "$1,9999.00"})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/table",
+        schema={"price": {"type": "currency"}},
+        headless=True,
+        harness=harness,
+    )
