@@ -154,7 +154,6 @@ class SDK:
                 "on_queue_url", normalized_url, context, options
             )
 
-
     async def paginate(
         self,
         get_next_page_element: Callable[..., Awaitable[URL | ElementHandle | None]],
