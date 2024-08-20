@@ -60,7 +60,9 @@ async def playwright_harness(
             ignore_https_errors=True,
             user_agent=user_agent,
             proxy=proxy_from_url(proxy) if proxy else None,
-            permissions=["clipboard-read", "clipboard-write"] if enable_clipboard else None,
+            permissions=["clipboard-read", "clipboard-write"]
+            if enable_clipboard
+            else None,
         )
 
         ctx.set_default_timeout(default_timeout)

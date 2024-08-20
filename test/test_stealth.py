@@ -7,7 +7,9 @@ from harambe.contrib import playwright_harness
 
 @pytest.fixture
 async def async_page():
-    async with playwright_harness(headless=True, enable_clipboard=True, browser_type="chromium") as page_factory:
+    async with playwright_harness(
+        headless=True, enable_clipboard=True, browser_type="chromium"
+    ) as page_factory:
         yield await page_factory()
 
 
@@ -34,7 +36,9 @@ async def test_navigator_webdriver(async_page):
 @pytest.mark.asyncio
 async def test_user_agent(async_page):
     user_agent = await async_page.evaluate("navigator.userAgent")
-    assert "headless" not in user_agent.lower(), "User agent should not contain 'headless'"
+    assert (
+        "headless" not in user_agent.lower()
+    ), "User agent should not contain 'headless'"
 
 
 @pytest.mark.asyncio
@@ -52,12 +56,14 @@ async def test_plugins(async_page):
 @pytest.mark.asyncio
 async def test_app_version(async_page):
     app_version = await async_page.evaluate("navigator.appVersion")
-    assert "headless" not in app_version.lower(), "App version should not contain 'headless'"
+    assert (
+        "headless" not in app_version.lower()
+    ), "App version should not contain 'headless'"
 
 
 @pytest.mark.asyncio
 async def test_notification_permissions(async_page):
-    permission_status = await async_page.evaluate('''
+    permission_status = await async_page.evaluate("""
     async () => {
         const permissionStatus = await navigator.permissions.query({name: 'notifications'});
         return {
@@ -65,21 +71,23 @@ async def test_notification_permissions(async_page):
             permissionState: permissionStatus.state
         };
     }
-    ''')
+    """)
 
     assert not (
-        permission_status['notificationPermission'] == 'denied' and
-        permission_status['permissionState'] == 'prompt'
+        permission_status["notificationPermission"] == "denied"
+        and permission_status["permissionState"] == "prompt"
     ), "Notification permissions should not be in an inconsistent state"
 
 
 @pytest.mark.asyncio
 async def test_connection_rtt(async_page):
-    connection_rtt = await async_page.evaluate('''
+    connection_rtt = await async_page.evaluate("""
     () => {
         const connection = navigator.connection;
         return connection ? connection.rtt : undefined;
     }
-    ''')
+    """)
 
-    assert connection_rtt is not None and connection_rtt != 0, "Connection RTT should exist and not be zero in non-headless browsers"
+    assert (
+        connection_rtt is not None and connection_rtt != 0
+    ), "Connection RTT should exist and not be zero in non-headless browsers"
