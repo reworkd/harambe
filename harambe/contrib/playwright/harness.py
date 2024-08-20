@@ -34,6 +34,7 @@ async def playwright_harness(
     on_end: Optional[Callback] = None,
     on_new_page: Optional[PageCallback] = None,
     browser_type: Optional[BrowserType] = None,
+    enable_clipboard: bool = False,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -46,7 +47,19 @@ async def playwright_harness(
             p.chromium.connect_over_cdp(endpoint_url=cdp_endpoint)
             if cdp_endpoint
             else getattr(p, cast(str, browser_type or "chromium")).launch(
-                headless=headless
+                headless=headless,
+                args=[
+                    *(
+                        # Disables navigator.webdriver showing up
+                        ["--disable-blink-features=AutomationControlled"]
+                        if browser_type == "chromium"
+                        else []
+                    ),
+                    *(
+                        # New chromium headless mode
+                        ["--headless=new"] if headless else []
+                    ),
+                ],
             )
         )
 
@@ -55,6 +68,9 @@ async def playwright_harness(
             ignore_https_errors=True,
             user_agent=user_agent,
             proxy=proxy_from_url(proxy) if proxy else None,
+            permissions=["clipboard-read", "clipboard-write"]
+            if enable_clipboard
+            else None,
         )
 
         ctx.set_default_timeout(default_timeout)
