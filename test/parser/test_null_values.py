@@ -1,10 +1,11 @@
-from typing import Any,Dict
+from typing import Any, Dict
 import pytest
 from harambe.parser.schemas import Schemas as schemas
 from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
 
+
 @pytest.mark.parametrize(
-    "schema, data, should_raise_error",
+    "schema, data",
     [
         (
             schemas.government_contracts,
@@ -25,7 +26,6 @@ from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
                 "attachments": None,
                 "procurement_items": None,
             },
-            True, 
         ),
         (
             schemas.government_contracts,
@@ -46,8 +46,47 @@ from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
                 "attachments": [],
                 "procurement_items": [],
             },
-            True,
         ),
+        (
+            schemas.government_contracts,
+            {
+                "id": "",
+                "title": "",
+                "status": "",
+                "description": "",
+                "location": "",
+                "type": "",
+                "category": "",
+                "posted_date": "",
+                "due_date": "",
+                "buyer_name": "",
+                "buyer_contact_name": "",
+                "buyer_contact_email": "",
+                "buyer_contact_number": "",
+                "attachments": [{"title": "", "url": ""}],
+                "procurement_items": [
+                    {
+                        "code_type": "",
+                        "code": "",
+                        "code_description": "",
+                        "description": "",
+                    }
+                ],
+            },
+        ),
+    ],
+)
+def test_pydantic_schema_validation_error_fail(
+    schema: Dict[str, Any], data: Dict[str, Any]
+) -> None:
+    validator = PydanticSchemaParser(schema)
+    with pytest.raises(SchemaValidationError):
+        validator.validate(data, base_url="http://example.com")
+
+
+@pytest.mark.parametrize(
+    "schema, data",
+    [
         (
             schemas.government_contracts,
             {
@@ -67,28 +106,6 @@ from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
                 "attachments": [{"title": "Attachment 1", "url": None}],
                 "procurement_items": [],
             },
-            False, 
-        ),
-        (
-            schemas.government_contracts,
-            {
-                "id": "",
-                "title": "",
-                "status": "",
-                "description": "",
-                "location": "",
-                "type": "",
-                "category": "",
-                "posted_date": "",
-                "due_date": "",
-                "buyer_name": "",
-                "buyer_contact_name": "",
-                "buyer_contact_email": "",
-                "buyer_contact_number": "",
-                "attachments": [{"title": "", "url": ""}],  
-                "procurement_items": [{"code_type": "", "code": "", "code_description": "", "description": ""}],  
-            },
-            True,  
         ),
         (
             schemas.government_contracts,
@@ -106,20 +123,22 @@ from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
                 "buyer_contact_name": "",
                 "buyer_contact_email": "",
                 "buyer_contact_number": "",
-                "attachments": [{"title": "Attachment 1", "url": ""}], 
-                "procurement_items": [{"code_type": "", "code": "", "code_description": "", "description": ""}], 
+                "attachments": [{"title": "Attachment 1", "url": ""}],
+                "procurement_items": [
+                    {
+                        "code_type": "",
+                        "code": "",
+                        "code_description": "",
+                        "description": "",
+                    }
+                ],
             },
-            False, 
         ),
     ],
 )
-def test_pydantic_schema_validator_error(schema: Dict[str, Any], data: Dict[str, Any], should_raise_error: bool) -> None:
+def test_pydantic_schema_validation_success(
+    schema: Dict[str, Any], data: Dict[str, Any]
+):
     validator = PydanticSchemaParser(schema)
-    if should_raise_error:
-        with pytest.raises(SchemaValidationError):
-            validator.validate(data, base_url="http://example.com")
-    else:
-        try:
-            validator.validate(data, base_url="http://example.com")
-        except SchemaValidationError:
-            pytest.fail("SchemaValidationError raised unexpectedly!")
+    validated_data = validator.validate(data, base_url="http://example.com")
+    assert validated_data == validator.model(**data).model_dump()
