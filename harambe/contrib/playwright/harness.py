@@ -50,7 +50,7 @@ async def playwright_harness(
                 headless=headless,
                 args=[
                     "--disable-blink-features=AutomationControlled",  # Disables navigator.webdriver showing up
-                    "--headless=new",  # New chromium headless mode
+                    *(["--headless=new"] if headless else []),  # New chromium headless mode
                 ],
             )
         )
