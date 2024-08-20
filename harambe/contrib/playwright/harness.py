@@ -56,8 +56,9 @@ async def playwright_harness(
                         else []
                     ),
                     *(
+                        # New chromium headless mode
                         ["--headless=new"] if headless else []
-                    ),  # New chromium headless mode
+                    ),
                 ],
             )
         )
