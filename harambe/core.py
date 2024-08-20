@@ -189,7 +189,6 @@ class SDK:
                 await self._notify_observers("on_paginate", next_url)
                 if not self._scraper:
                     return
-
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
