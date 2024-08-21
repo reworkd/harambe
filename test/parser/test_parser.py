@@ -311,6 +311,25 @@ def test_pydantic_schema_validator_success(
                 "document_url": "",
             },
         ),
+        (
+            schemas.document_schema,
+            {
+                "title": "",  # ❌ Do not allow objects with all empty strings
+                "document_url": "",
+            },
+        ),
+        (
+            schemas.nested_lists_and_objects_schema,
+            {
+                "departments": [
+                    {"name": "", "teams": [{"team_name": None, "members": []}]}
+                ]
+            },
+        ),
+        (
+            schemas.object_with_list_of_objects_schema,
+            {"list": [{"members": {"a": None, "b": [], "c": {"d": "", "e": ""}}}]},
+        ),
     ],
 )
 def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -> None:
