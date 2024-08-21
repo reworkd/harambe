@@ -7,7 +7,9 @@ from aiohttp import web
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
+from harambe.parser.parser import SchemaValidationError
 from harambe.types import BrowserType
+from harambe.parser.schemas import Schemas
 
 
 @pytest.fixture(scope="module")
@@ -297,3 +299,35 @@ async def test_currency_validator(server, harness):
         headless=True,
         harness=harness,
     )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_schema_validation_error_on_null_fields(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        invalid_data = {
+            "title": None,
+            "description": "",
+            "classification": None,
+            "is_cancelled": None,
+            "start_time": None,
+            "end_time": None,
+            "is_all_day_event": "",
+            "time_notes": "",
+            "location": {},
+            "links": [
+                {
+                    "title": "",
+                    "url": None,
+                }
+            ],
+        }
+        await sdk.save_data(invalid_data)
+
+    with pytest.raises(SchemaValidationError):
+        await SDK.run(
+            scraper=scraper,
+            url=f"{server}/table",
+            schema=Schemas.government_meetings,
+            headless=True,
+            harness=harness,
+        )

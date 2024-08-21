@@ -49,12 +49,18 @@ class PydanticSchemaParser(SchemaParser):
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
-
+        cleaned_data = trim_dict_keys(data)
+        if self._all_fields_empty(data):
+            raise SchemaValidationError(
+                data=cleaned_data,
+                schema=self.schema,
+                message="All fields are null or empty.",
+            )
         try:
-            return self.model(**trim_dict_keys(data)).model_dump()
+            return self.model(**cleaned_data).model_dump()
         except ValidationError as validation_error:
             raise SchemaValidationError(
-                data=data, schema=self.schema, message=str(validation_error)
+                data=cleaned_data, schema=self.schema, message=str(validation_error)
             )
 
     @staticmethod
@@ -158,6 +164,25 @@ class PydanticSchemaParser(SchemaParser):
         if not field_type:
             raise ValueError(f"Unsupported field type: {field}")
         return field_type
+
+    def _all_fields_empty(self, data: dict[str, Any]) -> bool:
+        """
+        Recursively check if all fields in the data are either None or empty.
+        This includes handling nested dictionaries and lists.
+        """
+
+        def is_empty(value: Any) -> bool:
+            if value is None:
+                return True
+            if isinstance(value, dict):
+                return all(is_empty(v) for v in value.values())
+            if isinstance(value, list):
+                return all(is_empty(v) for v in value)
+            if isinstance(value, str):
+                return not value.strip()
+            return False
+
+        return all(is_empty(value) for value in data.values())
 
 
 # TODO: Make this a root pre validator

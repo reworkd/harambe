@@ -81,6 +81,23 @@ object_with_list_schema = {
         },
     }
 }
+# Schema for an object with list of objects
+object_with_list_of_objects_schema = {
+    "list": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "a": {"type": "string"},
+                "b": {"type": "array", "items": {"type": "string"}},
+                "c": {
+                    "type": "object",
+                    "properties": {"d": {"type": "string"}, "e": {"type": "string"}},
+                },
+            },
+        },
+    }
+}
 
 # Schema for a list of lists
 list_of_lists_schema = {
