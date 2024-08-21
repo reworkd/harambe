@@ -180,6 +180,7 @@ class PydanticSchemaParser(SchemaParser):
                 return all(is_empty(v) for v in value)
             if isinstance(value, str):
                 return not bool(value.strip())
+            return False
 
         return all(is_empty(value) for value in data.values())
 
