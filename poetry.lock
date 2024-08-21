@@ -1438,6 +1438,17 @@ tzdata = {version = "*", markers = "platform_system == \"Windows\""}
 devenv = ["check-manifest", "pytest (>=4.3)", "pytest-cov", "pytest-mock (>=3.3)", "zest.releaser"]
 
 [[package]]
+name = "ua-generator"
+version = "1.0.3"
+description = "A random user-agent generator"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "ua_generator-1.0.3-py3-none-any.whl", hash = "sha256:e031806cd22cbef64eb5e44afb6517fde3f7c7444dd3a5e24bd8b71327b995b1"},
+    {file = "ua_generator-1.0.3.tar.gz", hash = "sha256:8285c3efa3666a8602720494d988631a85cf12b833cf0ab6bc831343e9f130c5"},
+]
+
+[[package]]
 name = "urllib3"
 version = "2.2.2"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1560,4 +1571,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "88d2328d8cf2a7388db831f7ecae79a08db7ca347a1f1e5368fb2f6ec168d6c4"
+content-hash = "182838c492ebeeef94f75d396f4288ea552dba9e6b29a823fab2397f9ea50bf7"

@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
 
+import ua_generator
 from playwright.async_api import BrowserContext, ViewportSize, async_playwright, Page
 from playwright_stealth import stealth_async
 
@@ -13,7 +14,6 @@ Callback = Callable[[BrowserContext], Awaitable[None]]
 PageCallback = Callable[[Page], Awaitable[None]]
 PageFactory = Callable[..., Awaitable[PlaywrightPage]]
 
-DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
 DEFAULT_VIEWPORT: ViewportSize = {"width": 1440, "height": 1024}
 
 
@@ -28,7 +28,7 @@ async def playwright_harness(
     stealth: bool = False,
     default_timeout: int = 30000,
     abort_unnecessary_requests: bool = True,
-    user_agent: str = DEFAULT_USER_AGENT,
+    user_agent: Optional[str] = None,
     viewport: Optional[ViewportSize] = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
@@ -62,6 +62,11 @@ async def playwright_harness(
                 ],
             )
         )
+
+        # TODO: More intelligently generate based on current system specs
+        # randomly generating agents will create inconsistent fingerprints 
+        ua = ua_generator.generate(device="desktop", browser=("chrome", "edge"))
+        user_agent = user_agent if user_agent else ua.headers.get()["user-agent"]
 
         ctx = await browser.new_context(
             viewport=viewport or DEFAULT_VIEWPORT,
