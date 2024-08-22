@@ -64,7 +64,7 @@ async def playwright_harness(
         )
 
         # TODO: More intelligently generate based on current system specs
-        # randomly generating agents will create inconsistent fingerprints 
+        # randomly generating agents will create inconsistent fingerprints
         ua = ua_generator.generate(device="desktop", browser=("chrome", "edge"))
         user_agent = user_agent if user_agent else ua.headers.get()["user-agent"]
 

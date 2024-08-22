@@ -331,3 +331,37 @@ async def test_schema_validation_error_on_null_fields(server, harness):
             headless=True,
             harness=harness,
         )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_strip_all_values(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        test_strip_values_data = {
+            "  title  ": "test title   ",
+            " description": "  test description   ",
+            "classification ": " test classification",
+            "is_cancelled  ": True,
+            "start_time  ": "  05/29/2024 02:00:00 PM  ",
+            "end_time": "December 17, 1995 03:24:00    ",
+            " is_all_day_event": False,
+            " time_notes": "     test trim       notes   ",
+            "  location": {
+                "name": "test location name  ",
+                "address": "    test address    ",
+            },
+            "links ": [
+                {
+                    "title": "  ",
+                    "url": "  /example.com  ",
+                },
+            ],
+        }
+        await sdk.save_data(test_strip_values_data)
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/table",
+        schema=Schemas.government_meetings,
+        headless=True,
+        harness=harness,
+    )

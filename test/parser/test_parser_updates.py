@@ -21,6 +21,12 @@ from test.parser.schemas import (
             {"event": {"name": "Conference", "date": "2024-06-27 10:00:00"}},
             {"event": {"name": "Conference", "date": "2024-06-27T10:00:00"}},
         ),
+        # Test datetime schema with extra spaces
+        (
+            datetime_schema,
+            {"event": {"name": "   Conference", "date": "    2024-06-27 10:00:00    "}},
+            {"event": {"name": "Conference", "date": "2024-06-27T10:00:00"}},
+        ),
         # # Test phone number schema
         (
             phone_number_schema,
@@ -31,6 +37,17 @@ from test.parser.schemas import (
         (
             url_schema,
             {"resource": {"name": "API Documentation", "link": "/docs"}},
+            {
+                "resource": {
+                    "name": "API Documentation",
+                    "link": "http://example.com/docs",
+                }
+            },
+        ),
+        # # Test URL schema with extra spaces
+        (
+            url_schema,
+            {"  resource  ": {"  name   ": "  API Documentation  ", "link": " /docs "}},
             {
                 "resource": {
                     "name": "API Documentation",
@@ -68,6 +85,33 @@ from test.parser.schemas import (
                         "dates": ["2024-06-27 10:00:00", "2024-07-01 15:00:00"],
                         "contacts": ["+1 (800) 555-1234", "+1 (800) 555-5678"],
                         "links": ["/event1", "/event1details"],
+                    }
+                ]
+            },
+            {
+                "events": [
+                    {
+                        "name": "Event 1",
+                        "dates": ["2024-06-27T10:00:00", "2024-07-01T15:00:00"],
+                        "contacts": ["+1 800-555-1234", "+1 800-555-5678"],
+                        "links": [
+                            "http://example.com/event1",
+                            "http://example.com/event1details",
+                        ],
+                    }
+                ]
+            },
+        ),
+        # # Test list with nested types with extra spaces
+        (
+            list_with_nested_types_schema,
+            {
+                "events": [
+                    {
+                        "name": "  Event 1     ",
+                        "dates": ["   2024-06-27 10:00:00 ", "   2024-07-01 15:00:00"],
+                        "contacts": ["+1 (800) 555-1234   ", "+1 (800) 555-5678"],
+                        "links": ["/event1   ", "   /event1details"],
                     }
                 ]
             },
