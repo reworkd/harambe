@@ -9,8 +9,29 @@ from harambe.parser.parser import trim_keys_and_strip_values
     [
         # Simple string strip test
         (
-            {"name": "  John Doe", "phone_number": "  +1 (800) 555-1234  "},
-            {"name": "John Doe", "phone_number": "+1 (800) 555-1234"},
+            {
+                "name": " John Doe",
+                "phone_number": "  +1 (800) 555-1234  ",
+                "email": "  ktrevino@dcsdk12.org ",
+            },
+            {
+                "name": "John Doe",
+                "phone_number": "+1 (800) 555-1234",
+                "email": "ktrevino@dcsdk12.org",
+            },
+        ),
+        # Simple string with space symbols strip test
+        (
+            {
+                "name": " \u00a0 John Doe\u00a0",
+                "phone_number": "  +1 (800) 555-1234  ",
+                "email": "\u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 ktrevino@dcsdk12.org",
+            },
+            {
+                "name": "John Doe",
+                "phone_number": "+1 (800) 555-1234",
+                "email": "ktrevino@dcsdk12.org",
+            },
         ),
         # Test datetime string stripping
         (
