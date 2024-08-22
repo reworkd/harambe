@@ -1,7 +1,7 @@
 from typing import Any
 
 import pytest
-from harambe.parser.parser import strip_all_values
+from harambe.parser.parser import trim_keys_and_strip_values
 
 
 @pytest.mark.parametrize(
@@ -113,5 +113,5 @@ from harambe.parser.parser import strip_all_values
     ],
 )
 def test_strip_all_values(data: dict[str, Any], expected: dict[str, Any]) -> None:
-    output_data = strip_all_values(data)
+    output_data = trim_keys_and_strip_values(data)
     assert output_data == expected

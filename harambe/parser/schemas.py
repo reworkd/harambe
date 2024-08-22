@@ -176,7 +176,7 @@ class Schemas:
                         "type": "string",
                     },
                     "url": {
-                        "type": "string",
+                        "type": "url",
                     },
                 },
             },
