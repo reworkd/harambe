@@ -195,14 +195,14 @@ def trim_dict_keys(data: Union[Dict[str, Any], Any]) -> Union[Dict[str, Any], An
         return data
 
 
-def strip_all_values(data: dict[str, Any]) -> Any:
+def strip_all_values(data: dict[str, Any]) -> dict[str, Any]:
     """
     Recursively strip string values.
     This includes handling nested dictionaries and lists.
     Leaving nulls, numbers, empty lists, and empty dicts unchanged.
     """
 
-    def strip_value(value: Any) -> str:
+    def strip_value(value: Any) -> Any:
         if isinstance(value, str):
             return value.strip()
         if isinstance(value, dict):
