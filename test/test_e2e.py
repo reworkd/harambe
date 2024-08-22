@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import cast
 
 import pytest
 from aiohttp import web
@@ -6,6 +7,9 @@ from aiohttp import web
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
+from harambe.parser.parser import SchemaValidationError
+from harambe.types import BrowserType
+from harambe.parser.schemas import Schemas
 
 
 @pytest.fixture(scope="module")
@@ -41,8 +45,9 @@ def observer():
     return InMemoryObserver()
 
 
+@pytest.mark.parametrize("browser_type", ["chromium", "firefox", "webkit"])
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_save_data(server, observer, harness):
+async def test_save_data(server, observer, harness, browser_type):
     url = f"{server}/table"
 
     @SDK.scraper("test", "detail", observer=observer)
@@ -56,7 +61,15 @@ async def test_save_data(server, observer, harness):
                 {"fruit": await fruit.inner_text(), "price": await price.inner_text()}
             )
 
-    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+    browser_type = cast(BrowserType, browser_type)
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        browser_type=browser_type,
+    )
 
     assert len(observer.data) == 3
 
@@ -272,3 +285,49 @@ async def test_page_goto_with_options(server, harness):
         )
 
     await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_currency_validator(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.save_data({"price": "$1,9999.00"})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/table",
+        schema={"price": {"type": "currency"}},
+        headless=True,
+        harness=harness,
+    )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_schema_validation_error_on_null_fields(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        invalid_data = {
+            "title": None,
+            "description": "",
+            "classification": None,
+            "is_cancelled": None,
+            "start_time": None,
+            "end_time": None,
+            "is_all_day_event": "",
+            "time_notes": "",
+            "location": {},
+            "links": [
+                {
+                    "title": "",
+                    "url": None,
+                }
+            ],
+        }
+        await sdk.save_data(invalid_data)
+
+    with pytest.raises(SchemaValidationError):
+        await SDK.run(
+            scraper=scraper,
+            url=f"{server}/table",
+            schema=Schemas.government_meetings,
+            headless=True,
+            harness=harness,
+        )

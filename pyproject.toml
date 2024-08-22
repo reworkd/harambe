@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "harambe-sdk"
-version = "0.18.20"
+version = "0.22.0"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = ["awtkns <hello@awtkns.com>"]
 readme = "README.md"
@@ -11,20 +11,21 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.11"
 pydantic = "^2.8.2"
-playwright = "^1.45.0"
-setuptools = "^70.3.0"
+playwright = "^1.40.0"
+setuptools = "^73.0.0"
 beautifulsoup4 = "^4.12.3"
 dateparser = "^1.2.0"
 requests = "^2.32.3"
 playwright-stealth = "^1.0.6" # TODO: self host this package
-aiohttp = "^3.9.5"
+aiohttp = "^3.10.5"
 email-validator = "^2.2.0"
-phonenumbers = "^8.13.40"
+phonenumbers = "^8.13.43"
 curl-cffi = "^0.7.1"
+ua-generator = "^1.0.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.10"
-mypy = "^1.10.1"
+mypy = "^1.11.1"
 types-dateparser = "^1.2.0.20240420"
 
 [tool.poetry.group.test.dependencies]

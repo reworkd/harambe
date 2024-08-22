@@ -13,7 +13,6 @@ from typing import (
     Protocol,
     Union,
     Unpack,
-    cast,
 )
 
 import aiohttp
@@ -34,12 +33,12 @@ from harambe.handlers import (
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
-    DuplicateHandler,
     LocalStorageObserver,
     LoggingObserver,
     ObservationTrigger,
     OutputObserver,
 )
+from harambe.pagination import DuplicateHandler
 from harambe.parser.parser import PydanticSchemaParser
 from harambe.tracker import FileDataTracker
 from harambe.types import (
@@ -149,9 +148,7 @@ class SDK:
                 url = await url
 
             normalized_url = (
-                normalize_url(cast(str, url), self.page.url)
-                if hasattr(self.page, "url")
-                else url
+                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
             )
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options
@@ -192,7 +189,6 @@ class SDK:
                 await self._notify_observers("on_paginate", next_url)
                 if not self._scraper:
                     return
-
                 await self._scraper(
                     self, next_url, self._context
                 )  # TODO: eventually fix this to not be recursive
@@ -288,7 +284,7 @@ class SDK:
         """
         duplicated = False
         if check_duplication:
-            duplicated = await getattr(self._deduper, method)(*args, **kwargs)
+            duplicated = getattr(self._deduper, method)(*args, **kwargs)
 
         if not duplicated:
             return await asyncio.gather(
@@ -340,7 +336,8 @@ class SDK:
             if setup:
                 await setup(sdk)
 
-            await page.goto(url)
+            if not harness_options.get("disable_go_to_url", False):
+                await page.goto(url)
             await scraper(sdk, url, context)
 
         return sdk

@@ -20,6 +20,7 @@ AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # type: ign
 SetupType = Callable[["SDK"], Awaitable[None]]  # type: ignore # noqa: F821
 Schema = dict[str, Any]
 Callback = Callable[..., Awaitable[None]]
+BrowserType = Literal["chromium", "firefox", "webkit"]
 
 
 class SetCookieParam(TypedDict, total=False):
@@ -35,6 +36,7 @@ class SetCookieParam(TypedDict, total=False):
 
 
 class HarnessOptions(TypedDict, total=False):
+    browser_type: BrowserType
     headless: bool
     stealth: bool
     default_timeout: int
@@ -45,5 +47,6 @@ class HarnessOptions(TypedDict, total=False):
     headers: Optional[dict[str, str]]
     viewport: Optional[ViewportSize]
     abort_unnecessary_requests: bool
+    disable_go_to_url: bool
     on_start: Optional[Callback]
     on_end: Optional[Callback]
