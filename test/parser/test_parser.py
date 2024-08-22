@@ -26,14 +26,6 @@ from harambe.types import Schema
             },
         ),
         (
-            schemas.document_schema,
-            {"title": "", "document_url": ""},
-        ),
-        (
-            schemas.document_schema,
-            {"title": None, "document_url": None},
-        ),
-        (
             schemas.contact_schema,
             {
                 "name": {"first_name": "Jane", "last_name": "Doe"},
@@ -48,10 +40,6 @@ from harambe.types import Schema
                 "address": {"street": None, "city": None, "zip": None},
                 "phone_numbers": [{"type": "mobile", "number": "+1 (628) 555-3456"}],
             },
-        ),
-        (
-            schemas.documents_schema,
-            {"documents": []},
         ),
         (
             schemas.documents_schema,
@@ -302,6 +290,45 @@ def test_pydantic_schema_validator_success(
             {
                 "season": "autumn"  # ❌ Value that doesn't match any of the enum variants
             },
+        ),
+        (
+            schemas.document_schema,
+            {
+                "title": None,
+                "document_url": None,  # ❌ Do not allow objects with all null values
+            },
+        ),
+        (
+            schemas.documents_schema,
+            {
+                "documents": []  # ❌ Do not allow objects with all null arrays
+            },
+        ),
+        (
+            schemas.document_schema,
+            {
+                "title": "",  # ❌ Do not allow objects with all empty strings
+                "document_url": "",
+            },
+        ),
+        (
+            schemas.document_schema,
+            {
+                "title": "",  # ❌ Do not allow objects with all empty strings
+                "document_url": "",
+            },
+        ),
+        (
+            schemas.nested_lists_and_objects_schema,
+            {
+                "departments": [
+                    {"name": "", "teams": [{"team_name": None, "members": []}]}
+                ]
+            },
+        ),
+        (
+            schemas.object_with_list_of_objects_schema,
+            {"list": [{"members": {"a": None, "b": [], "c": {"d": "", "e": ""}}}]},
         ),
     ],
 )

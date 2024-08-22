@@ -1351,13 +1351,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "73.0.0"
+version = "73.0.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-73.0.0-py3-none-any.whl", hash = "sha256:f2bfcce7ae1784d90b04c57c2802e8649e1976530bb25dc72c2b078d3ecf4864"},
-    {file = "setuptools-73.0.0.tar.gz", hash = "sha256:3c08705fadfc8c7c445cf4d98078f0fafb9225775b2b4e8447e40348f82597c0"},
+    {file = "setuptools-73.0.1-py3-none-any.whl", hash = "sha256:b208925fcb9f7af924ed2dc04708ea89791e24bde0d3020b27df0e116088b34e"},
+    {file = "setuptools-73.0.1.tar.gz", hash = "sha256:d59a3e788ab7e012ab2c4baed1b376da6366883ee20d7a5fc426816e3d7b1193"},
 ]
 
 [package.extras]
@@ -1436,6 +1436,17 @@ tzdata = {version = "*", markers = "platform_system == \"Windows\""}
 
 [package.extras]
 devenv = ["check-manifest", "pytest (>=4.3)", "pytest-cov", "pytest-mock (>=3.3)", "zest.releaser"]
+
+[[package]]
+name = "ua-generator"
+version = "1.0.3"
+description = "A random user-agent generator"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "ua_generator-1.0.3-py3-none-any.whl", hash = "sha256:e031806cd22cbef64eb5e44afb6517fde3f7c7444dd3a5e24bd8b71327b995b1"},
+    {file = "ua_generator-1.0.3.tar.gz", hash = "sha256:8285c3efa3666a8602720494d988631a85cf12b833cf0ab6bc831343e9f130c5"},
+]
 
 [[package]]
 name = "urllib3"
@@ -1560,4 +1571,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "88d2328d8cf2a7388db831f7ecae79a08db7ca347a1f1e5368fb2f6ec168d6c4"
+content-hash = "182838c492ebeeef94f75d396f4288ea552dba9e6b29a823fab2397f9ea50bf7"
