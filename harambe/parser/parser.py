@@ -50,7 +50,7 @@ class PydanticSchemaParser(SchemaParser):
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
         cleaned_data = strip_all_values(trim_dict_keys(data))
-        if self._all_fields_empty(data):
+        if self._all_fields_empty(cleaned_data):
             raise SchemaValidationError(
                 data=cleaned_data,
                 schema=self.schema,
