@@ -715,13 +715,13 @@ test = ["objgraph", "psutil"]
 
 [[package]]
 name = "idna"
-version = "3.7"
+version = "3.8"
 description = "Internationalized Domain Names in Applications (IDNA)"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.6"
 files = [
-    {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
-    {file = "idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc"},
+    {file = "idna-3.8-py3-none-any.whl", hash = "sha256:050b4e5baadcd44d760cedbd2b8e639f2ff89bbc7a5730fcc662954303377aac"},
+    {file = "idna-3.8.tar.gz", hash = "sha256:d838c2c0ed6fced7693d5e8ab8e734d5f8fda53a039c0164afb0b82e771e3603"},
 ]
 
 [[package]]
@@ -1439,13 +1439,13 @@ devenv = ["check-manifest", "pytest (>=4.3)", "pytest-cov", "pytest-mock (>=3.3)
 
 [[package]]
 name = "ua-generator"
-version = "1.0.3"
+version = "1.0.4"
 description = "A random user-agent generator"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "ua_generator-1.0.3-py3-none-any.whl", hash = "sha256:e031806cd22cbef64eb5e44afb6517fde3f7c7444dd3a5e24bd8b71327b995b1"},
-    {file = "ua_generator-1.0.3.tar.gz", hash = "sha256:8285c3efa3666a8602720494d988631a85cf12b833cf0ab6bc831343e9f130c5"},
+    {file = "ua_generator-1.0.4-py3-none-any.whl", hash = "sha256:7021e980fafa70df6655b10dfcb76a2a843bd24567cd7e5d6ccc8293bfbd5f24"},
+    {file = "ua_generator-1.0.4.tar.gz", hash = "sha256:c1ca5eda8f67d9279d78b723ad62c108e2fdcf46bd3797e1d532a5bbea0a4fc9"},
 ]
 
 [[package]]
@@ -1570,5 +1570,5 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11"
-content-hash = "182838c492ebeeef94f75d396f4288ea552dba9e6b29a823fab2397f9ea50bf7"
+python-versions = ">=3.11,<4.0"
+content-hash = "2e1b0c97200651ac5ec949f67a64ee3eeb99f75add8488eed93742257ae0522d"
