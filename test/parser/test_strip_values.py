@@ -1,7 +1,7 @@
 from typing import Any
 
 import pytest
-from harambe.parser.parser import strip_all_values
+from harambe.parser.parser import trim_keys_and_strip_values
 
 
 @pytest.mark.parametrize(
@@ -9,8 +9,29 @@ from harambe.parser.parser import strip_all_values
     [
         # Simple string strip test
         (
-            {"name": "  John Doe", "phone_number": "  +1 (800) 555-1234  "},
-            {"name": "John Doe", "phone_number": "+1 (800) 555-1234"},
+            {
+                "name": " John Doe",
+                "phone_number": "  +1 (800) 555-1234  ",
+                "email": "  ktrevino@dcsdk12.org ",
+            },
+            {
+                "name": "John Doe",
+                "phone_number": "+1 (800) 555-1234",
+                "email": "ktrevino@dcsdk12.org",
+            },
+        ),
+        # Simple string with space symbols strip test
+        (
+            {
+                "name": " \u00a0 John Doe\u00a0",
+                "phone_number": "  +1 (800) 555-1234  ",
+                "email": "\u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 ktrevino@dcsdk12.org",
+            },
+            {
+                "name": "John Doe",
+                "phone_number": "+1 (800) 555-1234",
+                "email": "ktrevino@dcsdk12.org",
+            },
         ),
         # Test datetime string stripping
         (
@@ -113,5 +134,5 @@ from harambe.parser.parser import strip_all_values
     ],
 )
 def test_strip_all_values(data: dict[str, Any], expected: dict[str, Any]) -> None:
-    output_data = strip_all_values(data)
+    output_data = trim_keys_and_strip_values(data)
     assert output_data == expected

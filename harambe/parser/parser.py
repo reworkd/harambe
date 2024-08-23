@@ -49,8 +49,9 @@ class PydanticSchemaParser(SchemaParser):
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
-        cleaned_data = strip_all_values(trim_dict_keys(data))
-        if self._all_fields_empty(data):
+        # cleaned_data = strip_all_values(trim_dict_keys(data))
+        cleaned_data = trim_keys_and_strip_values(data)
+        if self._all_fields_empty(cleaned_data):
             raise SchemaValidationError(
                 data=cleaned_data,
                 schema=self.schema,
@@ -186,29 +187,24 @@ class PydanticSchemaParser(SchemaParser):
 
 
 # TODO: Make this a root pre validator
-def trim_dict_keys(data: Union[Dict[str, Any], Any]) -> Union[Dict[str, Any], Any]:
-    if isinstance(data, dict):
-        return {key.strip(): trim_dict_keys(value) for key, value in data.items()}
-    elif isinstance(data, list):
-        return [trim_dict_keys(item) for item in data]
-    else:
-        return data
 
 
-def strip_all_values(data: dict[str, Any]) -> dict[str, Any]:
+def trim_keys_and_strip_values(
+    data: Union[Dict[str, Any], Any],
+) -> Union[Dict[str, Any], Any]:
     """
-    Recursively strip string values.
+    Recursively trim dictionary keys and strip string values.
     This includes handling nested dictionaries and lists.
     Leaving nulls, numbers, empty lists, and empty dicts unchanged.
     """
 
-    def strip_value(value: Any) -> Any:
+    def process_value(value: Any) -> Any:
         if isinstance(value, str):
             return value.strip()
         if isinstance(value, dict):
-            return {k: strip_value(v) for k, v in value.items()}
+            return {k.strip(): process_value(v) for k, v in value.items()}
         if isinstance(value, list):
-            return [strip_value(v) for v in value]
+            return [process_value(v) for v in value]
         return value
 
-    return {key: strip_value(value) for key, value in data.items()}
+    return process_value(data)
