@@ -346,13 +346,13 @@ async def test_strip_all_values(server, harness):
             " is_all_day_event": False,
             " time_notes": "     test trim       notes   ",
             "  location": {
-                "name": "test location name  ",
-                "address": "    test address    ",
+                " name ": "test location name  ",
+                "address   ": "    test address    ",
             },
             "links ": [
                 {
-                    "title": "  ",
-                    "url": "  /example.com  ",
+                    "   title   ": "  ",
+                    "   url": "  /example.com  ",
                 },
             ],
         }
