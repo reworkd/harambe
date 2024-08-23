@@ -193,28 +193,17 @@ def trim_keys_and_strip_values(
 ) -> Union[Dict[str, Any], Any]:
     """
     Recursively trim dictionary keys and strip string values.
-
-
-def trim_keys_and_strip_values(
-    data: Union[Dict[str, Any], Any],
-) -> Union[Dict[str, Any], Any]:
-    """
-    Recursively trim dictionary keys and strip string values.
     This includes handling nested dictionaries and lists.
     Leaving nulls, numbers, empty lists, and empty dicts unchanged.
     """
 
     def process_value(value: Any) -> Any:
-    def process_value(value: Any) -> Any:
         if isinstance(value, str):
             return value.strip()
         if isinstance(value, dict):
             return {k.strip(): process_value(v) for k, v in value.items()}
-            return {k.strip(): process_value(v) for k, v in value.items()}
         if isinstance(value, list):
-            return [process_value(v) for v in value]
             return [process_value(v) for v in value]
         return value
 
-    return process_value(data)
     return process_value(data)
