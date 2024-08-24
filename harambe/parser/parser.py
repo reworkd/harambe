@@ -34,6 +34,13 @@ class SchemaValidationError(Exception):
         )
 
 
+class RequiredFieldsError(Exception):
+    def __init__(self, missing_fields: List[str]):
+        message = f"Missing required fields: {', '.join(missing_fields)}"
+        super().__init__(message)
+        self.missing_fields = missing_fields
+
+
 class PydanticSchemaParser(SchemaParser):
     """
     A schema parser that uses Pydantic models to validate data against a JSON schema
@@ -50,6 +57,12 @@ class PydanticSchemaParser(SchemaParser):
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
         cleaned_data = trim_keys_and_strip_values(data)
+        all_required_fields = self._get_all_required_fields(self.schema)
+        missing_fields = self._find_missing_required_fields(
+            cleaned_data, all_required_fields
+        )
+        if missing_fields:
+            raise RequiredFieldsError(all_required_fields)
         if self._all_fields_empty(cleaned_data):
             raise SchemaValidationError(
                 data=cleaned_data,
@@ -158,6 +171,79 @@ class PydanticSchemaParser(SchemaParser):
         config = {"extra": Extra.forbid}
 
         return create_model(model_name, __config__=config, **fields)  # type: ignore
+
+    def _get_all_required_fields(
+        self, schema: Schema, parent_key: str = ""
+    ) -> List[str]:
+        """
+        Recursively collect all required fields from the schema, including nested ones.
+        """
+        required_fields = []
+        for field_name, field_info in schema.items():
+            full_key = f"{parent_key}.{field_name}" if parent_key else field_name
+            if field_info.get("required", False):
+                required_fields.append(full_key)
+
+            if field_info.get("type") == OBJECT_TYPE:
+                nested_properties = field_info.get("properties", {})
+                required_fields.extend(
+                    self._get_all_required_fields(nested_properties, full_key)
+                )
+            elif field_info.get("type") == LIST_TYPE:
+                item_info = field_info.get("items", {})
+                if item_info.get("type") == OBJECT_TYPE:
+                    nested_properties = item_info.get("properties", {})
+                    required_fields.extend(
+                        self._get_all_required_fields(nested_properties, full_key)
+                    )
+
+        return required_fields
+
+    def _find_missing_required_fields(
+        self, data: dict[str, Any], required_fields: List[str]
+    ) -> List[str]:
+        """
+        Check the data against the list of required fields and find which are missing or None.
+        """
+        missing_fields = []
+
+        def is_empty(value: Any) -> bool:
+            if value is None:
+                return True
+            if isinstance(value, str) and not value.strip():
+                return True
+            if isinstance(value, (list, dict)) and not value:
+                return True
+            return False
+
+        def check_value(data: Any, field_path: str):
+            keys = field_path.split(".")
+            for key in keys[:-1]:
+                if isinstance(data, dict):
+                    data = data.get(key, None)
+                elif isinstance(data, list):
+                    data = [
+                        item.get(key, None) if isinstance(item, dict) else None
+                        for item in data
+                    ]
+                else:
+                    return
+
+            final_key = keys[-1]
+            if isinstance(data, dict):
+                if is_empty(data.get(final_key)):
+                    missing_fields.append(field_path)
+            elif isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict) and is_empty(item.get(final_key)):
+                        missing_fields.append(field_path)
+            elif final_key and is_empty(data):
+                missing_fields.append(field_path)
+
+        for field in required_fields:
+            check_value(data, field)
+
+        return missing_fields
 
     def _get_type(self, field: str) -> Type[Any]:
         field_type = self.field_types.get(field)
