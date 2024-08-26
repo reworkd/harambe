@@ -53,7 +53,7 @@ from harambe.normalize_url import normalize_url, sanitize_scheme
             "https://confetti.dev",
         ),
         (
-            "example.com",
+            "https://example.com",
             "/test",
             "https://example.com/test",
         ),
@@ -101,7 +101,6 @@ from harambe.normalize_url import normalize_url, sanitize_scheme
             "https://www.emarketplace.state.pa.us",
             "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker Protection Form .docx",
             "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker%20Protection%20Form%20.docx",
-
         ),
     ],
 )

@@ -17,14 +17,14 @@ def normalize_url(path: str, base_path: str | None) -> str:
     :return: Normalized URL.
     """
     path = sanitize_scheme(path)
+    validate_allowed_scheme(path)
     path = _normalize(path)
     escaped_path = path.replace(" ", "%20")
 
-    if not base_path:
+    if base_path is None:
         return escaped_path
 
-    if not base_path.startswith("http"):
-        base_path = "https://" + base_path
+    validate_allowed_scheme(base_path, scheme_required=True)
 
     parsed_base_url = urlparse(base_path, allow_fragments=False)
     return urljoin(parsed_base_url.geturl(), escaped_path)
@@ -50,6 +50,21 @@ def sanitize_scheme(url: str) -> str:
     if url.startswith("http:"):
         base = "http://"
     return base + url[last_scheme_index + 1 :] if last_scheme_index > 0 else url
+
+
+allowed_url_schemes = [
+    "http",
+    "https",
+    "s3",
+]
+
+
+def validate_allowed_scheme(url: str, scheme_required: bool = False) -> None:
+    scheme = urlparse(url).scheme
+    if (scheme_required and not scheme) or (
+        scheme and scheme not in allowed_url_schemes
+    ):
+        raise ValueError(f"URL scheme {scheme} not allowed.")
 
 
 def find_highest_index_before_period(s: str, char: str) -> int:
