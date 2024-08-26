@@ -122,6 +122,72 @@ def test_pydantic_schema_validator_success(
 
 
 @pytest.mark.parametrize(
+    "schema, data, expected_data",
+    [
+        (
+            {"url": {"type": "url"}},
+            {"url": "s3://bucket-name/file-name.pdf"},
+            {"url": "s3://bucket-name/file-name.pdf"},
+        ),
+        (
+            {"url": {"type": "url"}},
+            {"url": "/test"},
+            {"url": "http://example.com/test"},
+        ),
+        (
+            {"url": {"type": "url"}},
+            {"url": "http://example.com/one two three"},
+            {"url": "http://example.com/one%20two%20three"},
+        ),
+        (
+            schemas.documents_schema,
+            {
+                "documents": [
+                    {
+                        "title": "Document",
+                        "document_url": "/doc1",
+                    },
+                ]
+            },
+            {
+                "documents": [
+                    {
+                        "title": "Document",
+                        "document_url": "http://example.com/doc1",
+                    },
+                ]
+            },
+        ),
+        (
+            schemas.documents_schema,
+            {
+                "documents": [
+                    {
+                        "title": "Document",
+                        "document_url": "https://www.test.com/FileDownload.aspx?file=6100061149/Protection Form .docx",
+                    },
+                ],
+            },
+            {
+                "documents": [
+                    {
+                        "title": "Document",
+                        "document_url": "https://www.test.com/FileDownload.aspx?file=6100061149/Protection%20Form%20.docx",
+                    },
+                ],
+            },
+        ),
+    ],
+)
+def test_pydantic_schema_data_update(
+    schema: dict[str, Any], data: dict[str, Any], expected_data: dict[str, Any]
+) -> None:
+    validator = PydanticSchemaParser(schema)
+    updated_data = validator.validate(data, base_url="http://example.com")
+    assert updated_data == expected_data
+
+
+@pytest.mark.parametrize(
     "schema, data",
     [
         (
@@ -341,11 +407,8 @@ def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -
 @pytest.mark.parametrize(
     "schema, data",
     [
-        # 0
         (
-            # Schema
             schemas.documents_schema,
-            # Data
             {
                 "documents": [
                     {
