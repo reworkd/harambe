@@ -96,6 +96,13 @@ from harambe.normalize_url import normalize_url, sanitize_scheme
             "//example.com",
             "https://example.com",
         ),
+        (
+            # Escape spaces in URL
+            "https://www.emarketplace.state.pa.us",
+            "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker Protection Form .docx",
+            "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker%20Protection%20Form%20.docx",
+
+        ),
     ],
 )
 def test_normalize_url(base_path, url, expected):

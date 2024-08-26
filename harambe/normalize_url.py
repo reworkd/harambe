@@ -18,15 +18,16 @@ def normalize_url(path: str, base_path: str | None) -> str:
     """
     path = sanitize_scheme(path)
     path = _normalize(path)
+    escaped_path = path.replace(" ", "%20")
 
     if not base_path:
-        return path
+        return escaped_path
 
     if not base_path.startswith("http"):
         base_path = "https://" + base_path
 
     parsed_base_url = urlparse(base_path, allow_fragments=False)
-    return urljoin(parsed_base_url.geturl(), path)
+    return urljoin(parsed_base_url.geturl(), escaped_path)
 
 
 def _normalize(url: str) -> str:
