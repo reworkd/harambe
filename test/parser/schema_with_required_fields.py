@@ -149,9 +149,9 @@ list_of_lists_schema = {
         "items": {
             "type": "array",
             "items": {"type": "int"},
-            'required': True,
+            "required": True,
         },
-        "description": "A matrix of integers"
+        "description": "A matrix of integers",
     }
 }
 
@@ -243,7 +243,7 @@ object_with_nested_types_schema = {
     "profile": {
         "type": "object",
         "properties": {
-            "user": {"type": "string", "description": "Username",'required':True },
+            "user": {"type": "string", "description": "Username", "required": True},
             "contact": {
                 "type": "phone_number",
                 "description": "Contact number",
@@ -252,7 +252,10 @@ object_with_nested_types_schema = {
                 "type": "datetime",
                 "description": "Event date",
             },
-            "website": {"type": "url", "description": "Website URL",},
+            "website": {
+                "type": "url",
+                "description": "Website URL",
+            },
         },
     }
 }

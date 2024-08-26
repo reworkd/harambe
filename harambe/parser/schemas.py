@@ -71,9 +71,11 @@ class Schemas:
     government_contracts_small = {
         "id": {
             "type": "string",
+            "required": True,
         },
         "title": {
             "type": "string",
+            "required": True,
         },
         "description": {
             "type": "string",
@@ -109,7 +111,10 @@ class Schemas:
             "type": "array",
             "items": {
                 "type": "object",
-                "properties": {"title": {"type": "string"}, "url": {"type": "url"}},
+                "properties": {
+                    "title": {"type": "string"},
+                    "url": {"type": "url", "required": True},
+                },
             },
         },
     }
