@@ -38,7 +38,6 @@ class RequiredFieldsError(Exception):
     def __init__(self, missing_fields: List[str]):
         message = f"Missing required fields: {', '.join(missing_fields)}"
         super().__init__(message)
-        self.missing_fields = missing_fields
 
 
 class PydanticSchemaParser(SchemaParser):
