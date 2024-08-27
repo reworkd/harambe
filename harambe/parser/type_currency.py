@@ -32,7 +32,7 @@ class ParserTypeCurrency:
             cleaned_value = cleaned_value.replace(",", "")
         elif "," in cleaned_value and "." not in cleaned_value:
             cleaned_value = cleaned_value.replace(",", "")
-        value = value.strip()
+        cleaned_value = cleaned_value.strip()
 
         parsed_value = float(cleaned_value)
 
