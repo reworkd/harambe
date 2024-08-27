@@ -17,15 +17,19 @@ class ParserTypeCurrency:
 
         if ":" in value:  # cases like 12:00
             value = re.sub(r"(?<=\d):(?=\d)", ".", value)
+            
         cleaned_value = re.sub(r"[^\d.,-]", "", value)
         cleaned_value = re.sub(r"^0+(?!$)", "", cleaned_value)
+        
         if "." in cleaned_value:
             decimal_parts = cleaned_value.split(".")
             if len(decimal_parts[-1]) == 3:  # thousands separators
                 cleaned_value = cleaned_value.replace(".", "")
+                
         if cleaned_value.startswith("."):  # fraction
             cleaned_value = "0" + cleaned_value
             return float(cleaned_value)
+            
         if "," in cleaned_value and "." in cleaned_value:
             if cleaned_value.index(",") < cleaned_value.index("."):
                 cleaned_value = cleaned_value.replace(",", "")
