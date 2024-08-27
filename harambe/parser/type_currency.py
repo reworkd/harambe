@@ -21,18 +21,19 @@ class ParserTypeCurrency:
         cleaned_value = re.sub(r"^0+(?!$)", "", cleaned_value)
         if "." in cleaned_value:
             decimal_parts = cleaned_value.split(".")
-            if len(decimal_parts[-1]) == 2:
-                cleaned_value = cleaned_value.replace(",", "")
-            elif len(decimal_parts[-1]) == 3:  # thousands separators
-                cleaned_value = cleaned_value.replace(".", "").replace(",", "")
+            if len(decimal_parts[-1]) == 3:  # thousands separators
+                cleaned_value = cleaned_value.replace(".", "")
         if cleaned_value.startswith("."):  # fraction
             cleaned_value = "0" + cleaned_value
             return float(cleaned_value)
         if "," in cleaned_value and "." in cleaned_value:
-            cleaned_value = cleaned_value.replace(",", "")
+            if cleaned_value.index(",") < cleaned_value.index("."):
+                cleaned_value = cleaned_value.replace(",", "")
+            else:
+                cleaned_value = cleaned_value.replace(".", "").replace(",", ".")
         elif "," in cleaned_value and "." not in cleaned_value:
             cleaned_value = cleaned_value.replace(",", "")
-        cleaned_value = cleaned_value.strip()
+        value = value.strip()
 
         parsed_value = float(cleaned_value)
 
