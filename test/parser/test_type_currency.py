@@ -53,6 +53,7 @@ def test_flexible_currency_success(input_value, expected_output):
         "Begin 12.00 End 23.00",
         "Between 12.00 And 23.00",
         "From 12.00 To 23.00",
+        "12.00 - 23.00",
         "",
         None,
         {},
