@@ -33,9 +33,9 @@ class TestModel(BaseModel):
         ("1.234,45", 1234.45),
         ("1.234.456,00", 1234456.00),
         ("1.000.000", 1000000.00),
-        ("Starting at: 12:00", 12.0),
         ("Starting At 12.99", 12.99),
         ("From 399.99", 399.99),
+        ("0.0004 $", 0.0004),
     ],
 )
 def test_flexible_currency_success(input_value, expected_output):
@@ -54,6 +54,11 @@ def test_flexible_currency_success(input_value, expected_output):
         "Between 12.00 And 23.00",
         "From 12.00 To 23.00",
         "12.00 - 23.00",
+        "Not a number",
+        "1.234.56",
+        "1,234,56",
+        "$",
+        "1,234.56.78",
         "",
         None,
         {},
