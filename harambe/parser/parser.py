@@ -282,7 +282,7 @@ def trim_keys_and_strip_values(
 
     def process_value(value: Any) -> Any:
         if isinstance(value, str):
-            return value.strip() if value.strip() else None
+            return value.strip()
         if isinstance(value, dict):
             return {k.strip(): process_value(v) for k, v in value.items()}
         if isinstance(value, list):
