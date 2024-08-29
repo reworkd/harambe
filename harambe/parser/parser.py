@@ -3,11 +3,11 @@ from typing import Any, List, Optional, Type, Union, Dict
 
 from pydantic import BaseModel, Extra, Field, NameEmail, ValidationError, create_model
 
+from harambe.parser.type_currency import ParserTypeCurrency
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_number import ParserTypeNumber
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
-from harambe.parser.type_currency import ParserTypeCurrency
 from harambe.parser.type_url import ParserTypeUrl
 from harambe.types import URL, Schema, ScrapeResult
 
@@ -211,7 +211,7 @@ class PydanticSchemaParser(SchemaParser):
                 or (isinstance(value, (list, dict)) and not value)
             )
 
-        def check_value(data: Any, field_path: str):
+        def check_value(data: Any, field_path: str) -> None:
             keys = field_path.split(".")
             for key in keys[:-1]:
                 if isinstance(data, dict):
@@ -280,7 +280,9 @@ def trim_keys_and_strip_values(
 
     def process_value(value: Any) -> Any:
         if isinstance(value, str):
-            return value.strip()
+            value = value.strip()
+            if value == "":
+                return None
         if isinstance(value, dict):
             return {k.strip(): process_value(v) for k, v in value.items()}
         if isinstance(value, list):
