@@ -1,6 +1,7 @@
 from typing import Any
 
 import pytest
+
 from harambe.parser.parser import trim_keys_and_strip_values
 
 
@@ -112,9 +113,9 @@ from harambe.parser.parser import trim_keys_and_strip_values
             },
             {
                 "profile": {
-                    "user": "",
+                    "user": None,
                     "contact": None,
-                    "event_date": "",
+                    "event_date": None,
                     "website": "/profile",
                     "likes": [],
                     "stats": {},
@@ -124,7 +125,7 @@ from harambe.parser.parser import trim_keys_and_strip_values
         # Edge case: String with only spaces
         (
             {"user": "    ", "active": True},
-            {"user": "", "active": True},
+            {"user": None, "active": True},
         ),
         # List of strings with spaces
         (
