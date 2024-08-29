@@ -438,3 +438,37 @@ def test_pydantic_schema_validator_non_existing_type_error(schema: Schema) -> No
     validator = PydanticSchemaParser(schema)
     with pytest.raises(ValueError):
         validator.validate({}, base_url="gemini://example.com")
+
+
+def test_stripping_keeps_order() -> None:
+    schema = {
+        "full_name": {"type": "string"},
+        "first_name": {"type": "string"},
+        "last_name": {"type": "string"},
+        "fax_number": {"type": "string"},
+        "phone_number": {"type": "string"},
+        "email": {"type": "string"},
+    }
+    data = {
+        "full_name": "John Doe",
+        "first_name": " John",
+        "last_name": "Doe",
+        "fax_number": "+1 (800) 555-1234",
+        "phone_number": "  +1 (800) 555-1234  ",
+        "email": "",
+    }
+    expected = {
+        "full_name": "John Doe",
+        "first_name": "John",
+        "last_name": "Doe",
+        "fax_number": "+1 (800) 555-1234",
+        "phone_number": "+1 (800) 555-1234",
+        "email": None,
+    }
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+
+    for i in range(len(data)):
+        assert list(output_data.keys())[i] == list(expected.keys())[i]
+        assert list(output_data.values())[i] == list(expected.values())[i]
