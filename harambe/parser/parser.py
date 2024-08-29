@@ -229,11 +229,9 @@ class PydanticSchemaParser(SchemaParser):
                 if is_empty(data.get(final_key)):
                     missing_fields.append(field_path)
             elif isinstance(data, list):
-                if all(
-                    is_empty(item.get(final_key)) if isinstance(item, dict) else True
-                    for item in data
-                ):
-                    missing_fields.append(field_path)
+                for item in data:
+                    if isinstance(item, dict) and is_empty(item.get(final_key)):
+                        missing_fields.append(field_path)
             elif final_key and is_empty(data):
                 missing_fields.append(field_path)
 
