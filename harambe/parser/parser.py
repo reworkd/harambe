@@ -34,12 +34,6 @@ class SchemaValidationError(Exception):
         )
 
 
-class RequiredFieldsError(Exception):
-    def __init__(self, missing_fields: List[str]):
-        message = f"Missing required fields: {', '.join(missing_fields)}"
-        super().__init__(message)
-
-
 class PydanticSchemaParser(SchemaParser):
     """
     A schema parser that uses Pydantic models to validate data against a JSON schema
@@ -50,18 +44,22 @@ class PydanticSchemaParser(SchemaParser):
     def __init__(self, schema: Schema):
         self.schema = schema
         self.field_types: dict[str, Any] = {}
+        self.all_required_fields = self._get_all_required_fields(self.schema)
 
     def validate(self, data: dict[str, Any], base_url: URL) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
         cleaned_data = trim_keys_and_strip_values(data)
-        all_required_fields = self._get_all_required_fields(self.schema)
         missing_fields = self._find_missing_required_fields(
-            cleaned_data, all_required_fields
+            cleaned_data, self.all_required_fields
         )
         if missing_fields:
-            raise RequiredFieldsError(all_required_fields)
+            raise SchemaValidationError(
+                data=cleaned_data,
+                schema=self.schema,
+                message=f"Missing required fields: {', '.join(missing_fields)}, All required fields are: {', '.join(self.all_required_fields)}",
+            )
         if self._all_fields_empty(cleaned_data):
             raise SchemaValidationError(
                 data=cleaned_data,
@@ -207,13 +205,11 @@ class PydanticSchemaParser(SchemaParser):
         missing_fields = []
 
         def is_empty(value: Any) -> bool:
-            if value is None:
-                return True
-            if isinstance(value, str) and not value.strip():
-                return True
-            if isinstance(value, (list, dict)) and not value:
-                return True
-            return False
+            return (
+                value is None
+                or (isinstance(value, str) and not value.strip())
+                or (isinstance(value, (list, dict)) and not value)
+            )
 
         def check_value(data: Any, field_path: str):
             keys = field_path.split(".")
@@ -233,9 +229,11 @@ class PydanticSchemaParser(SchemaParser):
                 if is_empty(data.get(final_key)):
                     missing_fields.append(field_path)
             elif isinstance(data, list):
-                for item in data:
-                    if isinstance(item, dict) and is_empty(item.get(final_key)):
-                        missing_fields.append(field_path)
+                if all(
+                    is_empty(item.get(final_key)) if isinstance(item, dict) else True
+                    for item in data
+                ):
+                    missing_fields.append(field_path)
             elif final_key and is_empty(data):
                 missing_fields.append(field_path)
 
@@ -284,7 +282,7 @@ def trim_keys_and_strip_values(
 
     def process_value(value: Any) -> Any:
         if isinstance(value, str):
-            return value.strip()
+            return value.strip() if value.strip() else None
         if isinstance(value, dict):
             return {k.strip(): process_value(v) for k, v in value.items()}
         if isinstance(value, list):
