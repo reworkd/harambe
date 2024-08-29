@@ -4,7 +4,6 @@ import test.parser.schema_with_required_fields as schemas
 from harambe.parser.parser import (
     PydanticSchemaParser,
     SchemaValidationError,
-    RequiredFieldsError,
 )
 
 
@@ -169,7 +168,7 @@ def test_pydantic_schema_validation_error_fail(
     schema: Dict[str, Any], data: Dict[str, Any]
 ) -> None:
     validator = PydanticSchemaParser(schema)
-    with pytest.raises((SchemaValidationError, RequiredFieldsError)):
+    with pytest.raises(SchemaValidationError):
         validator.validate(data, base_url="http://example.com")
 
 

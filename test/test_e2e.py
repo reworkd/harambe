@@ -7,7 +7,7 @@ from aiohttp import web
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
-from harambe.parser.parser import SchemaValidationError, RequiredFieldsError
+from harambe.parser.parser import SchemaValidationError
 from harambe.types import BrowserType
 from harambe.parser.schemas import Schemas
 
@@ -389,7 +389,7 @@ async def test_required_feilds(server, harness):
         }
         await sdk.save_data(test_required_fields_schema)
 
-    with pytest.raises(RequiredFieldsError):
+    with pytest.raises(SchemaValidationError):
         await SDK.run(
             scraper=scraper,
             url=f"{server}/table",

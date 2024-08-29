@@ -171,7 +171,6 @@ nested_lists_and_objects_schema = {
                             "members": {
                                 "type": "array",
                                 "items": {"type": "string", "required": True},
-                                "required": True,
                             },
                         },
                     },
