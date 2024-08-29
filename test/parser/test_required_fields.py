@@ -201,7 +201,7 @@ def test_pydantic_schema_validation_error_fail(
                     "last_name": None,
                 },
                 "address": {
-                    "street": "",
+                    "street": None,
                     "city": "Anytown",  # required
                     "zip": None,
                 },
@@ -268,7 +268,7 @@ def test_pydantic_schema_validation_error_fail(
                         "name": "Engineering",  # required
                         "teams": [
                             {
-                                "team_name": "",
+                                "team_name": None,
                                 "members": ["Alice", "Bob"],  # required
                             }
                         ],
