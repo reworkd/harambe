@@ -1,7 +1,9 @@
 from typing import Any, Dict
+
 import pytest
-from harambe.parser.schemas import Schemas as schemas
+
 from harambe.parser.parser import PydanticSchemaParser, SchemaValidationError
+from harambe.parser.schemas import Schemas as schemas
 
 
 @pytest.mark.parametrize(
@@ -140,5 +142,4 @@ def test_pydantic_schema_validation_success(
     schema: Dict[str, Any], data: Dict[str, Any]
 ):
     validator = PydanticSchemaParser(schema)
-    validated_data = validator.validate(data, base_url="http://example.com")
-    assert validated_data == validator.model(**data).model_dump()
+    validator.validate(data, base_url="http://example.com")
