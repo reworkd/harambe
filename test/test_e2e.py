@@ -365,3 +365,35 @@ async def test_strip_all_values(server, harness):
         headless=True,
         harness=harness,
     )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_required_feilds(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        test_required_fields_schema = {
+            "id": None,
+            "title": "test title",
+            "description": "test description",
+            "location": "test location",
+            "type": "test type",
+            "category": "test category",
+            "posted_date": "test posted date",
+            "due_date": "test due date",
+            "agency": "test agency",
+            "contact_name": "test contact name",
+            "contact_email": "test contact email",
+            "contact_number": "test contact number",
+            "attachments": [
+                {"title": "test attachment title", "url": "test attachment url"}
+            ],
+        }
+        await sdk.save_data(test_required_fields_schema)
+
+    with pytest.raises(SchemaValidationError):
+        await SDK.run(
+            scraper=scraper,
+            url=f"{server}/table",
+            schema=Schemas.government_contracts_small,
+            headless=True,
+            harness=harness,
+        )
