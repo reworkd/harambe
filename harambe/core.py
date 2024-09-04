@@ -14,7 +14,7 @@ from typing import (
     Union,
     Unpack,
 )
-
+from harambe.contrib.soup.impl import SoupPage
 import aiohttp
 from playwright.async_api import (
     ElementHandle,
@@ -24,7 +24,7 @@ from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
-from harambe.contrib import WebHarness, playwright_harness
+from harambe.contrib import WebHarness, playwright_harness, soup_harness
 from harambe.contrib.types import AbstractPage
 from harambe.handlers import (
     ResourceRequestHandler,
@@ -338,6 +338,9 @@ class SDK:
 
             if not harness_options.get("disable_go_to_url", False):
                 await page.goto(url)
+            else:
+                if isinstance(page, SoupPage):
+                    page.set_url(url)
             await scraper(sdk, url, context)
 
         return sdk

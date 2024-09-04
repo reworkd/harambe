@@ -397,3 +397,19 @@ async def test_required_feilds(server, harness):
             headless=True,
             harness=harness,
         )
+
+
+@pytest.mark.parametrize("harness", [soup_harness])
+async def test_url_bug(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+        await sdk.save_data({"url": page.url})
+
+    await SDK.run(
+        scraper=scraper,
+        disable_go_to_url=True,
+        url="https://www.bcp.gov.gh/acc/registry/docs/Ghana%20Export%20Promotion%20Authority%20Act,%201969%20(NLCD%20396).pdf",
+        schema={"url": {"type": "url"}},
+        headless=True,
+        harness=harness,
+    )
