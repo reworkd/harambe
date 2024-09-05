@@ -69,8 +69,9 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     def url(self) -> str:
         return self._url
 
-    def set_url(self, url: str) -> None:
-        self._url = url
+    @url.setter
+    def url(self, value: str) -> None:
+        self._url = value
 
     async def goto(self, url: str, **kwargs: Any) -> None:
         res = await self._session.get(
