@@ -22,7 +22,6 @@ email-validator = "^2.2.0"
 phonenumbers = "^8.13.43"
 curl-cffi = "^0.7.1"
 ua-generator = "^1.0.3"
-html2text = "^2024.2.26"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.10"

@@ -24,7 +24,7 @@ from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
-from harambe.contrib import WebHarness, playwright_harness, soup_harness
+from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.types import AbstractPage
 from harambe.handlers import (
     ResourceRequestHandler,
