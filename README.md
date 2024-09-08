@@ -33,11 +33,6 @@ git clone https://github.com/reworkd/harambe.git
 poetry install
 ```
 
-## Folder Structure
-
-The `scrapers` folder contains all the scrapers. The `harambe` folder
-contains the SDK and utility functions.
-
 ## Example Scraper
 
 Generally scrapers come in two types, **listing** and detail **scrapers**. Listing
@@ -228,21 +223,6 @@ urls to scrape.
 
 ```shell
 poetry run python scrapers/medical/apprhs.py
-```
-
-## Uploadint a Scraper to the platform
-
-Before submitting a PR, please run the following commands to ensure
-that your code is formatted correctly.
-
-```shell
-make FORMAT LINT
-```
-
-if you have ruff installed
-
-```shell
-poetry run ruff format
 ```
 
 Happy extraction! 🦍
