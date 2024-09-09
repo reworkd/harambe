@@ -82,6 +82,7 @@ class SDK:
         scraper: Optional[AsyncScraperType] = None,
         context: Optional[Context] = None,
         schema: Optional[Schema] = None,
+        deduper: Optional[DuplicateHandler] = None,
     ):
         self.page: Page = page  # type: ignore
         self._id = run_id or uuid.uuid4()
@@ -104,6 +105,7 @@ class SDK:
 
         self._observers = observer
         self._deduper = DuplicateHandler()
+        self._deduper = deduper if deduper else DuplicateHandler()
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
