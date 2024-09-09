@@ -2,14 +2,22 @@ import hashlib
 import json
 from typing import Any, Optional, Iterable
 
+from pydantic import BaseModel
+
 from harambe.types import URL, Context, Options
+
+
+class PageInfo(BaseModel):
+    page: int
+    total_rows: int
+    duplicated_rows: int
 
 
 class DuplicateHandler:
     def __init__(self) -> None:
         self._saved_data: set[bytes] = set()
-        self.rows_on_page = 0
-        self.previously_saved_rows_on_page = 0
+        self.current_page: int = 1
+        self.page_info_map: dict[int, PageInfo] = {}
 
     def on_save_data(self, data: dict[str, Any]) -> bool:
         """
@@ -23,6 +31,13 @@ class DuplicateHandler:
     def on_queue_url(
         self, url: URL, _: Optional[Context], __: Optional[Options]
     ) -> bool:
+        """
+        Save url and check if it is duplicated
+        :param url: url to be saved
+        :param _: context unused
+        :param __: options unused
+        :return: bool indicating if the url is duplicated, true if it is duplicated
+        """
         return self._add_data(url)
 
     # noinspection PyTypeChecker
@@ -32,34 +47,51 @@ class DuplicateHandler:
     def should_continue(self, strict: bool = False) -> bool:
         """
         Check if the current page should be continued to be processed
-        :param strict: if strict is True, it will only return True if all rows on the page are duplicated,
-        otherwise it will return True if there are any duplicated rows
-        :return: bool indicating if the page should be continued
+        :param strict: if strict is True, it will only return True if any rows on the page are duplicated,
+        otherwise it will return True if and only iff all rows are duplicated
+        :return: bool indicating if pagination should continued
         """
 
         if strict:
-            return self.previously_saved_rows_on_page == 0
+            return self.get_current_page_info().duplicated_rows == 0
 
-        return self.rows_on_page == self.previously_saved_rows_on_page
+        return (
+            self.get_current_page_info().total_rows
+            and self.get_current_page_info().total_rows
+            == self.get_current_page_info().duplicated_rows
+        )
 
     def on_paginate(self, next_url: str) -> bool:
         if self.should_continue():
             raise StopAsyncIteration()
 
-        self.rows_on_page = 0
-        self.previously_saved_rows_on_page = 0
+        self.current_page += 1
         return False
 
     def _add_data(self, data: Any) -> bool:
-        self.rows_on_page += 1
+        """
+        :return: bool indicating whether the data is duplicated or not
+        """
+        self.get_current_page_info().total_rows += 1
 
         hash_value = self.compute_hash(data)
         if hash_value in self._saved_data:
-            self.previously_saved_rows_on_page += 1
-            return True  # return True if data is duplicated
+            self.get_current_page_info().duplicated_rows += 1
+            return True
         else:
             self._saved_data.add(hash_value)
             return False
+
+    def get_number_of_pages(self) -> int:
+        return self.current_page
+
+    def get_current_page_info(self) -> PageInfo:
+        if self.current_page not in self.page_info_map:
+            self.page_info_map[self.current_page] = PageInfo(
+                page=self.current_page, total_rows=0, duplicated_rows=0
+            )
+
+        return self.page_info_map[self.current_page]
 
     @staticmethod
     def compute_hash(data: Any) -> bytes:
