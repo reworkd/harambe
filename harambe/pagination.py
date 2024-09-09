@@ -56,7 +56,7 @@ class DuplicateHandler:
             return self.get_current_page_info().duplicated_rows == 0
 
         return (
-            self.get_current_page_info().total_rows
+            self.get_current_page_info().total_rows > 0
             and self.get_current_page_info().total_rows
             == self.get_current_page_info().duplicated_rows
         )
