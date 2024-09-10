@@ -7,7 +7,7 @@ def simulate_captcha_scenario():
     raise CaptchaError()
 
 
-def test_captcha_hit_exception():
+def test_captcha_exception_is_harambe_exception():
     # Testing if HarambeException is raised when expected
     with pytest.raises(HarambeException):
         simulate_captcha_scenario()
