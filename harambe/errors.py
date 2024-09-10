@@ -2,7 +2,7 @@ from harambe.types import ScrapeResult, Schema
 
 
 class HarambeException(Exception):
-    """Base exception for all custom exceptions in this Harambe."""
+    """Base exception for all custom exceptions in Harambe."""
 
     pass
 
