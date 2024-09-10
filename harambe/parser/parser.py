@@ -9,7 +9,8 @@ from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_number import ParserTypeNumber
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
 from harambe.parser.type_url import ParserTypeUrl
-from harambe.types import URL, Schema, ScrapeResult
+from harambe.types import URL, Schema
+from harambe.errors import SchemaValidationError
 
 OBJECT_TYPE = "object"
 LIST_TYPE = "array"
@@ -23,15 +24,6 @@ class SchemaParser(ABC):
     @abstractmethod
     def validate(self, data: dict[str, Any], base_url: URL) -> Any:
         pass
-
-
-class SchemaValidationError(Exception):
-    def __init__(self, schema: Schema, data: ScrapeResult, message: str):
-        super().__init__(
-            "Data {data} does not match schema {schema}. {message}".format(
-                data=data, schema=schema, message=message
-            )
-        )
 
 
 class PydanticSchemaParser(SchemaParser):
