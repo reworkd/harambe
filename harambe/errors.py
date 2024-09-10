@@ -1,7 +1,13 @@
 from harambe.types import ScrapeResult, Schema
 
 
-class SchemaValidationError(Exception):
+class HarambeException(Exception):
+    """Base exception for all custom exceptions in this Harambe."""
+
+    pass
+
+
+class SchemaValidationError(HarambeException):
     def __init__(self, schema: Schema, data: ScrapeResult, message: str):
         super().__init__(
             "Data {data} does not match schema {schema}. {message}".format(
@@ -10,7 +16,6 @@ class SchemaValidationError(Exception):
         )
 
 
-class CaptchaError(Exception):
+class CaptchaError(HarambeException):
     def __init__(self, message="CAPTCHA was hit."):
-        self.message = message
-        super().__init__(self.message)
+        super().__init__(message)

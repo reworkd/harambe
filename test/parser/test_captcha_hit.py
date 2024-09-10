@@ -1,5 +1,5 @@
 import pytest
-from harambe.errors import CaptchaError
+from harambe.errors import CaptchaError, HarambeException
 
 
 def simulate_captcha_scenario():
@@ -9,5 +9,5 @@ def simulate_captcha_scenario():
 
 def test_captcha_hit_exception():
     # Testing if CaptchaHitException is raised when expected
-    with pytest.raises(CaptchaError, match="CAPTCHA was hit."):
+    with pytest.raises(HarambeException, match="CAPTCHA was hit."):
         simulate_captcha_scenario()
