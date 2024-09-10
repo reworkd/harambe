@@ -9,11 +9,7 @@ class HarambeException(Exception):
 
 class SchemaValidationError(HarambeException):
     def __init__(self, schema: Schema, data: ScrapeResult, message: str):
-        super().__init__(
-            "Data {data} does not match schema {schema}. {message}".format(
-                data=data, schema=schema, message=message
-            )
-        )
+        super().__init__(f"Data {data} does not match schema {schema}. {message}")
 
 
 class CaptchaError(HarambeException):
