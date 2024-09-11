@@ -97,6 +97,7 @@ class SDK:
             else None
         )
         self._saved_data: set[ScrapeResult] = set()
+        self._saved_cookies = None
 
         if not observer:
             observer = [LoggingObserver()]
@@ -268,6 +269,19 @@ class SDK:
             "on_download", self.page.url, file_name, pdf_content
         )
         return res[0]
+
+    async def save_cookies(self) -> None:
+        """
+        Save the cookies from the current browser context.
+
+        This function retrieves all the cookies from the current browser context and
+        saves them to the SDK instance. It also notifies all the observers about the
+        action performed.
+        """
+        cookies = await self.page.context.cookies()
+        self._saved_cookies = cookies
+        # Notify observers
+        await self._notify_observers("on_save_cookies", cookies)
 
     async def _notify_observers(
         self,

@@ -14,7 +14,7 @@ from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Options, Stage
 
 ObservationTrigger = Literal[
-    "on_save_data", "on_queue_url", "on_download", "on_paginate"
+    "on_save_data", "on_queue_url", "on_download", "on_paginate", "on_save_cookies"
 ]
 
 
@@ -43,6 +43,10 @@ class OutputObserver(Protocol):
     async def on_paginate(self, next_url: str) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    async def on_save_cookies(self, cookies: List[dict[str, Any]]) -> None:
+        raise NotImplementedError()
+
 
 class LoggingObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
@@ -62,6 +66,9 @@ class LoggingObserver(OutputObserver):
 
     async def on_paginate(self, next_url: str) -> None:
         pass
+
+    async def on_save_cookies(self, cookies: List[dict[str, Any]]) -> None:
+        print(f"Cookies saved : {cookies}")
 
 
 class LocalStorageObserver(OutputObserver):
@@ -87,12 +94,17 @@ class LocalStorageObserver(OutputObserver):
     async def on_paginate(self, next_url: str) -> None:
         pass
 
+    async def on_save_cookies(self, cookies: List[dict[str, Any]]) -> None:
+        # Save cookies to file or database
+        self._tracker.save_data({"cookies": cookies})
+
 
 class InMemoryObserver(OutputObserver):
     def __init__(self) -> None:
         self._data: List[dict[str, Any]] = []
         self._urls: List[Tuple[URL, Context, Options]] = []
         self._files: List[Tuple[str, bytes]] = []
+        self._cookies: List[dict[str, Any]] = []
 
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._data.append(data)
@@ -112,6 +124,9 @@ class InMemoryObserver(OutputObserver):
     async def on_paginate(self, next_url: str) -> None:
         pass
 
+    async def on_save_cookies(self, cookies: List[dict[str, Any]]) -> None:
+        self._cookies.extend(cookies)
+
     @property
     def data(self) -> List[dict[str, Any]]:
         return self._data
@@ -123,3 +138,7 @@ class InMemoryObserver(OutputObserver):
     @property
     def files(self) -> List[Tuple[str, bytes]]:
         return self._files
+
+    @property
+    def cookies(self) -> List[dict[str, Any]]:
+        return self._cookies

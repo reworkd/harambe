@@ -3,6 +3,12 @@ from .parser.schemas import Schemas
 from .types import AsyncScraperType, ScrapeResult
 from .utils import PlaywrightUtils
 
+
+def save_cookies(page):
+    sdk = SDK(page)
+    return sdk.save_cookies()
+
+
 __all__ = [
     "ScrapeResult",
     "Schemas",
@@ -11,4 +17,5 @@ __all__ = [
     "AsyncScraperType",
     "AsyncScraper",
     "PAGE_PDF_FILENAME",
+    "save_cookies",
 ]
