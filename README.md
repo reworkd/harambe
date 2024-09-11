@@ -222,7 +222,7 @@ takes the scraper function and the path to the file containing the
 urls to scrape.
 
 ```shell
-poetry run python scrapers/medical/apprhs.py
+poetry run python <path_to_your_file>
 ```
 
 Happy extraction! 🦍
