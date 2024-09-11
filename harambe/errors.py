@@ -12,7 +12,7 @@ class SchemaValidationError(HarambeException):
         super().__init__(f"Data {data} does not match schema {schema}. {message}")
 
 
-class MissingRequiredFieldError(SchemaValidationError):
+class MissingRequiredFieldsError(SchemaValidationError):
     def __init__(self, schema: Schema, data: ScrapeResult, missing_fields: list[str]):
         message = f"Missing required fields: {', '.join(missing_fields)}"
         super().__init__(schema, data, message)

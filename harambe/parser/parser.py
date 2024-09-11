@@ -10,7 +10,7 @@ from harambe.parser.type_number import ParserTypeNumber
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
 from harambe.parser.type_url import ParserTypeUrl
 from harambe.types import URL, Schema
-from harambe.errors import SchemaValidationError, MissingRequiredFieldError
+from harambe.errors import SchemaValidationError, MissingRequiredFieldsError
 
 OBJECT_TYPE = "object"
 LIST_TYPE = "array"
@@ -47,7 +47,7 @@ class PydanticSchemaParser(SchemaParser):
             cleaned_data, self.all_required_fields
         )
         if missing_fields:
-            raise MissingRequiredFieldError(
+            raise MissingRequiredFieldsError(
                 data=cleaned_data, schema=self.schema, missing_fields=missing_fields
             )
         if self._all_fields_empty(cleaned_data):

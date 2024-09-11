@@ -5,7 +5,7 @@ from .utils import PlaywrightUtils
 from .errors import (
     HarambeException,
     SchemaValidationError,
-    MissingRequiredFieldError,
+    MissingRequiredFieldsError,
     CaptchaError,
 )
 
@@ -19,6 +19,6 @@ __all__ = [
     "PAGE_PDF_FILENAME",
     "HarambeException",
     "SchemaValidationError",
-    "MissingRequiredFieldError",
+    "MissingRequiredFieldsError",
     "CaptchaError",
 ]
