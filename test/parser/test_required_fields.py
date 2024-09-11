@@ -1,10 +1,12 @@
 from typing import Any, Dict
 import pytest
 import test.parser.schema_with_required_fields as schemas
+from harambe.errors import MissingRequiredFieldError
 from harambe.parser.parser import (
     PydanticSchemaParser,
     SchemaValidationError,
 )
+from harambe.types import Schema
 
 
 @pytest.mark.parametrize(
@@ -335,3 +337,69 @@ def test_pydantic_schema_validation_success(
     validator = PydanticSchemaParser(schema)
     validated_data = validator.validate(data, base_url="http://example.com")
     assert validated_data == validator.model(**data).model_dump()
+
+
+@pytest.mark.parametrize(
+    "schema, data, missing_fields",
+    [
+        (
+            {
+                "name": {
+                    "type": "string",
+                    "required": True,
+                    "description": "The name of the person",
+                }
+            },
+            {},  # ❌ Missing the required "name" field
+            ["name"],
+        ),
+        (
+            {
+                "title": {
+                    "type": "string",
+                    "required": True,
+                    "description": "The title of the document",
+                },
+                "document_url": {
+                    "type": "url",
+                    "required": True,
+                    "description": "The URL of the document",
+                },
+            },
+            {
+                "document_url": "http://example.com/doc5"
+            },  # ❌ Missing required "title" field
+            ["title"],
+        ),
+        (
+            {
+                "person": {
+                    "type": "object",
+                    "required": True,
+                    "properties": {
+                        "first_name": {"type": "string", "required": True},
+                        "last_name": {"type": "string", "required": True},
+                    },
+                },
+                "address": {
+                    "type": "object",
+                    "required": True,
+                    "properties": {"street": {"type": "string", "required": True}},
+                },
+            },
+            {
+                "person": {"first_name": None},  # ❌ Missing "last_name" and "street"
+                "address": {},  # Missing "street" in "address"
+            },
+            ["person.first_name", "person.last_name", "address", "address.street"],
+        ),
+    ],
+)
+def test_missing_required_field_error(
+    schema: Schema, data: dict[str, Any], missing_fields: list[str]
+) -> None:
+    validator = PydanticSchemaParser(schema)
+    with pytest.raises(MissingRequiredFieldError) as exc_info:
+        validator.validate(data, base_url="http://example.com")
+
+    assert exc_info.value.missing_fields == missing_fields
