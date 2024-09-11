@@ -48,9 +48,7 @@ class PydanticSchemaParser(SchemaParser):
         )
         if missing_fields:
             raise MissingRequiredFieldError(
-                data=cleaned_data,
-                schema=self.schema,
-                missing_fields=missing_fields
+                data=cleaned_data, schema=self.schema, missing_fields=missing_fields
             )
         if self._all_fields_empty(cleaned_data):
             raise SchemaValidationError(

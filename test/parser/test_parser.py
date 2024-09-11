@@ -479,17 +479,33 @@ def test_stripping_keeps_order() -> None:
     [
         # Test Case 1: Single required field missing
         (
-            {"name": {"type": "string", "required": True, "description": "The name of the person"}},
+            {
+                "name": {
+                    "type": "string",
+                    "required": True,
+                    "description": "The name of the person",
+                }
+            },
             {},  # ❌ Missing the required "name" field
             ["name"],
         ),
         # Test Case 2: Multiple required fields missing
         (
             {
-                "title": {"type": "string", "required": True, "description": "The title of the document"},
-                "document_url": {"type": "url", "required": True, "description": "The URL of the document"}
+                "title": {
+                    "type": "string",
+                    "required": True,
+                    "description": "The title of the document",
+                },
+                "document_url": {
+                    "type": "url",
+                    "required": True,
+                    "description": "The URL of the document",
+                },
             },
-            {"document_url": "http://example.com/doc5"},  # ❌ Missing required "title" field
+            {
+                "document_url": "http://example.com/doc5"
+            },  # ❌ Missing required "title" field
             ["title"],
         ),
         # Test Case 3: Nested objects with missing required fields
@@ -500,14 +516,18 @@ def test_stripping_keeps_order() -> None:
                     "required": True,
                     "properties": {
                         "first_name": {"type": "string", "required": True},
-                        "last_name": {"type": "string", "required": True}
-                    }
+                        "last_name": {"type": "string", "required": True},
+                    },
                 },
-                "address": {"type": "object", "required": True, "properties": {"street": {"type": "string", "required": True}}}
+                "address": {
+                    "type": "object",
+                    "required": True,
+                    "properties": {"street": {"type": "string", "required": True}},
+                },
             },
             {
                 "person": {"first_name": None},  # ❌ Missing "last_name" and "street"
-                "address": {}  # Missing "street" in "address"
+                "address": {},  # Missing "street" in "address"
             },
             ["person.last_name", "address.street"],
         ),
