@@ -14,7 +14,6 @@ from typing import (
     Union,
     Unpack,
 )
-
 import aiohttp
 from playwright.async_api import (
     ElementHandle,
