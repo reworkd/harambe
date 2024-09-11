@@ -279,7 +279,6 @@ class SDK:
         """
         cookies = await self.page.context.cookies()
         self._saved_cookies = cookies
-        # Notify observers
         await self._notify_observers("on_save_cookies", cookies)
 
     async def _notify_observers(
@@ -301,7 +300,6 @@ class SDK:
         duplicated = False
         if check_duplication:
             duplicated = getattr(self._deduper, method)(*args, **kwargs)
-
         if not duplicated:
             return await asyncio.gather(
                 *[getattr(o, method)(*args, **kwargs) for o in self._observers]

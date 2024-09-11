@@ -95,7 +95,6 @@ class LocalStorageObserver(OutputObserver):
         pass
 
     async def on_save_cookies(self, cookies: List[dict[str, Any]]) -> None:
-        # Save cookies to file or database
         self._tracker.save_data({"cookies": cookies})
 
 
