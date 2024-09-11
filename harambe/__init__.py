@@ -23,5 +23,5 @@ __all__ = [
     "AsyncScraperType",
     "AsyncScraper",
     "PAGE_PDF_FILENAME",
-    "save_cookies"
+    "save_cookies",
 ]
