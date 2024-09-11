@@ -9,7 +9,7 @@ class HarambeException(Exception):
 
 class SchemaValidationError(HarambeException):
     def __init__(self, schema: Schema, data: ScrapeResult, message: str):
-        super().__init__(f"Data {data} does not match schema {schema}. {message}")
+        super().__init__(f"{message}. Data {data} does not match schema {schema}.")
 
 
 class MissingRequiredFieldsError(SchemaValidationError):
