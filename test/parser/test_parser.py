@@ -533,7 +533,7 @@ def test_stripping_keeps_order() -> None:
                 "person": {"first_name": None},  # ❌ Missing "last_name" and "street"
                 "address": {},  # Missing "street" in "address"
             },
-            ["person.last_name", "address.street"],
+            ["person.first_name", "person.last_name", "address", "address.street"],
         ),
     ],
 )
