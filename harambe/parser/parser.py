@@ -43,9 +43,7 @@ class PydanticSchemaParser(SchemaParser):
         self.field_types: dict[SchemaFieldType, Any] = {}
         self.all_required_fields = self._get_all_required_fields(self.schema)
 
-    def validate(
-        self, data: dict[SchemaFieldType, Any], base_url: URL
-    ) -> dict[str, Any]:
+    def validate(self, data: dict[str, Any], base_url: URL) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
@@ -146,7 +144,7 @@ class PydanticSchemaParser(SchemaParser):
                     field_info.get("properties", {}) or {},
                     model_name=f"{model_name}{field_name.capitalize()}",
                 )
-            elif field_type == "list":
+            elif field_type == "array":
                 python_type = List[  # type: ignore
                     self._items_schema_to_python_type(
                         field_info.get("items", {}) or {},
@@ -236,7 +234,7 @@ class PydanticSchemaParser(SchemaParser):
 
         return missing_fields
 
-    def _get_type(self, field: str) -> Type[Any]:
+    def _get_type(self, field: SchemaFieldType) -> Type[Any]:
         field_type = self.field_types.get(field)
         if not field_type:
             raise ValueError(f"Unsupported field type: {field}")

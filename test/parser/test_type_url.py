@@ -4,7 +4,7 @@ from harambe.parser.type_url import ParserTypeUrl
 
 
 @pytest.mark.parametrize(
-    "url, base_url, expected",
+    "url, base_url_, expected",
     [
         (
             "",
@@ -63,12 +63,12 @@ from harambe.parser.type_url import ParserTypeUrl
         ),
     ],
 )
-def test_pydantic_type_url_validate_type_success(url, base_url, expected):
-    assert ParserTypeUrl.validate_type(base_url)(url) == expected
+def test_pydantic_type_url_validate_type_success(url, base_url_, expected):
+    assert ParserTypeUrl.validate_type(base_url_)(url) == expected
 
 
 @pytest.mark.parametrize(
-    "url, base_url",
+    "url, base_url_",
     [
         (
             "",
@@ -92,6 +92,6 @@ def test_pydantic_type_url_validate_type_success(url, base_url, expected):
         ),
     ],
 )
-def test_pydantic_type_url_validate_type_error(url, base_url):
+def test_pydantic_type_url_validate_type_error(url, base_url_):
     with pytest.raises(ValueError):
-        ParserTypeUrl.validate_type(base_url)(url)
+        ParserTypeUrl.validate_type(base_url_)(url)

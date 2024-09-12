@@ -49,12 +49,12 @@ class Schema(TypedDict, total=False):
     __config__: NotRequired[ConfigDict]
     type: Required[SchemaFieldType]
     description: NotRequired[str]
-    properties: NotRequired[dict[str, Any]]
+    properties: NotRequired[dict[str, "Schema"]]
     items: NotRequired["Schema"]
     variants: NotRequired[Sequence[str]]
 
 
-Schema.__annotations__["__extra_fields__"] = dict[str, Any]
+Schema.__annotations__["__extra_fields__"] = dict[str, "Schema"]
 
 
 class SetCookieParam(TypedDict, total=False):
