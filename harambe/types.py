@@ -6,9 +6,12 @@ from typing import (
     Optional,
     Sequence,
     TypedDict,
+    NotRequired,
+    Required,
 )
 
 from playwright.async_api import ViewportSize
+from pydantic import ConfigDict
 
 Enum = str
 URL = str
@@ -18,9 +21,40 @@ Options = dict[str, Any]
 Stage = Literal["category", "listing", "detail"]
 AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # type: ignore # noqa: F821
 SetupType = Callable[["SDK"], Awaitable[None]]  # type: ignore # noqa: F821
-Schema = dict[str, Any]
 Callback = Callable[..., Awaitable[None]]
 BrowserType = Literal["chromium", "firefox", "webkit"]
+
+SchemaFieldType = Literal[
+    "string",
+    "str",
+    "boolean",
+    "bool",
+    "integer",
+    "int",
+    "number",
+    "float",
+    "double",
+    "currency",
+    "email",
+    "enum",
+    "array",
+    "object",
+    "datetime",
+    "phone_number",
+    "url",
+]
+
+
+class Schema(TypedDict, total=False):
+    __config__: NotRequired[ConfigDict]
+    type: Required[SchemaFieldType]
+    description: NotRequired[str]
+    properties: NotRequired[dict[str, "Schema"]]
+    items: NotRequired["Schema"]
+    variants: NotRequired[Sequence[str]]
+
+
+Schema.__annotations__["__extra_fields__"] = dict[str, "Schema"]
 
 
 class SetCookieParam(TypedDict, total=False):
