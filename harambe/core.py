@@ -13,7 +13,6 @@ from typing import (
     Protocol,
     Union,
     Unpack,
-    Set,
 )
 import aiohttp
 from playwright.async_api import (
