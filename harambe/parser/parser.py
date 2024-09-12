@@ -2,7 +2,14 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Type, Union, Dict
 
 from harambe.errors import SchemaValidationError
-from pydantic import BaseModel, Field, NameEmail, ValidationError, create_model, ConfigDict
+from pydantic import (
+    BaseModel,
+    Field,
+    NameEmail,
+    ValidationError,
+    create_model,
+    ConfigDict,
+)
 
 from harambe.parser.type_currency import ParserTypeCurrency
 from harambe.parser.type_date import ParserTypeDate
@@ -36,7 +43,9 @@ class PydanticSchemaParser(SchemaParser):
         self.field_types: dict[SchemaFieldType, Any] = {}
         self.all_required_fields = self._get_all_required_fields(self.schema)
 
-    def validate(self, data: dict[SchemaFieldType, Any], base_url: URL) -> dict[str, Any]:
+    def validate(
+        self, data: dict[SchemaFieldType, Any], base_url: URL
+    ) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
@@ -115,7 +124,6 @@ class PydanticSchemaParser(SchemaParser):
 
         return self._get_type(item_type)
 
-
     def _schema_to_pydantic_model(
         self, schema: Schema, model_name: str = "DynamicModel"
     ) -> Type[BaseModel]:
@@ -169,14 +177,14 @@ class PydanticSchemaParser(SchemaParser):
             if field_info.get("required", False):
                 required_fields.append(full_key)
 
-            if field_info.get("type") == OBJECT_TYPE:
+            if field_info.get("type") == "object":
                 nested_properties = field_info.get("properties", {})
                 required_fields.extend(
                     self._get_all_required_fields(nested_properties, full_key)
                 )
-            elif field_info.get("type") == LIST_TYPE:
+            elif field_info.get("type") == "array":
                 item_info = field_info.get("items", {})
-                if item_info.get("type") == OBJECT_TYPE:
+                if item_info.get("type") == "object":
                     nested_properties = item_info.get("properties", {})
                     required_fields.extend(
                         self._get_all_required_fields(nested_properties, full_key)

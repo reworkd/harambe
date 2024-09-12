@@ -5,7 +5,9 @@ from typing import (
     Literal,
     Optional,
     Sequence,
-    TypedDict, NotRequired, Required,
+    TypedDict,
+    NotRequired,
+    Required,
 )
 
 from playwright.async_api import ViewportSize
@@ -39,8 +41,9 @@ SchemaFieldType = Literal[
     "object",
     "datetime",
     "phone_number",
-    "url"
+    "url",
 ]
+
 
 class Schema(TypedDict, total=False):
     __config__: NotRequired[ConfigDict]
@@ -51,7 +54,7 @@ class Schema(TypedDict, total=False):
     variants: NotRequired[Sequence[str]]
 
 
-Schema.__annotations__['__extra_fields__'] = dict[str, Any]
+Schema.__annotations__["__extra_fields__"] = dict[str, Any]
 
 
 class SetCookieParam(TypedDict, total=False):
