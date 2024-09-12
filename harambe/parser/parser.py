@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Type, Union, Dict
+from typing import Any, List, Optional, Type
 
-from harambe.errors import SchemaValidationError
 from pydantic import (
     BaseModel,
     Field,
@@ -9,13 +8,16 @@ from pydantic import (
     ValidationError,
     create_model,
     ConfigDict,
+    model_validator,
 )
 
+from harambe.errors import SchemaValidationError
 from harambe.parser.type_currency import ParserTypeCurrency
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_number import ParserTypeNumber
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
+from harambe.parser.type_string import ParserTypeString
 from harambe.parser.type_url import ParserTypeUrl
 from harambe.types import SchemaFieldType
 from harambe.types import URL, Schema
@@ -47,7 +49,7 @@ class PydanticSchemaParser(SchemaParser):
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
-        cleaned_data = trim_keys_and_strip_values(data)
+        cleaned_data = data
         missing_fields = self._find_missing_required_fields(
             cleaned_data, self.all_required_fields
         )
@@ -73,8 +75,8 @@ class PydanticSchemaParser(SchemaParser):
     @staticmethod
     def _get_field_types(base_url: str) -> dict[SchemaFieldType, Any]:
         return {
-            "string": str,
-            "str": str,
+            "string": ParserTypeString,
+            "str": ParserTypeString,
             "boolean": bool,
             "bool": bool,
             "integer": int,
@@ -129,9 +131,6 @@ class PydanticSchemaParser(SchemaParser):
         Convert a JSON schema to a Pydantic model dynamically. All fields are optional
         """
         fields = {}
-        config: ConfigDict = {"extra": "forbid"}
-        config.update(schema.get("__config__", {}))
-
         for field_name, field_info in schema.items():
             if field_name == "__config__":
                 continue
@@ -161,7 +160,11 @@ class PydanticSchemaParser(SchemaParser):
                 Field(..., description=field_description),
             )
 
-        return create_model(model_name, __config__=config, **fields)  # type: ignore
+        config: ConfigDict = {"extra": "forbid", "str_strip_whitespace": True}
+        config.update(schema.get("__config__", {}))
+        base_model = base_model_factory(config)
+
+        return create_model(model_name, __base__=base_model, **fields)
 
     def _get_all_required_fields(
         self, schema: Schema, parent_key: str = ""
@@ -260,27 +263,16 @@ class PydanticSchemaParser(SchemaParser):
         return all(is_empty(value) for value in data.values())
 
 
-# TODO: Make this a root pre validator
+def base_model_factory(config: ConfigDict) -> Type[BaseModel]:
+    class PreValidatedBaseModel(BaseModel):
+        model_config: ConfigDict = config
 
+        # noinspection PyNestedDecorators
+        @model_validator(mode="before")
+        @classmethod
+        def normalize_keys(cls, values):
+            if isinstance(values, dict):
+                values = {k.strip(): v for k, v in values.items()}
+            return values
 
-def trim_keys_and_strip_values(
-    data: Union[Dict[str, Any], Any],
-) -> Union[Dict[str, Any], Any]:
-    """
-    Recursively trim dictionary keys and strip string values.
-    This includes handling nested dictionaries and lists.
-    Leaving nulls, numbers, empty lists, and empty dicts unchanged.
-    """
-
-    def process_value(value: Any) -> Any:
-        if isinstance(value, str):
-            value = value.strip()
-            if value == "":
-                return None
-        if isinstance(value, dict):
-            return {k.strip(): process_value(v) for k, v in value.items()}
-        if isinstance(value, list):
-            return [process_value(v) for v in value]
-        return value
-
-    return process_value(data)
+    return PreValidatedBaseModel
