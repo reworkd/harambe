@@ -1,6 +1,6 @@
 import hashlib
 import json
-from typing import Any, Optional, Iterable, List
+from typing import Any, Optional, Iterable
 
 from pydantic import BaseModel
 
