@@ -76,11 +76,11 @@ from harambe.types import Schema
         (
             schemas.nested_lists_and_objects_schema,
             {
-                " departments": [
+                " departments\n  \n\t": [  # ✅ handles all kinds of whitespace
                     {
-                        "name ": "Engineering",
-                        "teams": [
-                            {"team_name": "Backend", "members": ["Alice", "Bob"]}
+                        "name ": "\u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 Engineering",
+                        "teams\r": [
+                            {" team_name \n  ": "Backend", "members": ["Alice", "Bob"]}
                         ],
                     }
                 ]
