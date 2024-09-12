@@ -14,7 +14,6 @@ from typing import (
     Union,
     Unpack,
 )
-
 import aiohttp
 from playwright.async_api import (
     ElementHandle,
@@ -25,6 +24,7 @@ from playwright.async_api import (
 )
 
 from harambe.contrib import WebHarness, playwright_harness
+from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
 from harambe.handlers import (
     ResourceRequestHandler,
@@ -82,6 +82,7 @@ class SDK:
         scraper: Optional[AsyncScraperType] = None,
         context: Optional[Context] = None,
         schema: Optional[Schema] = None,
+        deduper: Optional[DuplicateHandler] = None,
     ):
         self.page: Page = page  # type: ignore
         self._id = run_id or uuid.uuid4()
@@ -104,6 +105,7 @@ class SDK:
 
         self._observers = observer
         self._deduper = DuplicateHandler()
+        self._deduper = deduper if deduper else DuplicateHandler()
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
@@ -338,6 +340,8 @@ class SDK:
 
             if not harness_options.get("disable_go_to_url", False):
                 await page.goto(url)
+            elif isinstance(page, SoupPage):
+                page.url = url
             await scraper(sdk, url, context)
 
         return sdk
