@@ -187,7 +187,7 @@ class PydanticSchemaParser(SchemaParser):
         return required_fields
 
     def _find_missing_required_fields(
-        self, data: dict[str, Any], required_fields: List[str]
+            self, data: dict[str, Any], required_fields: List[str]
     ) -> List[str]:
         """
         Check the data against the list of required fields and find which are missing or None.
@@ -195,38 +195,38 @@ class PydanticSchemaParser(SchemaParser):
         missing_fields = []
 
         def is_empty(value: Any) -> bool:
+            """Determines if a value should be considered empty or missing."""
             return (
-                value is None
-                or (isinstance(value, str) and not value.strip())
-                or (isinstance(value, (list, dict)) and not value)
+                    value is None
+                    or (isinstance(value, str) and not value.strip())
+                    or (isinstance(value, (list, dict)) and not value)
             )
 
-        def check_value(data: Any, field_path: str) -> None:
+        def check_value(data: Any, field_path: str) -> bool:
+            """
+            Checks if the required field is missing or None in the data.
+            """
             keys = field_path.split(".")
             for key in keys[:-1]:
                 if isinstance(data, dict):
-                    data = data.get(key, None)
+                    data = data.get(key)
                 elif isinstance(data, list):
-                    data = [
-                        item.get(key, None) if isinstance(item, dict) else None
-                        for item in data
-                    ]
-                else:
-                    return
+                    data = [item.get(key) if isinstance(item, dict) else None for item in data]
+                    data = [item for sublist in data for item in (sublist if isinstance(sublist, list) else [sublist])]
+                if is_empty(data):
+                    return True
 
             final_key = keys[-1]
             if isinstance(data, dict):
-                if is_empty(data.get(final_key)):
-                    missing_fields.append(field_path)
+                return is_empty(data.get(final_key))
             elif isinstance(data, list):
-                for item in data:
-                    if isinstance(item, dict) and is_empty(item.get(final_key)):
-                        missing_fields.append(field_path)
-            elif final_key and is_empty(data):
-                missing_fields.append(field_path)
+                return any(is_empty(item.get(final_key)) if isinstance(item, dict) else True for item in data)
+
+            return True
 
         for field in required_fields:
-            check_value(data, field)
+            if check_value(data, field):
+                missing_fields.append(field)
 
         return missing_fields
 

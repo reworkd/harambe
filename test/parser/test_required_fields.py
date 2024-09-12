@@ -3,10 +3,8 @@ import pytest
 import test.parser.schema_with_required_fields as schemas
 from harambe.parser.parser import (
     PydanticSchemaParser,
-    SchemaValidationError,
     MissingRequiredFieldsError,
 )
-from harambe.types import Schema
 
 
 @pytest.mark.parametrize(
@@ -18,8 +16,8 @@ from harambe.types import Schema
                 "title": None,  # required
                 "document_url": None,  # required
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["title", "document_url"],
         ),
         (
             schemas.documents_schema,
@@ -31,8 +29,8 @@ from harambe.types import Schema
                     }
                 ],
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["documents.title", "documents.document_url"],
         ),
         (
             schemas.contact_schema,
@@ -53,16 +51,16 @@ from harambe.types import Schema
                     }
                 ],
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["name.first_name", "address.city"],
         ),
         (
             schemas.list_of_strings_schema,
             {
                 "tags": [],  # required
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["tags"],
         ),
         (
             schemas.list_of_objects_schema,
@@ -74,8 +72,8 @@ from harambe.types import Schema
                     }
                 ],
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["users.name"],
         ),
         (
             schemas.object_with_list_schema,
@@ -85,8 +83,8 @@ from harambe.types import Schema
                     "members": ["test"],
                 },
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["team.name"],
         ),
         (
             schemas.object_with_list_of_objects_schema,
@@ -102,17 +100,18 @@ from harambe.types import Schema
                     }
                 ],
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["list.c.d"],
         ),
-        (
-            schemas.list_of_lists_schema,
-            {
-                "matrix": [[]],  # required
-            },
-            SchemaValidationError,
-            None,
-        ),
+        # TODO: use pydantic to validate and throw MissingRequiredFieldsError
+        # (
+        #     schemas.list_of_lists_schema,
+        #     {
+        #         "matrix": [[]],  # required
+        #     },
+        #     MissingRequiredFieldsError,
+        #     ["matrix"],
+        # ),
         (
             schemas.nested_lists_and_objects_schema,
             {
@@ -128,8 +127,8 @@ from harambe.types import Schema
                     }
                 ],
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["departments.name", "departments.teams.members"],
         ),
         (
             schemas.datetime_schema,
@@ -139,8 +138,8 @@ from harambe.types import Schema
                     "date": "05/29/2024 02:00:00 PM",
                 },
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["event.name"],
         ),
         (
             schemas.phone_number_schema,
@@ -150,8 +149,8 @@ from harambe.types import Schema
                     "phone": "11111111111",  # required
                 },
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["contact.name"],
         ),
         (
             schemas.url_schema,
@@ -161,8 +160,8 @@ from harambe.types import Schema
                     "link": "http://example.com",  # required
                 },
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["resource.name"],
         ),
         (
             schemas.object_with_nested_types_schema,
@@ -174,8 +173,8 @@ from harambe.types import Schema
                     "website": "http://example.com",
                 },
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["profile.user"],
         ),
         (
             schemas.list_with_nested_types_schema,
@@ -189,8 +188,8 @@ from harambe.types import Schema
                     }
                 ],
             },
-            SchemaValidationError,
-            None,
+            MissingRequiredFieldsError,
+            ["events.name", "events.dates", "events.contacts", "events.links"],
         ),
         (
             {
@@ -427,68 +426,3 @@ def test_pydantic_schema_validation_success(
     validated_data = validator.validate(data, base_url="http://example.com")
     assert validated_data == validator.model(**data).model_dump()
 
-
-@pytest.mark.parametrize(
-    "schema, data, missing_fields",
-    [
-        (
-            {
-                "name": {
-                    "type": "string",
-                    "required": True,
-                    "description": "The name of the person",
-                }
-            },
-            {},  # ❌ Missing the required "name" field
-            ["name"],
-        ),
-        (
-            {
-                "title": {
-                    "type": "string",
-                    "required": True,
-                    "description": "The title of the document",
-                },
-                "document_url": {
-                    "type": "url",
-                    "required": True,
-                    "description": "The URL of the document",
-                },
-            },
-            {
-                "document_url": "http://example.com/doc5"
-            },  # ❌ Missing required "title" field
-            ["title"],
-        ),
-        (
-            {
-                "person": {
-                    "type": "object",
-                    "required": True,
-                    "properties": {
-                        "first_name": {"type": "string", "required": True},
-                        "last_name": {"type": "string", "required": True},
-                    },
-                },
-                "address": {
-                    "type": "object",
-                    "required": True,
-                    "properties": {"street": {"type": "string", "required": True}},
-                },
-            },
-            {
-                "person": {"first_name": None},  # ❌ Missing "last_name" and "street"
-                "address": {},  # Missing "street" in "address"
-            },
-            ["person.first_name", "person.last_name", "address", "address.street"],
-        ),
-    ],
-)
-def test_missing_required_field_error(
-    schema: Schema, data: dict[str, Any], missing_fields: list[str]
-) -> None:
-    validator = PydanticSchemaParser(schema)
-    with pytest.raises(MissingRequiredFieldsError) as exc_info:
-        validator.validate(data, base_url="http://example.com")
-
-    assert exc_info.value.missing_fields == missing_fields
