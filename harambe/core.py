@@ -13,6 +13,7 @@ from typing import (
     Protocol,
     Union,
     Unpack,
+    Set,
 )
 import aiohttp
 from playwright.async_api import (
@@ -98,7 +99,7 @@ class SDK:
             else None
         )
         self._saved_data: set[ScrapeResult] = set()
-        self._saved_cookies = []
+        self._saved_cookies: List[Cookie] = []
 
         if not observer:
             observer = [LoggingObserver()]
@@ -271,7 +272,7 @@ class SDK:
         )
         return res[0]
 
-    async def save_cookies(self, cookies: Optional[Cookie] = None) -> None:
+    async def save_cookies(self, cookies: Optional[List[Cookie]] = None) -> None:
         """
         Save the cookies from the current browser context or use the provided cookies.
 
@@ -280,10 +281,15 @@ class SDK:
 
         :param cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
         """
+        existing_cookies = {cookie["name"]: cookie for cookie in self._saved_cookies}
         if not cookies:
             cookies = await self.page.context.cookies()
-        cookies = [fix_cookie(cookie) for cookie in cookies]
-        self._saved_cookies.append(cookies)
+
+        for cookie in cookies:
+            cookie = fix_cookie(cookie)
+            existing_cookies[cookie["name"]] = cookie
+
+        self._saved_cookies = list(existing_cookies.values())
         await self._notify_observers(
             "on_save_cookies", self._saved_cookies, check_duplication=False
         )
