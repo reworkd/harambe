@@ -8,16 +8,7 @@ from pydantic import (
     ValidationError,
     create_model,
     ConfigDict,
-    model_validator,
-)
-from harambe.errors import SchemaValidationError
-from pydantic import (
-    BaseModel,
-    Field,
-    NameEmail,
-    ValidationError,
-    create_model,
-    ConfigDict,
+    model_validator
 )
 
 from harambe.errors import SchemaValidationError
@@ -104,7 +95,7 @@ class PydanticSchemaParser(SchemaParser):
         }
 
     def _items_schema_to_python_type(
-        self, items_info: Schema, model_name: str = "DynamicModelItem"
+            self, items_info: Schema, model_name: str = "DynamicModelItem"
     ) -> Type[Any]:
         """
         Convert a JSON schema's items property to a Python type
@@ -134,7 +125,7 @@ class PydanticSchemaParser(SchemaParser):
         return self._get_type(item_type)
 
     def _schema_to_pydantic_model(
-        self, schema: Schema, model_name: str = "DynamicModel"
+            self, schema: Schema, model_name: str = "DynamicModel"
     ) -> Type[BaseModel]:
         """
         Convert a JSON schema to a Pydantic model dynamically. All fields are optional
@@ -176,7 +167,7 @@ class PydanticSchemaParser(SchemaParser):
         return create_model(model_name, __base__=base_model, **fields)
 
     def _get_all_required_fields(
-        self, schema: Schema, parent_key: str = ""
+            self, schema: Schema, parent_key: str = ""
     ) -> List[str]:
         """
         Recursively collect all required fields from the schema, including nested ones.
@@ -203,7 +194,7 @@ class PydanticSchemaParser(SchemaParser):
         return required_fields
 
     def _find_missing_required_fields(
-        self, data: dict[str, Any], required_fields: List[str]
+            self, data: dict[str, Any], required_fields: List[str]
     ) -> List[str]:
         """
         Check the data against the list of required fields and find which are missing or None.
@@ -212,9 +203,9 @@ class PydanticSchemaParser(SchemaParser):
 
         def is_empty(value: Any) -> bool:
             return (
-                value is None
-                or (isinstance(value, str) and not value.strip())
-                or (isinstance(value, (list, dict)) and not value)
+                    value is None
+                    or (isinstance(value, str) and not value.strip())
+                    or (isinstance(value, (list, dict)) and not value)
             )
 
         def check_value(data: Any, field_path: str) -> None:
