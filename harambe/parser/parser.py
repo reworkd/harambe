@@ -187,7 +187,7 @@ class PydanticSchemaParser(SchemaParser):
         return required_fields
 
     def _find_missing_required_fields(
-            self, data: dict[str, Any], required_fields: List[str]
+        self, data: dict[str, Any], required_fields: List[str]
     ) -> List[str]:
         """
         Check the data against the list of required fields and find which are missing or None.
@@ -197,9 +197,9 @@ class PydanticSchemaParser(SchemaParser):
         def is_empty(value: Any) -> bool:
             """Determines if a value should be considered empty or missing."""
             return (
-                    value is None
-                    or (isinstance(value, str) and not value.strip())
-                    or (isinstance(value, (list, dict)) and not value)
+                value is None
+                or (isinstance(value, str) and not value.strip())
+                or (isinstance(value, (list, dict)) and not value)
             )
 
         def check_value(data: Any, field_path: str) -> bool:
@@ -211,8 +211,17 @@ class PydanticSchemaParser(SchemaParser):
                 if isinstance(data, dict):
                     data = data.get(key)
                 elif isinstance(data, list):
-                    data = [item.get(key) if isinstance(item, dict) else None for item in data]
-                    data = [item for sublist in data for item in (sublist if isinstance(sublist, list) else [sublist])]
+                    data = [
+                        item.get(key) if isinstance(item, dict) else None
+                        for item in data
+                    ]
+                    data = [
+                        item
+                        for sublist in data
+                        for item in (
+                            sublist if isinstance(sublist, list) else [sublist]
+                        )
+                    ]
                 if is_empty(data):
                     return True
 
@@ -220,7 +229,10 @@ class PydanticSchemaParser(SchemaParser):
             if isinstance(data, dict):
                 return is_empty(data.get(final_key))
             elif isinstance(data, list):
-                return any(is_empty(item.get(final_key)) if isinstance(item, dict) else True for item in data)
+                return any(
+                    is_empty(item.get(final_key)) if isinstance(item, dict) else True
+                    for item in data
+                )
 
             return True
 

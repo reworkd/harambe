@@ -425,4 +425,3 @@ def test_pydantic_schema_validation_success(
     validator = PydanticSchemaParser(schema)
     validated_data = validator.validate(data, base_url="http://example.com")
     assert validated_data == validator.model(**data).model_dump()
-
