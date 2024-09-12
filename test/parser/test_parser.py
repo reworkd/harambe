@@ -78,7 +78,7 @@ from harambe.types import Schema
             {
                 " departments\n  \n\t": [  # ✅ handles all kinds of whitespace
                     {
-                        "name ": "Engineering",
+                        "name ": "\u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 Engineering",
                         "teams\r": [
                             {" team_name \n  ": "Backend", "members": ["Alice", "Bob"]}
                         ],

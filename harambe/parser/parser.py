@@ -8,7 +8,7 @@ from pydantic import (
     ValidationError,
     create_model,
     ConfigDict,
-    model_validator
+    model_validator,
 )
 
 from harambe.errors import SchemaValidationError
@@ -49,27 +49,27 @@ class PydanticSchemaParser(SchemaParser):
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         self.model = self._schema_to_pydantic_model(self.schema)
-        cleaned_data = data
         missing_fields = self._find_missing_required_fields(
-            cleaned_data, self.all_required_fields
+            data, self.all_required_fields
         )
+
         if missing_fields:
             raise SchemaValidationError(
-                data=cleaned_data,
+                data=data,
                 schema=self.schema,
                 message=f"Missing required fields: {', '.join(missing_fields)}, All required fields are: {', '.join(self.all_required_fields)}",
             )
-        if self._all_fields_empty(cleaned_data):
+        if self._all_fields_empty(data):
             raise SchemaValidationError(
-                data=cleaned_data,
+                data=data,
                 schema=self.schema,
                 message="All fields are null or empty.",
             )
         try:
-            return self.model(**cleaned_data).model_dump()
+            return self.model(**data).model_dump()
         except ValidationError as validation_error:
             raise SchemaValidationError(
-                data=cleaned_data, schema=self.schema, message=str(validation_error)
+                data=data, schema=self.schema, message=str(validation_error)
             )
 
     @staticmethod
@@ -95,7 +95,7 @@ class PydanticSchemaParser(SchemaParser):
         }
 
     def _items_schema_to_python_type(
-            self, items_info: Schema, model_name: str = "DynamicModelItem"
+        self, items_info: Schema, model_name: str = "DynamicModelItem"
     ) -> Type[Any]:
         """
         Convert a JSON schema's items property to a Python type
@@ -125,7 +125,7 @@ class PydanticSchemaParser(SchemaParser):
         return self._get_type(item_type)
 
     def _schema_to_pydantic_model(
-            self, schema: Schema, model_name: str = "DynamicModel"
+        self, schema: Schema, model_name: str = "DynamicModel"
     ) -> Type[BaseModel]:
         """
         Convert a JSON schema to a Pydantic model dynamically. All fields are optional
@@ -167,7 +167,7 @@ class PydanticSchemaParser(SchemaParser):
         return create_model(model_name, __base__=base_model, **fields)
 
     def _get_all_required_fields(
-            self, schema: Schema, parent_key: str = ""
+        self, schema: Schema, parent_key: str = ""
     ) -> List[str]:
         """
         Recursively collect all required fields from the schema, including nested ones.
@@ -194,7 +194,7 @@ class PydanticSchemaParser(SchemaParser):
         return required_fields
 
     def _find_missing_required_fields(
-            self, data: dict[str, Any], required_fields: List[str]
+        self, data: dict[str, Any], required_fields: List[str]
     ) -> List[str]:
         """
         Check the data against the list of required fields and find which are missing or None.
@@ -203,9 +203,9 @@ class PydanticSchemaParser(SchemaParser):
 
         def is_empty(value: Any) -> bool:
             return (
-                    value is None
-                    or (isinstance(value, str) and not value.strip())
-                    or (isinstance(value, (list, dict)) and not value)
+                value is None
+                or (isinstance(value, str) and not value.strip())
+                or (isinstance(value, (list, dict)) and not value)
             )
 
         def check_value(data: Any, field_path: str) -> None:
