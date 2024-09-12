@@ -269,17 +269,23 @@ class SDK:
         )
         return res[0]
 
-    async def save_cookies(self) -> None:
+    async def save_cookies(
+        self, cookies: Optional[List[dict[str, Any]]] = None
+    ) -> None:
         """
-        Save the cookies from the current browser context.
+        Save the cookies from the current browser context or use the provided cookies.
 
-        This function retrieves all the cookies from the current browser context and
-        saves them to the SDK instance. It also notifies all the observers about the
-        action performed.
+        This function retrieves all the cookies from the current browser context if none are provided,
+        saves them to the SDK instance, and notifies all observers about the action performed.
+
+        :param cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
         """
-        cookies = await self.page.context.cookies()
+        if not cookies:
+            cookies = await self.page.context.cookies()
         self._saved_cookies = cookies
-        await self._notify_observers("on_save_cookies", cookies)
+        await self._notify_observers(
+            "on_save_cookies", cookies, check_duplication=False
+        )
 
     async def _notify_observers(
         self,

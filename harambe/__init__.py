@@ -7,14 +7,6 @@ from harambe.observer import (
     LoggingObserver,
 )
 
-
-def save_cookies(page, domain, stage):
-    # Initialize SDK with necessary observers
-    observers = [LocalStorageObserver(domain, stage), LoggingObserver()]
-    sdk = SDK(page, domain=domain, stage=stage, observer=observers)
-    return sdk.save_cookies()
-
-
 __all__ = [
     "ScrapeResult",
     "Schemas",
@@ -23,5 +15,4 @@ __all__ = [
     "AsyncScraperType",
     "AsyncScraper",
     "PAGE_PDF_FILENAME",
-    "save_cookies",
 ]

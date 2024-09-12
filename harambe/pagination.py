@@ -68,14 +68,6 @@ class DuplicateHandler:
         self.current_page += 1
         return False
 
-    def on_save_cookies(self, cookies: List[dict[str, Any]]) -> bool:
-        """
-        Save cookies and check if they are duplicated
-        :param cookies: List of cookie dictionaries
-        :return: bool indicating if the cookies are duplicated, true if they are duplicated
-        """
-        self._add_data(cookies)
-
     def _add_data(self, data: Any) -> bool:
         """
         :return: bool indicating whether the data is duplicated or not
