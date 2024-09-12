@@ -30,6 +30,7 @@ from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
+from harambe.cookies_handler import fix_cookie
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
@@ -51,6 +52,7 @@ from harambe.types import (
     ScrapeResult,
     SetupType,
     Stage,
+    Cookie,
 )
 
 
@@ -96,7 +98,7 @@ class SDK:
             else None
         )
         self._saved_data: set[ScrapeResult] = set()
-        self._saved_cookies = None
+        self._saved_cookies = []
 
         if not observer:
             observer = [LoggingObserver()]
@@ -269,9 +271,7 @@ class SDK:
         )
         return res[0]
 
-    async def save_cookies(
-        self, cookies: Optional[List[dict[str, Any]]] = None
-    ) -> None:
+    async def save_cookies(self, cookies: Optional[Cookie] = None) -> None:
         """
         Save the cookies from the current browser context or use the provided cookies.
 
@@ -282,9 +282,10 @@ class SDK:
         """
         if not cookies:
             cookies = await self.page.context.cookies()
-        self._saved_cookies = cookies
+        cookies = [fix_cookie(cookie) for cookie in cookies]
+        self._saved_cookies.append(cookies)
         await self._notify_observers(
-            "on_save_cookies", cookies, check_duplication=False
+            "on_save_cookies", self._saved_cookies, check_duplication=False
         )
 
     async def _notify_observers(
