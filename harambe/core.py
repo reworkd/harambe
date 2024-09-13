@@ -289,9 +289,7 @@ class SDK:
             existing_cookies[cookie["name"]] = cookie
 
         self._saved_cookies = list(existing_cookies.values())
-        await self._notify_observers(
-            "on_save_cookies", self._saved_cookies, check_duplication=False
-        )
+        await self._notify_observers("on_save_cookies", self._saved_cookies)
 
     async def _notify_observers(
         self,
