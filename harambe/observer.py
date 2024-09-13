@@ -14,7 +14,12 @@ from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Options, Stage, Cookie, LocalStorage
 
 ObservationTrigger = Literal[
-    "on_save_data", "on_queue_url", "on_download", "on_paginate", "on_save_cookies"
+    "on_save_data",
+    "on_queue_url",
+    "on_download",
+    "on_paginate",
+    "on_save_cookies",
+    "on_save_local_storage",
 ]
 
 
