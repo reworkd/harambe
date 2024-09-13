@@ -76,11 +76,11 @@ from harambe.types import Schema
         (
             schemas.nested_lists_and_objects_schema,
             {
-                " departments": [
+                " departments\n  \n\t": [  # ✅ handles all kinds of whitespace
                     {
-                        "name ": "Engineering",
-                        "teams": [
-                            {"team_name": "Backend", "members": ["Alice", "Bob"]}
+                        "name ": "\u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 \u00a0 Engineering",
+                        "teams\r": [
+                            {" team_name \n  ": "Backend", "members": ["Alice", "Bob"]}
                         ],
                     }
                 ]
@@ -413,7 +413,7 @@ def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -
                 "documents": [
                     {
                         "title": "Document Seven",
-                        "document_url": "/doc7",  # ❌ Relative URL, with bad base_url specified
+                        "document_url": "/doc7",
                     },
                 ]
             },
@@ -438,3 +438,113 @@ def test_pydantic_schema_validator_non_existing_type_error(schema: Schema) -> No
     validator = PydanticSchemaParser(schema)
     with pytest.raises(ValueError):
         validator.validate({}, base_url="gemini://example.com")
+
+
+def test_stripping_keeps_order() -> None:
+    schema = {
+        "full_name": {"type": "string"},
+        "first_name": {"type": "string"},
+        "last_name": {"type": "string"},
+        "fax_number": {"type": "string"},
+        "phone_number": {"type": "string"},
+        "email": {"type": "string"},
+    }
+    data = {
+        "full_name": "John Doe",
+        "first_name": " John",
+        "last_name": "Doe",
+        "fax_number": "+1 (800) 555-1234",
+        "phone_number": "  +1 (800) 555-1234  ",
+        "email": "",
+    }
+    expected = {
+        "full_name": "John Doe",
+        "first_name": "John",
+        "last_name": "Doe",
+        "fax_number": "+1 (800) 555-1234",
+        "phone_number": "+1 (800) 555-1234",
+        "email": None,
+    }
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+
+    for i in range(len(data)):
+        assert list(output_data.keys())[i] == list(expected.keys())[i]
+        assert list(output_data.values())[i] == list(expected.values())[i]
+
+
+def test_allow_extra() -> None:
+    schema = {
+        "__config__": {"extra": "allow"},
+        "first_name": {"type": "string"},
+    }
+
+    data = {
+        "first_name": "Adam",
+        "last_name": "Poop my pants",
+    }
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+
+    assert output_data == data
+
+
+def test_allow_extra_nested() -> None:
+    schema = {
+        "first_name": {"type": "string"},
+        "address": {
+            "type": "object",
+            "properties": {
+                "__config__": {"extra": "allow"},
+                "street": {"type": "string"},
+                "city": {"type": "string"},
+            },
+        },
+        "phone_numbers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "__config__": {"extra": "allow"},
+                    "type": {"type": "string"},
+                    "number": {"type": "string"},
+                },
+            },
+        },
+    }
+
+    data = {
+        "first_name": "Adam",
+        "address": {
+            "street": "123 Elm St",
+            "city": "Springfield",
+            "zip": 12345,
+        },
+        "phone_numbers": [
+            {"type": "home", "number": "+1 (800) 555-1234", "extra": "field"},
+        ],
+    }
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+
+    assert output_data == data
+
+
+def test_ignore_extra_fields() -> None:
+    schema = {
+        "__config__": {"extra": "ignore"},
+        "first_name": {"type": "string"},
+    }
+
+    data = {
+        "first_name": "Adam",
+        "last_name": "Poop my pants",
+    }
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+
+    assert output_data == {"first_name": "Adam"}

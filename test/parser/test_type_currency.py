@@ -4,7 +4,7 @@ from pydantic import BaseModel, ValidationError
 from harambe.parser.type_currency import ParserTypeCurrency
 
 
-class TestModel(BaseModel):
+class _TestModel(BaseModel):
     value: ParserTypeCurrency()
 
 
@@ -39,7 +39,7 @@ class TestModel(BaseModel):
     ],
 )
 def test_flexible_currency_success(input_value, expected_output):
-    model = TestModel(value=input_value)
+    model = _TestModel(value=input_value)
     assert model.value == pytest.approx(expected_output)
 
 
@@ -67,4 +67,4 @@ def test_flexible_currency_success(input_value, expected_output):
 )
 def test_flexible_float_failure(input_value):
     with pytest.raises(ValidationError):
-        TestModel(value=input_value)
+        _TestModel(value=input_value)
