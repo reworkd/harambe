@@ -3,7 +3,7 @@ import json
 from typing import Any, Optional, Iterable, List
 from pydantic import BaseModel
 
-from harambe.types import URL, Context, Options, Cookie
+from harambe.types import URL, Context, Options, Cookie, LocalStorage
 
 
 class PageInfo(BaseModel):
@@ -35,7 +35,7 @@ class DuplicateHandler:
         """
         return self._add_data(cookies)
 
-    def on_save_local_storage(self, local_storage: List[dict[str, Any]]):
+    def on_save_local_storage(self, local_storage: List[LocalStorage]):
         """
         Save local storage and check if they are duplicated
         :param local_storage: local storage to be saved
