@@ -313,8 +313,9 @@ class SDK:
                 "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
             )
 
-        for item in local_storage:
-            existing_local_storage[item["key"]] = item["value"]
+        existing_local_storage = existing_local_storage.update(
+            {[item["key"]]: item["value"] for item in local_storage}
+        )
         self._saved_local_storage = [
             {"key": key, "value": value}
             for key, value in existing_local_storage.items()
