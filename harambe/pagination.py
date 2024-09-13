@@ -35,6 +35,14 @@ class DuplicateHandler:
         """
         return self._add_data(cookies)
 
+    def on_save_local_storage(self, local_storage: List[dict[str, Any]]):
+        """
+        Save local storage and check if they are duplicated
+        :param local_storage: local storage to be saved
+        :return: bool indicating if the local storage is duplicated, true if it is duplicated
+        """
+        return self._add_data(local_storage)
+
     def on_queue_url(
         self, url: URL, _: Optional[Context], __: Optional[Options]
     ) -> bool:

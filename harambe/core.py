@@ -53,6 +53,7 @@ from harambe.types import (
     SetupType,
     Stage,
     Cookie,
+    LocalStorage,
 )
 
 
@@ -99,6 +100,7 @@ class SDK:
         )
         self._saved_data: set[ScrapeResult] = set()
         self._saved_cookies: List[Cookie] = []
+        self._saved_local_storage: List[LocalStorage] = []
 
         if not observer:
             observer = [LoggingObserver()]
@@ -290,6 +292,35 @@ class SDK:
 
         self._saved_cookies = list(existing_cookies.values())
         await self._notify_observers("on_save_cookies", self._saved_cookies)
+
+    async def save_local_storage(
+        self, local_storage: Optional[List[LocalStorage]] = None
+    ) -> None:
+        """
+        Save the local storage from the current browser context or use the provided local storage data.
+
+        This function retrieves all the local storage data from the current page context if none is provided,
+        updates the SDK instance with new or updated values, and notifies all observers about the action performed.
+
+        :param local_storage: Optional list of local storage items (key-value pairs) to save. If None, local storage is retrieved from the current page context.
+        """
+        existing_local_storage = {
+            item["key"]: item["value"] for item in self._saved_local_storage
+        }
+
+        if not local_storage:
+            local_storage = await self.page.evaluate(
+                "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
+            )
+
+        for item in local_storage:
+            existing_local_storage[item["key"]] = item["value"]
+        self._saved_local_storage = [
+            {"key": key, "value": value}
+            for key, value in existing_local_storage.items()
+        ]
+
+        await self._notify_observers("on_save_local_storage", self._saved_local_storage)
 
     async def _notify_observers(
         self,
