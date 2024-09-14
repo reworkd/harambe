@@ -84,3 +84,16 @@ class HarnessOptions(TypedDict, total=False):
     disable_go_to_url: bool
     on_start: Optional[Callback]
     on_end: Optional[Callback]
+
+
+class Cookie(TypedDict):
+    name: str
+    value: str
+    domain: str
+    path: str
+    expires: int | float
+    size: int
+    httpOnly: bool
+    secure: bool
+    session: bool
+    sameSite: str

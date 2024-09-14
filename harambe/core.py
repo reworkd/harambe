@@ -30,6 +30,7 @@ from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
+from harambe.cookies_handler import fix_cookie
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
@@ -51,6 +52,7 @@ from harambe.types import (
     ScrapeResult,
     SetupType,
     Stage,
+    Cookie,
 )
 
 
@@ -96,6 +98,7 @@ class SDK:
             else None
         )
         self._saved_data: set[ScrapeResult] = set()
+        self._saved_cookies: List[Cookie] = []
 
         if not observer:
             observer = [LoggingObserver()]
@@ -268,6 +271,26 @@ class SDK:
         )
         return res[0]
 
+    async def save_cookies(self, cookies: Optional[List[Cookie]] = None) -> None:
+        """
+        Save the cookies from the current browser context or use the provided cookies.
+
+        This function retrieves all the cookies from the current browser context if none are provided,
+        saves them to the SDK instance, and notifies all observers about the action performed.
+
+        :param cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
+        """
+        existing_cookies = {cookie["name"]: cookie for cookie in self._saved_cookies}
+        if not cookies:
+            cookies = await self.page.context.cookies()
+
+        for cookie in cookies:
+            cookie = fix_cookie(cookie)
+            existing_cookies[cookie["name"]] = cookie
+
+        self._saved_cookies = list(existing_cookies.values())
+        await self._notify_observers("on_save_cookies", self._saved_cookies)
+
     async def _notify_observers(
         self,
         method: ObservationTrigger,
@@ -287,7 +310,6 @@ class SDK:
         duplicated = False
         if check_duplication:
             duplicated = getattr(self._deduper, method)(*args, **kwargs)
-
         if not duplicated:
             return await asyncio.gather(
                 *[getattr(o, method)(*args, **kwargs) for o in self._observers]

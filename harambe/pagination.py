@@ -1,10 +1,9 @@
 import hashlib
 import json
-from typing import Any, Optional, Iterable
-
+from typing import Any, Optional, Iterable, List
 from pydantic import BaseModel
 
-from harambe.types import URL, Context, Options
+from harambe.types import URL, Context, Options, Cookie
 
 
 class PageInfo(BaseModel):
@@ -27,6 +26,14 @@ class DuplicateHandler:
         """
 
         return self._add_data(data)
+
+    def on_save_cookies(self, cookies: List[Cookie]):
+        """
+        Save cookies and check if they are duplicated
+        :param cookies: cookies to be saved
+        :return: bool indicating if the cookies are duplicated, true if it is duplicated
+        """
+        return self._add_data(cookies)
 
     def on_queue_url(
         self, url: URL, _: Optional[Context], __: Optional[Options]
