@@ -3,10 +3,35 @@ from typing import Any
 import re
 from typing_extensions import Annotated
 
+price_not_available_phrases = [
+    "Price Not Available",
+    "Unavailable Price",
+    "Price Upon Request",
+    "Contact for Price",
+    "Request a Quote",
+    "Call for Price",
+    "Check Price in Store",
+    "Price TBD (To Be Determined)",
+    "Price Not Disclosed",
+    "Out of Stock",
+    "Sold Out",
+    "Pricing Not Provided",
+    "Not Priced",
+    "Currently Unavailable",
+    "N/A (Not Available)",
+    "Ask for Pricing",
+    "See Details for Price",
+    "Price Coming Soon",
+    "Temporarily Unavailable",
+    "Price Hidden",
+    "TDB",
+    "N/A",
+]
+
 
 class ParserTypeCurrency:
     def __new__(cls) -> Any:
-        return Annotated[float, BeforeValidator(cls.validate_currency)]
+        return Annotated[float | None, BeforeValidator(cls.validate_currency)]
 
     @staticmethod
     def validate_currency(value: str) -> float:
@@ -14,6 +39,8 @@ class ParserTypeCurrency:
             return float(value)
 
         value = str(value).strip()
+        if value in price_not_available_phrases:
+            return None
         cleaned_value = re.sub(r"[^\d.,-]", "", value)
         cleaned_value = re.sub(r"^0+(?!$)", "", cleaned_value)
 
