@@ -4,28 +4,28 @@ import re
 from typing_extensions import Annotated
 
 price_not_available_phrases = [
-    "Price Not Available",
-    "Unavailable Price",
-    "Price Upon Request",
-    "Contact for Price",
-    "Request a Quote",
-    "Call for Price",
-    "Check Price in Store",
-    "Price TBD (To Be Determined)",
-    "Price Not Disclosed",
-    "Out of Stock",
-    "Sold Out",
-    "Pricing Not Provided",
-    "Not Priced",
-    "Currently Unavailable",
-    "N/A (Not Available)",
-    "Ask for Pricing",
-    "See Details for Price",
-    "Price Coming Soon",
-    "Temporarily Unavailable",
-    "Price Hidden",
-    "TDB",
-    "N/A",
+    "price not available",
+    "unavailable price",
+    "price upon request",
+    "contact for price",
+    "request a quote",
+    "call for price",
+    "check price in store",
+    "price tbd (to be determined)",
+    "price not disclosed",
+    "out of stock",
+    "sold out",
+    "pricing not provided",
+    "not priced",
+    "currently unavailable",
+    "n/a (not available)",
+    "ask for pricing",
+    "see details for price",
+    "price coming soon",
+    "temporarily unavailable",
+    "price hidden",
+    "tdb",
+    "n/a",
 ]
 
 
@@ -39,7 +39,7 @@ class ParserTypeCurrency:
             return float(value)
 
         value = str(value).strip()
-        if value in price_not_available_phrases:
+        if value.lower() in price_not_available_phrases:
             return None
         cleaned_value = re.sub(r"[^\d.,-]", "", value)
         cleaned_value = re.sub(r"^0+(?!$)", "", cleaned_value)
