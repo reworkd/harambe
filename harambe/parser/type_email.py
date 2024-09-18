@@ -12,7 +12,5 @@ def _validate_email(value: str) -> str:
 
 ParserTypeEmail = Annotated[
     str,
-    BeforeValidator(
-        _validate_email
-    ),
+    BeforeValidator(_validate_email),
 ]
