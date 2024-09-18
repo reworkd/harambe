@@ -4,7 +4,6 @@ from typing import Any, List, Optional, Type
 from pydantic import (
     BaseModel,
     Field,
-    NameEmail,
     ValidationError,
     create_model,
     ConfigDict,
@@ -14,6 +13,7 @@ from pydantic import (
 from harambe.errors import SchemaValidationError
 from harambe.parser.type_currency import ParserTypeCurrency
 from harambe.parser.type_date import ParserTypeDate
+from harambe.parser.type_email import ParserTypeEmail
 from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_number import ParserTypeNumber
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
@@ -66,7 +66,7 @@ class PydanticSchemaParser(SchemaParser):
                 message="All fields are null or empty.",
             )
         try:
-            return self.model(**data).model_dump()
+            return self.model(**data).model_dump(mode="json")
         except ValidationError as validation_error:
             raise SchemaValidationError(
                 data=data, schema=self.schema, message=str(validation_error)
@@ -85,7 +85,7 @@ class PydanticSchemaParser(SchemaParser):
             "float": ParserTypeNumber,
             "double": ParserTypeNumber,
             "currency": ParserTypeCurrency(),
-            "email": NameEmail,
+            "email": ParserTypeEmail,
             "enum": ParserTypeEnum,
             "array": list,
             "object": dict[str, Any],
