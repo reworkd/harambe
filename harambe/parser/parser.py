@@ -66,7 +66,7 @@ class PydanticSchemaParser(SchemaParser):
                 message="All fields are null or empty.",
             )
         try:
-            return self.model(**data).model_dump(mode="json")
+            return self.model(**data).model_dump()
         except ValidationError as validation_error:
             raise SchemaValidationError(
                 data=data, schema=self.schema, message=str(validation_error)
