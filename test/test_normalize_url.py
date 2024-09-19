@@ -106,7 +106,7 @@ from harambe.normalize_url import normalize_url, sanitize_scheme
             "file://Users/username/Downloads/harambe_com/index.mhtml",
             "https://harambe.com/detail_page",
             "https://harambe.com/detail_page",
-        )
+        ),
     ],
 )
 def test_normalize_url(base_path, url, expected):
