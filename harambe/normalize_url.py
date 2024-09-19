@@ -56,6 +56,7 @@ allowed_url_schemes = [
     "http",
     "https",
     "s3",
+    "file"
 ]
 
 
