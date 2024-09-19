@@ -88,6 +88,13 @@ async def playwright_harness(
 
         async def page_factory(*_: Any, **__: Any) -> PlaywrightPage:
             page = await ctx.new_page()
+            page.on("dialog", lambda dialog: dialog.dismiss())
+            await page.route(
+                "**/*",
+                lambda route, request: route.abort()
+                if request.url.startswith(("mailto:", "tel:"))
+                else route.continue_(),
+            )
             if on_new_page:
                 await on_new_page(page)
             if stealth:
