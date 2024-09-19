@@ -102,6 +102,11 @@ from harambe.normalize_url import normalize_url, sanitize_scheme
             "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker Protection Form .docx",
             "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker%20Protection%20Form%20.docx",
         ),
+        (
+            "file://Users/username/Downloads/harambe_com/index.mhtml",
+            "https://harambe.com/detail_page",
+            "https://harambe.com/detail_page",
+        )
     ],
 )
 def test_normalize_url(base_path, url, expected):
