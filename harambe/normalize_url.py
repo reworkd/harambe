@@ -1,12 +1,5 @@
 from urllib.parse import urljoin, urlparse, urlunparse
 
-##############################################################################################
-# HERE YE HERE YE!                                                                           #
-##############################################################################################
-# This code is straight up ripped from stuff Mr. Watkins wrote in in our Commons package.    #
-# One day, this should be in it's one separate package or something and we can depend on it. #
-##############################################################################################
-
 
 def normalize_url(path: str, base_path: str | None) -> str:
     """
@@ -52,11 +45,7 @@ def sanitize_scheme(url: str) -> str:
     return base + url[last_scheme_index + 1 :] if last_scheme_index > 0 else url
 
 
-allowed_url_schemes = [
-    "http",
-    "https",
-    "s3",
-]
+allowed_url_schemes = ["http", "https", "s3", "file"]
 
 
 def validate_allowed_scheme(url: str, scheme_required: bool = False) -> None:
