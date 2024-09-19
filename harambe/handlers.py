@@ -88,3 +88,14 @@ class UnnecessaryResourceHandler(AbstractHandler):
             return
 
         await route.fallback()
+
+
+class MailtoTelBlockerHandler:
+    async def handle(self, route: Route) -> None:
+        request_url = route.request.url
+
+        # Check if the request is a 'mailto:' or 'tel:' link and abort it
+        if request_url.startswith(("mailto:", "tel:")):
+            await route.abort("blockedbyclient")
+        else:
+            await route.continue_()
