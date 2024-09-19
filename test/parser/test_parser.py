@@ -533,7 +533,7 @@ def test_allow_extra_nested() -> None:
     assert output_data == data
 
 
-def test_ignore_extra_fields() -> None:
+def test_config_ignore_extra_fields() -> None:
     schema = {
         "__config__": {"extra": "ignore"},
         "first_name": {"type": "string"},
@@ -548,3 +548,33 @@ def test_ignore_extra_fields() -> None:
     output_data = validator.validate(data, base_url="http://example.com")
 
     assert output_data == {"first_name": "Adam"}
+
+
+def test_config_allow_extra_fields() -> None:
+    schema = {
+        "__config__": {"extra": "allow"},
+        "first_name": {"type": "string"},
+    }
+
+    data = {
+        "first_name": "Adam",
+        "last_name": "Poop my pants",
+    }
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+
+    assert output_data == data
+
+
+def test_dump_email() -> None:
+    schema = {
+        "email": {"type": "email"},
+    }
+
+    data = {"email": "adam.watkins@gmail.com"}
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+    assert output_data == data
+    assert isinstance(output_data["email"], str)
