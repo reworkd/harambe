@@ -413,3 +413,35 @@ async def test_disable_go_to_url_bug(server, harness):
         headless=True,
         harness=harness,
     )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness])
+async def test_email_popup_prevention(server, observer, harness):
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs) -> None:
+        page = sdk.page
+        dialog_opened = False
+        page.on("dialog", lambda dialog: dialog.dismiss() and set_dialog_flag())
+
+        def set_dialog_flag():
+            nonlocal dialog_opened
+            dialog_opened = True
+
+        mailto_link = await page.query_selector('a[href^="mailto:"]')
+        await mailto_link.click()
+        current_url = page.url
+
+        assert not current_url.startswith(
+            "mailto:"
+        ), "Popup prevention failed, mailto link triggered."
+        assert (
+            not dialog_opened
+        ), "A dialog (popup) was opened, but it should have been prevented."
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/emails",  # This should be your mock page with mailto links
+        schema={},
+        headless=True,
+        harness=harness,
+    )
