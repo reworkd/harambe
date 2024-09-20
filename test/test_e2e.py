@@ -440,7 +440,7 @@ async def test_email_popup_prevention(server, observer, harness):
 
     await SDK.run(
         scraper=scraper,
-        url=f"{server}/emails",  # This should be your mock page with mailto links
+        url=f"{server}/emails",
         schema={},
         headless=True,
         harness=harness,
