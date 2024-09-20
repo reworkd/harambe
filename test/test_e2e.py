@@ -54,6 +54,8 @@ async def test_save_data(server, observer, harness, browser_type):
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
 
+        await page.wait_for_load_state()
+        title = await page.title()
         for row in await page.query_selector_all("tbody > tr"):
             fruit, price = await row.query_selector_all("td")
 
@@ -79,6 +81,8 @@ async def test_save_data(server, observer, harness, browser_type):
 
     assert not observer.urls
     assert not observer.files
+
+    assert title == "Page With Table"
 
 
 async def test_enqueue_data(server, observer):

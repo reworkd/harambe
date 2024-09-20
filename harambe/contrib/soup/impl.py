@@ -118,7 +118,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         pass
     
     async def title(self) -> str | None:
-        title = self._soup.title.string 
+        title = self._soup.title
         if title:
             return title.string
         return None
