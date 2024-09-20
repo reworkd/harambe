@@ -113,3 +113,12 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
     async def set_default_timeout(self, timeout: float) -> None:
         pass
+
+    async def wait_for_load_state(self, **kwargs: Any) -> None:
+        pass
+    
+    async def title(self) -> str | None:
+        title = self._soup.title.string 
+        if title:
+            return title.string
+        return None
