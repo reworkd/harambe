@@ -116,7 +116,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
     async def wait_for_load_state(self, **kwargs: Any) -> None:
         pass
-    
+
     async def title(self) -> str | None:
         title = self._soup.title
         if title:

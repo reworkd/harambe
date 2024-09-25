@@ -275,4 +275,24 @@ def base_model_factory(config: ConfigDict) -> Type[BaseModel]:
                 values = {k.strip(): v for k, v in values.items()}
             return values
 
+        # noinspection PyNestedDecorators
+        @model_validator(mode="before")
+        @classmethod
+        def nullify_empty_strings(cls, values):
+            def trim_and_nullify(value):
+                if isinstance(value, str):
+                    value = value.strip()
+                    if not value:
+                        return None
+                if isinstance(value, list):
+                    return [trim_and_nullify(v) for v in value]
+                if isinstance(value, dict):
+                    return {k: trim_and_nullify(v) for k, v in value.items()}
+                return value
+
+            if isinstance(values, dict):
+                values = {k: trim_and_nullify(v) for k, v in values.items()}
+
+            return values
+
     return PreValidatedBaseModel
