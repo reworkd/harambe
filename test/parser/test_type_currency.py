@@ -57,7 +57,6 @@ class _TestModel(BaseModel):
 )
 def test_flexible_currency_success(input_value, expected_output):
     model = _TestModel(value=input_value)
-    print(model.value)
     assert model.value == pytest.approx(expected_output)
 
 
