@@ -99,8 +99,8 @@ class ParserTypeCurrency:
         elif "," in cleaned_value and "." not in cleaned_value:
             if (
                 len(cleaned_value.split(",")[-1]) != 3
-            ):  # check ambiguous values 123,45 and 123,456
-                raise ValueError("Cannot convert to float")
+            ):  # check Ambiguous values 123,45 and 123,456
+                raise ValueError("Invalid price")
             cleaned_value = cleaned_value.replace(",", "")
 
         return str(float(cleaned_value.strip())) + currency_symbol
