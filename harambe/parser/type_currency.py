@@ -34,7 +34,7 @@ class ParserTypeCurrency:
         return Annotated[float | None, BeforeValidator(cls.validate_currency)]
 
     @staticmethod
-    def validate_currency(value: float) -> float | None:
+    def validate_currency(value: str) -> float | None:
         if isinstance(value, (float, int)):
             return float(value)
 
