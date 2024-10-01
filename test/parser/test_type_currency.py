@@ -74,6 +74,7 @@ def test_flexible_currency_success(input_value, expected_output):
         "1,234,56",
         "$",
         "1,234.56.78",
+        '123,456,12',
         "",
         None,
         {},
