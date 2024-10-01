@@ -28,53 +28,17 @@ price_not_available_phrases = [
     "n/a",
 ]
 
-currency_symbols = [
-    "$",
-    "€",
-    "£",
-    "¥",
-    "₹",
-    "₽",
-    "₩",
-    "₫",
-    "₴",
-    "₦",
-    "₪",
-    "₱",
-    "฿",
-    "₲",
-    "₭",
-    "₵",
-    "₡",
-    "₸",
-    "₺",
-    "ƒ",
-    "₳",
-    "₼",
-    "₢",
-    "₣",
-    "₥",
-    "₯",
-    "₠",
-    "₧",
-    "₰",
-]
-
 
 class ParserTypeCurrency:
     def __new__(cls) -> Any:
-        return Annotated[str | None, BeforeValidator(cls.validate_currency)]
+        return Annotated[float | None, BeforeValidator(cls.validate_currency)]
 
     @staticmethod
-    def validate_currency(value: str) -> str | None:
+    def validate_currency(value: float) -> float | None:
         if isinstance(value, (float, int)):
-            return str(float(value))
+            return float(value)
 
         value = str(value).strip()
-
-        currency_symbol = next(
-            (symbol for symbol in currency_symbols if symbol in value), ""
-        )
 
         if value.lower() in price_not_available_phrases:
             return None
@@ -89,7 +53,7 @@ class ParserTypeCurrency:
 
         if cleaned_value.startswith("."):
             cleaned_value = "0" + cleaned_value
-            return str(float(cleaned_value)) + currency_symbol
+            return float(cleaned_value)
 
         if "," in cleaned_value and "." in cleaned_value:
             if cleaned_value.index(",") < cleaned_value.index("."):
@@ -103,4 +67,4 @@ class ParserTypeCurrency:
                 raise ValueError("Invalid price")
             cleaned_value = cleaned_value.replace(",", "")
 
-        return str(float(cleaned_value.strip())) + currency_symbol
+        return float(cleaned_value.strip())
