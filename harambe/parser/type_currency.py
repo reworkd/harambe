@@ -3,7 +3,7 @@ from typing import Any
 import re
 from typing_extensions import Annotated
 
-price_not_available_phrases = [
+price_not_available_phrases = {
     "price not available",
     "unavailable price",
     "price upon request",
@@ -11,60 +11,97 @@ price_not_available_phrases = [
     "request a quote",
     "call for price",
     "check price in store",
-    "price tbd (to be determined)",
+    "price tbd",
     "price not disclosed",
     "out of stock",
     "sold out",
     "pricing not provided",
     "not priced",
     "currently unavailable",
-    "n/a (not available)",
+    "n/a",
     "ask for pricing",
     "see details for price",
     "price coming soon",
     "temporarily unavailable",
     "price hidden",
     "tdb",
-    "n/a",
-]
+}
+
+currency_symbols = {
+    "$",
+    "€",
+    "£",
+    "¥",
+    "₹",
+    "₽",
+    "₩",
+    "₫",
+    "₴",
+    "₦",
+    "₪",
+    "₱",
+    "฿",
+    "₲",
+    "₭",
+    "₵",
+    "₡",
+    "₸",
+    "₺",
+    "ƒ",
+    "₳",
+    "₼",
+    "₢",
+    "₣",
+    "₥",
+    "₯",
+    "₠",
+    "₧",
+    "₰",
+}
 
 
 class ParserTypeCurrency:
     def __new__(cls) -> Any:
-        return Annotated[float | None, BeforeValidator(cls.validate_currency)]
+        return Annotated[str | None, BeforeValidator(cls.validate_currency)]
 
     @staticmethod
-    def validate_currency(value: str) -> float | None:
+    def validate_currency(value: str) -> str | None:
         if isinstance(value, (float, int)):
-            return float(value)
+            return str(float(value))
 
-        value = str(value).strip()
+        value = str(value).strip().lower()
 
-        if value.lower() in price_not_available_phrases:
+        if value in price_not_available_phrases:
             return None
 
+        currency_symbol = next(
+            (symbol for symbol in currency_symbols if symbol in value), ""
+        )
+
         cleaned_value = re.sub(r"[^\d.,-]", "", value)
-        cleaned_value = re.sub(r"^0+(?!$)", "", cleaned_value)
+        cleaned_value = cleaned_value.lstrip("0")
 
         if "." in cleaned_value:
-            decimal_parts = cleaned_value.split(".")
-            if len(decimal_parts[-1]) == 3:  # thousands separator issue
+            parts = cleaned_value.split(".")
+            if len(parts[-1]) == 3:
                 cleaned_value = cleaned_value.replace(".", "")
 
         if cleaned_value.startswith("."):
             cleaned_value = "0" + cleaned_value
-            return float(cleaned_value)
 
-        if "," in cleaned_value and "." in cleaned_value:
-            if cleaned_value.index(",") < cleaned_value.index("."):
-                cleaned_value = cleaned_value.replace(",", "")
+        if "," in cleaned_value:
+            if "." in cleaned_value:
+                if cleaned_value.index(",") < cleaned_value.index("."):
+                    cleaned_value = cleaned_value.replace(",", "")
+                else:
+                    cleaned_value = cleaned_value.replace(".", "").replace(",", ".")
             else:
-                cleaned_value = cleaned_value.replace(".", "").replace(",", ".")
-        elif "," in cleaned_value and "." not in cleaned_value:
-            if (
-                len(cleaned_value.split(",")[-1]) != 3
-            ):  # check Ambiguous values 123,45 and 123,456
-                raise ValueError("Invalid price")
-            cleaned_value = cleaned_value.replace(",", "")
+                if len(cleaned_value.split(",")[-1]) == 3:
+                    cleaned_value = cleaned_value.replace(",", "")
+                else:
+                    cleaned_value = cleaned_value.replace(",", ".")
 
-        return float(cleaned_value.strip())
+        if cleaned_value.startswith("-"):
+            return "-" + currency_symbol + str(float(cleaned_value[1:].strip()))
+
+        return currency_symbol + str(float(cleaned_value.strip()))
