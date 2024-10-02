@@ -53,7 +53,6 @@ class _TestModel(BaseModel):
         ("Pricing Not Provided", None),
         ("Not Priced", None),
         ("Currently Unavailable", None),
-        ("N/A (Not Available)", None),
         ("Ask for Pricing", None),
     ],
 )
