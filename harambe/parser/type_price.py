@@ -3,7 +3,7 @@ from typing import Any
 import re
 from typing_extensions import Annotated
 
-price_not_available_phrases = [
+price_not_available_phrases = {
     "price not available",
     "unavailable price",
     "price upon request",
@@ -11,22 +11,21 @@ price_not_available_phrases = [
     "request a quote",
     "call for price",
     "check price in store",
-    "price tbd (to be determined)",
+    "price tbd",
     "price not disclosed",
     "out of stock",
     "sold out",
     "pricing not provided",
     "not priced",
     "currently unavailable",
-    "n/a (not available)",
+    "n/a",
     "ask for pricing",
     "see details for price",
     "price coming soon",
     "temporarily unavailable",
     "price hidden",
     "tdb",
-    "n/a",
-]
+}
 
 
 class ParserTypePrice:
