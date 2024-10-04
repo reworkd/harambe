@@ -29,7 +29,7 @@ price_not_available_phrases = [
 ]
 
 
-class ParserTypeCurrency:
+class ParserTypePrice:
     def __new__(cls) -> Any:
         return Annotated[float | None, BeforeValidator(cls.validate_currency)]
 

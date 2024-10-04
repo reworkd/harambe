@@ -1,11 +1,11 @@
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from harambe.parser.type_currency import ParserTypeCurrency
+from harambe.parser.type_price import ParserTypePrice
 
 
 class _TestModel(BaseModel):
-    value: ParserTypeCurrency()
+    value: ParserTypePrice()
 
 
 @pytest.mark.parametrize(
