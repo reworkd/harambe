@@ -55,6 +55,23 @@ from harambe.parser.type_phone_number import ParserTypePhoneNumber
 def test_pydantic_type_phone_number_validate_type_success(phone_number):
     assert ParserTypePhoneNumber.validate_type(phone_number)
 
+@pytest.mark.parametrize(
+    "prefix",
+    [
+        "fax",
+        "fax:",
+        "phone",
+        "Number : ",
+        "Tel",
+        "tel:",
+        "fax:",
+        "Fax:",
+    ]
+)
+def test_pydantic_type_phone_number_rewrite(prefix):
+    phone_number = f"415-155-1555"
+    phone_number_with_prefix = f"{prefix} {phone_number}"
+    assert ParserTypePhoneNumber.validate_type(phone_number_with_prefix) == phone_number
 
 @pytest.mark.parametrize(
     "phone_number",
