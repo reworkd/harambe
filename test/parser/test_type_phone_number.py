@@ -48,7 +48,7 @@ def test_pydantic_type_phone_number_validate_type_success(phone_number):
     ]
 )
 def test_pydantic_type_phone_number_rewrite(prefix):
-    phone_number = f"415-155-1555"
+    phone_number = "415-155-1555"
     phone_number_with_prefix = f"{prefix} {phone_number}"
     assert ParserTypePhoneNumber.validate_type(phone_number_with_prefix) == phone_number
 
