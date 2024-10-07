@@ -19,6 +19,7 @@ ordered_text_to_strip = [
     [":", " ", "-"],
 ]
 
+
 class ParserTypePhoneNumber:
     def __new__(cls) -> Any:
         return Annotated[str, AfterValidator(cls.validate_type)]
@@ -31,7 +32,6 @@ class ParserTypePhoneNumber:
         for text_chunk in ordered_text_to_strip:
             for text in text_chunk:
                 formatted_number = formatted_number.lstrip(text).strip()
-
 
         # First, try using the phonenumbers library
         try:
@@ -56,4 +56,6 @@ class ParserTypePhoneNumber:
             if regex.match(formatted_number):
                 return formatted_number
 
-        raise ValueError(f"Unable to parse input as phone number. Original input: {number}. Post processing: {formatted_number}")
+        raise ValueError(
+            f"Unable to parse input as phone number. Original input: {number}. Post processing: {formatted_number}"
+        )

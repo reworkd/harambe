@@ -296,7 +296,7 @@ async def test_currency_validator(server, harness):
     await SDK.run(
         scraper=scraper,
         url=f"{server}/table",
-        schema={"price": {"type": "currency"}},
+        schema={"price": {"type": "price"}},
         headless=True,
         harness=harness,
     )

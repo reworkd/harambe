@@ -11,7 +11,7 @@ from pydantic import (
 )
 
 from harambe.errors import SchemaValidationError
-from harambe.parser.type_currency import ParserTypeCurrency
+from harambe.parser.type_price import ParserTypePrice
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_email import ParserTypeEmail
 from harambe.parser.type_enum import ParserTypeEnum
@@ -84,7 +84,7 @@ class PydanticSchemaParser(SchemaParser):
             "number": ParserTypeNumber,
             "float": ParserTypeNumber,
             "double": ParserTypeNumber,
-            "currency": ParserTypeCurrency(),
+            "price": ParserTypePrice(),
             "email": ParserTypeEmail,
             "enum": ParserTypeEnum,
             "array": list,

@@ -10,7 +10,7 @@ from harambe.parser.type_phone_number import ParserTypePhoneNumber
         "11111111111",
         "911",
         "(+4) 1111111111 (Extension: 323)",
-        "(956) 318-2626, Ext: 4857", # Extension with parenthesis
+        "(956) 318-2626, Ext: 4857",  # Extension with parenthesis
         "206-555-7115, ext. 239",  # Domestic, with extension
         "212-456-7890",  # Domestic
         "456-7890",  # Local Phone Number
@@ -34,6 +34,7 @@ from harambe.parser.type_phone_number import ParserTypePhoneNumber
 def test_pydantic_type_phone_number_validate_type_success(phone_number):
     assert ParserTypePhoneNumber.validate_type(phone_number)
 
+
 @pytest.mark.parametrize(
     "prefix",
     [
@@ -45,12 +46,13 @@ def test_pydantic_type_phone_number_validate_type_success(phone_number):
         "tel:",
         "fax:",
         "Fax:",
-    ]
+    ],
 )
 def test_pydantic_type_phone_number_rewrite(prefix):
     phone_number = "415-155-1555"
     phone_number_with_prefix = f"{prefix} {phone_number}"
     assert ParserTypePhoneNumber.validate_type(phone_number_with_prefix) == phone_number
+
 
 @pytest.mark.parametrize(
     "phone_number",
