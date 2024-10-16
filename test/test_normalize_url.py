@@ -102,6 +102,11 @@ from harambe.normalize_url import normalize_url, sanitize_scheme
             "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker Protection Form .docx",
             "https://www.emarketplace.state.pa.us/FileDownload.aspx?file=6100061149/Solicitation_1.docx&OriginalFileName=Worker%20Protection%20Form%20.docx",
         ),
+        (
+            "https://primoliquors.com/products/cutwater-espresso-martini-12oz-4-pack-can",
+            "//primoliquors.com/cdn/shop/files/oxcuimdzbczobdeo248f.png?v=1727810919&width=1946",
+            "https://primoliquors.com/cdn/shop/files/oxcuimdzbczobdeo248f.png?v=1727810919&width=1946",
+        )
     ],
 )
 def test_normalize_url(base_path, url, expected):
