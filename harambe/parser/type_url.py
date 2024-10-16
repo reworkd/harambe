@@ -6,12 +6,6 @@ from typing_extensions import Annotated
 from harambe.normalize_url import normalize_url
 from harambe.types import URL
 
-allowed_url_schemes = [
-    "http",
-    "https",
-    "s3",
-]
-
 
 class ParserTypeUrl:
     def __new__(cls, base_url: Optional[URL] = None) -> Any:

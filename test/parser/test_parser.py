@@ -177,6 +177,11 @@ def test_pydantic_schema_validator_success(
                 ],
             },
         ),
+        (
+            {"test": {"type": "string"}, "phone_number": {"type": "phone_number"}},
+            {"test": "Test", "phone_number": ""},
+            {"test": "Test", "phone_number": None},
+        ),
     ],
 )
 def test_pydantic_schema_data_update(
