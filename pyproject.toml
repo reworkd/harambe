@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "harambe-sdk"
-version = "0.28.7"
+version = "0.28.8"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = ["awtkns <hello@awtkns.com>"]
 readme = "README.md"
@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
 pydantic = "^2.8.2"
-playwright = "^1.40.0"
+playwright = "^1.47.0"
 setuptools = "^73.0.0"
 beautifulsoup4 = "^4.12.3"
 dateparser = "^1.2.0"
