@@ -65,10 +65,10 @@ def test_pydantic_type_phone_number_rewrite(prefix):
         "",  # ❌ Empty string
         # 1
         "415-111-1111 Directions",  # ❌ Extra text
-        "01/01/2024", # ❌ Date
-        "01-2024", # ❌ Date
-        "$60,455,532.46" # ❌ Currency
-        "$6045553246" # ❌ Currency
+        "01/01/2024",  # ❌ Date
+        "01-2024",  # ❌ Date
+        "$60,455,532.46"  # ❌ Currency
+        "$6045553246"  # ❌ Currency
         "Adam's Cell",  # ❌ Name
     ],
 )
