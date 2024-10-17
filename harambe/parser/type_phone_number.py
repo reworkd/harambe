@@ -26,8 +26,7 @@ class ParserTypePhoneNumber:
 
     @staticmethod
     def validate_type(number: str) -> str:
-        # Trim whitespaces
-        formatted_number = number.strip().lower()
+        formatted_number = number.strip().lower().replace("/", "-")
 
         for text_chunk in ordered_text_to_strip:
             for text in text_chunk:
