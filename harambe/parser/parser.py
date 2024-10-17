@@ -270,7 +270,7 @@ def base_model_factory(config: ConfigDict) -> Type[BaseModel]:
         # noinspection PyNestedDecorators
         @model_validator(mode="before")
         @classmethod
-        def normalize_keys(cls, values):
+        def normalize_keys(cls, values: Any) -> Any:
             if isinstance(values, dict):
                 values = {k.strip(): v for k, v in values.items()}
             return values
@@ -278,8 +278,8 @@ def base_model_factory(config: ConfigDict) -> Type[BaseModel]:
         # noinspection PyNestedDecorators
         @model_validator(mode="before")
         @classmethod
-        def nullify_empty_strings(cls, values):
-            def trim_and_nullify(value):
+        def nullify_empty_strings(cls, values: Any) -> Any:
+            def trim_and_nullify(value: Any) -> Any:
                 if isinstance(value, str):
                     value = value.strip()
                     if not value:

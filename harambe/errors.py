@@ -13,5 +13,5 @@ class SchemaValidationError(HarambeException):
 
 
 class CaptchaError(HarambeException):
-    def __init__(self, message="CAPTCHA was hit."):
+    def __init__(self, message: str = "CAPTCHA was hit.") -> None:
         super().__init__(message)
