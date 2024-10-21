@@ -14,6 +14,8 @@ from urllib.parse import quote
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Options, Stage, Cookie, LocalStorage
 
+from playwright.async_api import Page
+
 ObservationTrigger = Literal[
     "on_save_data",
     "on_queue_url",
@@ -21,6 +23,7 @@ ObservationTrigger = Literal[
     "on_paginate",
     "on_save_cookies",
     "on_save_local_storage",
+    "on_check_and_solve_captchas",
 ]
 
 
@@ -57,6 +60,10 @@ class OutputObserver(Protocol):
     async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        raise NotImplementedError()
+
 
 class LoggingObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
@@ -82,6 +89,9 @@ class LoggingObserver(OutputObserver):
 
     async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
         print(f"Local Storage saved : {local_storage}")
+
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        pass
 
 
 class LocalStorageObserver(OutputObserver):
@@ -113,6 +123,9 @@ class LocalStorageObserver(OutputObserver):
     async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
         self._tracker.save_data({"local_storage": local_storage})
 
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        pass
+
 
 class InMemoryObserver(OutputObserver):
     def __init__(self) -> None:
@@ -143,8 +156,11 @@ class InMemoryObserver(OutputObserver):
     async def on_save_cookies(self, cookies: List[Cookie]) -> None:
         self._cookies.extend(cookies)
 
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        pass
+
     async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
-        self._local_storage.extend(local_storage)
+        print(f"Local Storage saved : {local_storage}")
 
     @property
     def data(self) -> List[dict[str, Any]]:
