@@ -107,6 +107,11 @@ from harambe.normalize_url import normalize_url, sanitize_scheme
             "https://harambe.com/detail_page",
             "https://harambe.com/detail_page",
         ),
+        (
+            "https://primoliquors.com/products/cutwater-espresso-martini-12oz-4-pack-can",
+            "//primoliquors.com/cdn/shop/files/oxcuimdzbczobdeo248f.png?v=1727810919&width=1946",
+            "https://primoliquors.com/cdn/shop/files/oxcuimdzbczobdeo248f.png?v=1727810919&width=1946",
+        ),
     ],
 )
 def test_normalize_url(base_path, url, expected):

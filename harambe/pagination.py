@@ -1,6 +1,7 @@
 import hashlib
 import json
 from typing import Any, Optional, Iterable, List
+
 from pydantic import BaseModel
 
 from harambe.types import URL, Context, Options, Cookie, LocalStorage
@@ -27,7 +28,7 @@ class DuplicateHandler:
 
         return self._add_data(data)
 
-    def on_save_cookies(self, cookies: List[Cookie]):
+    def on_save_cookies(self, cookies: List[Cookie]) -> bool:
         """
         Save cookies and check if they are duplicated
         :param cookies: cookies to be saved

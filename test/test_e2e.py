@@ -8,8 +8,8 @@ from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
 from harambe.parser.parser import SchemaValidationError
-from harambe.types import BrowserType
 from harambe.parser.schemas import Schemas
+from harambe.types import BrowserType
 
 
 @pytest.fixture(scope="module")
@@ -54,6 +54,7 @@ async def test_save_data(server, observer, harness, browser_type):
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
 
+        await page.wait_for_load_state()
         for row in await page.query_selector_all("tbody > tr"):
             fruit, price = await row.query_selector_all("td")
 

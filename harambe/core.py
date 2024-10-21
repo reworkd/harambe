@@ -13,7 +13,9 @@ from typing import (
     Protocol,
     Union,
     Unpack,
+    cast,
 )
+
 import aiohttp
 from playwright.async_api import (
     ElementHandle,
@@ -26,11 +28,11 @@ from playwright.async_api import (
 from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
+from harambe.cookies_handler import fix_cookie
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
-from harambe.cookies_handler import fix_cookie
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
@@ -273,18 +275,21 @@ class SDK:
         )
         return res[0]
 
-    async def save_cookies(self, cookies: Optional[List[Cookie]] = None) -> None:
+    async def save_cookies(
+        self, override_cookies: Optional[List[Cookie]] = None
+    ) -> None:
         """
         Save the cookies from the current browser context or use the provided cookies.
 
         This function retrieves all the cookies from the current browser context if none are provided,
         saves them to the SDK instance, and notifies all observers about the action performed.
 
-        :param cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
+        :param override_cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
         """
         existing_cookies = {cookie["name"]: cookie for cookie in self._saved_cookies}
-        if not cookies:
-            cookies = await self.page.context.cookies()
+        cookies = override_cookies or cast(
+            List[Cookie], await self.page.context.cookies()
+        )
 
         for cookie in cookies:
             cookie = fix_cookie(cookie)

@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from pprint import pprint
 from typing import (
     Any,
     List,
@@ -59,7 +60,7 @@ class OutputObserver(Protocol):
 
 class LoggingObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
-        print(data)
+        pprint(data, width=240)
 
     async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
         print(f"Enqueuing: {url} with context {context} and options {options}")
