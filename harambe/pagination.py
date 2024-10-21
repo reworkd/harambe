@@ -36,7 +36,7 @@ class DuplicateHandler:
         """
         return self._add_data(cookies)
 
-    def on_save_local_storage(self, local_storage: List[LocalStorage]):
+    def on_save_local_storage(self, local_storage: List[LocalStorage]) -> bool:
         """
         Save local storage and check if they are duplicated
         :param local_storage: local storage to be saved

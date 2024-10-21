@@ -97,7 +97,7 @@ class SDK:
         self._context = context or {}
         self._validator = (
             PydanticSchemaParser(schema)
-            if (schema is not None and schema != {})
+            if (schema is not None and len(schema.keys()) > 0)
             else None
         )
         self._saved_data: set[ScrapeResult] = set()
