@@ -12,7 +12,7 @@ from typing import (
 from urllib.parse import quote
 
 from harambe.tracker import FileDataTracker
-from harambe.types import URL, Context, Options, Stage, Cookie
+from harambe.types import URL, Context, Options, Stage, Cookie, LocalStorage
 
 from playwright.async_api import (
     ElementHandle,
@@ -20,7 +20,13 @@ from playwright.async_api import (
 )
 
 ObservationTrigger = Literal[
-    "on_save_data", "on_queue_url", "on_download", "on_paginate", "on_save_cookies", "on_check_and_solve_captchas"
+    "on_save_data",
+    "on_queue_url",
+    "on_download",
+    "on_paginate",
+    "on_save_cookies",
+    "on_save_local_storage",
+    "on_check_and_solve_captchas"
 ]
 
 
@@ -54,9 +60,12 @@ class OutputObserver(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
-    async def on_check_and_solve_captchas(self, page: Page) -> None:
+    async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        raise NotImplementedError()
 
 class LoggingObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
@@ -79,6 +88,10 @@ class LoggingObserver(OutputObserver):
 
     async def on_save_cookies(self, cookies: List[Cookie]) -> None:
         print(f"Cookies saved : {cookies}")
+
+
+    async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
+        print(f"Local Storage saved : {local_storage}")
 
     async def on_check_and_solve_captchas(self, page: Page) -> None:
         pass
@@ -110,6 +123,9 @@ class LocalStorageObserver(OutputObserver):
     async def on_save_cookies(self, cookies: List[Cookie]) -> None:
         self._tracker.save_data({"cookies": cookies})
 
+    async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
+        self._tracker.save_data({"local_storage": local_storage})
+
     async def on_check_and_solve_captchas(self, page: Page) -> None:
         pass
 
@@ -119,6 +135,7 @@ class InMemoryObserver(OutputObserver):
         self._urls: List[Tuple[URL, Context, Options]] = []
         self._files: List[Tuple[str, bytes]] = []
         self._cookies: List[Cookie] = []
+        self._local_storage: List[LocalStorage] = []
 
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._data.append(data)
@@ -144,6 +161,9 @@ class InMemoryObserver(OutputObserver):
     async def on_check_and_solve_captchas(self, page: Page) -> None:
         pass
 
+    async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
+        print(f"Local Storage saved : {local_storage}")
+
     @property
     def data(self) -> List[dict[str, Any]]:
         return self._data
@@ -160,3 +180,7 @@ class InMemoryObserver(OutputObserver):
     def cookies(self) -> List[Cookie]:
         return self._cookies
 
+
+    @property
+    def local_storage(self) -> List[LocalStorage]:
+        return self._local_storage
