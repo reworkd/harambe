@@ -296,6 +296,13 @@ class SDK:
         self._saved_cookies = list(existing_cookies.values())
         await self._notify_observers("on_save_cookies", self._saved_cookies)
 
+    async def solve_captchas(self) -> None:
+        """
+        Check for captchas on the page and solve them.
+        """
+        await self._notify_observers("on_check_and_solve_captchas", self.page, check_duplication=False)
+
+
     async def _notify_observers(
         self,
         method: ObservationTrigger,

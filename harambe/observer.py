@@ -14,8 +14,13 @@ from urllib.parse import quote
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Options, Stage, Cookie
 
+from playwright.async_api import (
+    ElementHandle,
+    Page,
+)
+
 ObservationTrigger = Literal[
-    "on_save_data", "on_queue_url", "on_download", "on_paginate", "on_save_cookies"
+    "on_save_data", "on_queue_url", "on_download", "on_paginate", "on_save_cookies", "on_check_and_solve_captchas"
 ]
 
 
@@ -36,7 +41,7 @@ class OutputObserver(Protocol):
 
     @abstractmethod
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         raise NotImplementedError()
 
@@ -48,6 +53,10 @@ class OutputObserver(Protocol):
     async def on_save_cookies(self, cookies: List[Cookie]) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        raise NotImplementedError()
+
 
 class LoggingObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
@@ -57,7 +66,7 @@ class LoggingObserver(OutputObserver):
         print(f"Enqueuing: {url} with context {context} and options {options}")
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         print(f"Downloading file: {filename}")  # TODO: use logger
         return {
@@ -71,6 +80,9 @@ class LoggingObserver(OutputObserver):
     async def on_save_cookies(self, cookies: List[Cookie]) -> None:
         print(f"Cookies saved : {cookies}")
 
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        pass
+
 
 class LocalStorageObserver(OutputObserver):
     def __init__(self, domain: str, stage: Stage):
@@ -83,7 +95,7 @@ class LocalStorageObserver(OutputObserver):
         self._tracker.save_data({"url": url, "context": context, "options": options})
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> DownloadMeta:
         data: DownloadMeta = {
             "url": f"{download_url}/{quote(filename)}",
@@ -98,6 +110,8 @@ class LocalStorageObserver(OutputObserver):
     async def on_save_cookies(self, cookies: List[Cookie]) -> None:
         self._tracker.save_data({"cookies": cookies})
 
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        pass
 
 class InMemoryObserver(OutputObserver):
     def __init__(self) -> None:
@@ -113,7 +127,7 @@ class InMemoryObserver(OutputObserver):
         self._urls.append((url, context, options))
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+            self, download_url: str, filename: str, content: bytes
     ) -> "DownloadMeta":
         self._files.append((filename, content))
         return {
@@ -126,6 +140,9 @@ class InMemoryObserver(OutputObserver):
 
     async def on_save_cookies(self, cookies: List[Cookie]) -> None:
         self._cookies.extend(cookies)
+
+    async def on_check_and_solve_captchas(self, page: Page) -> None:
+        pass
 
     @property
     def data(self) -> List[dict[str, Any]]:
@@ -142,3 +159,4 @@ class InMemoryObserver(OutputObserver):
     @property
     def cookies(self) -> List[Cookie]:
         return self._cookies
+
