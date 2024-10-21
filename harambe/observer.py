@@ -15,7 +15,6 @@ from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Options, Stage, Cookie, LocalStorage
 
 from playwright.async_api import (
-    ElementHandle,
     Page,
 )
 
