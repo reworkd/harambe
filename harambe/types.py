@@ -97,10 +97,3 @@ class Cookie(TypedDict):
     secure: bool
     session: bool
     sameSite: str
-
-
-class LocalStorage(TypedDict):
-    domain: str
-    path: str | None
-    key: str
-    value: str
