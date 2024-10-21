@@ -313,15 +313,19 @@ class SDK:
         :param override_domain: Optional domain to use for the local storage
         :param override_path: Optional path to use for the local storage
         """
-        new_local_storage = override_local_storage or cast(List[LocalStorage], await self.page.evaluate(
-            "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
-        ))
+        new_local_storage = override_local_storage or cast(
+            List[LocalStorage],
+            await self.page.evaluate(
+                "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
+            ),
+        )
         new_local_storage = [
             LocalStorage(
                 **local_storage,
                 domain=override_domain or local_storage["domain"],
                 path=override_path or local_storage["path"],
-            ) for local_storage in new_local_storage
+            )
+            for local_storage in new_local_storage
         ]
 
         self._saved_local_storage = self._saved_local_storage + new_local_storage
