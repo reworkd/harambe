@@ -276,7 +276,8 @@ class SDK:
         return res[0]
 
     async def save_cookies(
-        self, override_cookies: Optional[List[Cookie]] = None
+        self,
+        override_cookies: Optional[List[Cookie]] = None,
     ) -> None:
         """
         Save the cookies from the current browser context or use the provided cookies.
@@ -285,21 +286,22 @@ class SDK:
         saves them to the SDK instance, and notifies all observers about the action performed.
 
         :param override_cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
+
         """
-        existing_cookies = {cookie["name"]: cookie for cookie in self._saved_cookies}
-        cookies = override_cookies or cast(
+        new_cookies = override_cookies or cast(
             List[Cookie], await self.page.context.cookies()
         )
+        new_cookies = [fix_cookie(cookie) for cookie in new_cookies]
 
-        for cookie in cookies:
-            cookie = fix_cookie(cookie)
-            existing_cookies[cookie["name"]] = cookie
+        self._saved_cookies = self._saved_cookies + new_cookies
 
-        self._saved_cookies = list(existing_cookies.values())
-        await self._notify_observers("on_save_cookies", self._saved_cookies)
+        await self._notify_observers("on_save_cookies", new_cookies)
 
     async def save_local_storage(
-        self, local_storage: Optional[List[LocalStorage]] = None
+        self,
+        override_local_storage: Optional[List[LocalStorage]] = None,
+        override_domain: str | None = None,
+        override_path: str | None = None,
     ) -> None:
         """
         Save the local storage from the current browser context or use the provided local storage data.
@@ -307,26 +309,24 @@ class SDK:
         This function retrieves all the local storage data from the current page context if none is provided,
         updates the SDK instance with new or updated values, and notifies all observers about the action performed.
 
-        :param local_storage: Optional list of local storage items (key-value pairs) to save. If None, local storage is retrieved from the current page context.
+        :param override_local_storage: Optional list of local storage items (key-value pairs) to save. If None, local storage is retrieved from the current page context.
+        :param override_domain: Optional domain to use for the local storage
+        :param override_path: Optional path to use for the local storage
         """
-        existing_local_storage = {
-            item["key"]: item["value"] for item in self._saved_local_storage
-        }
-
-        if not local_storage:
-            local_storage = await self.page.evaluate(
-                "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
-            )
-
-        for item in local_storage:
-            existing_local_storage[item["key"]] = item["value"]
-
-        self._saved_local_storage = [
-            {"key": key, "value": value}
-            for key, value in existing_local_storage.items()
+        new_local_storage = override_local_storage or cast(List[LocalStorage], await self.page.evaluate(
+            "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
+        ))
+        new_local_storage = [
+            LocalStorage(
+                **local_storage,
+                domain=override_domain or local_storage["domain"],
+                path=override_path or local_storage["path"],
+            ) for local_storage in new_local_storage
         ]
 
-        await self._notify_observers("on_save_local_storage", self._saved_local_storage)
+        self._saved_local_storage = self._saved_local_storage + new_local_storage
+
+        await self._notify_observers("on_save_local_storage", new_local_storage)
 
     async def _notify_observers(
         self,
