@@ -95,11 +95,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
-        self._validator = (
-            PydanticSchemaParser(schema)
-            if schema
-            else None
-        )
+        self._validator = PydanticSchemaParser(schema) if schema else None
         self._saved_data: set[ScrapeResult] = set()
         self._saved_cookies: List[Cookie] = []
         self._saved_local_storage: List[LocalStorage] = []
@@ -336,8 +332,9 @@ class SDK:
         """
         Check for captchas on the page and solve them.
         """
-        await self._notify_observers("on_check_and_solve_captchas", self.page, check_duplication=False)
-
+        await self._notify_observers(
+            "on_check_and_solve_captchas", self.page, check_duplication=False
+        )
 
     async def _notify_observers(
         self,
