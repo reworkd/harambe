@@ -22,6 +22,13 @@ async def test_with_cookies(web_harness):
         assert page_factory
 
 
+async def test_with_user_agent():
+    async with playwright_harness(user_agent=lambda: "my-user-agent") as page_factory:
+        page = await page_factory()
+        user_agent = await page.evaluate("navigator.userAgent")
+        assert user_agent == "my-user-agent"
+
+
 async def test_default_url(web_harness):
     async with web_harness() as page_factory:
         page = await page_factory()

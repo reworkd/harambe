@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
 
-import ua_generator
 from playwright.async_api import BrowserContext, ViewportSize, async_playwright, Page
 from playwright_stealth import stealth_async
 
@@ -9,6 +8,7 @@ from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
 from harambe.proxy import proxy_from_url
 from harambe.types import SetCookieParam, BrowserType
+from harambe.user_agent import random_user_agent, compute_user_agent, UserAgentFactory
 
 Callback = Callable[[BrowserContext], Awaitable[None]]
 PageCallback = Callable[[Page], Awaitable[None]]
@@ -28,7 +28,7 @@ async def playwright_harness(
     stealth: bool = False,
     default_timeout: int = 30000,
     abort_unnecessary_requests: bool = True,
-    user_agent: Optional[str] = None,
+    user_agent: UserAgentFactory = random_user_agent,
     viewport: Optional[ViewportSize] = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
@@ -63,15 +63,10 @@ async def playwright_harness(
             )
         )
 
-        # TODO: More intelligently generate based on current system specs
-        # randomly generating agents will create inconsistent fingerprints
-        ua = ua_generator.generate(device="desktop", browser=("chrome", "edge"))
-        user_agent = user_agent if user_agent else ua.headers.get()["user-agent"]
-
         ctx = await browser.new_context(
             viewport=viewport or DEFAULT_VIEWPORT,
             ignore_https_errors=True,
-            user_agent=user_agent,
+            user_agent=await compute_user_agent(user_agent),
             proxy=proxy_from_url(proxy) if proxy else None,
             permissions=["clipboard-read", "clipboard-write"]
             if enable_clipboard
