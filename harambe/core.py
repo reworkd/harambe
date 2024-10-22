@@ -315,11 +315,18 @@ class SDK:
                 "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
             ),
         )
+
+        def get_domain(local_storage):
+            return override_domain or local_storage["domain"] or self._domain
+
+        def get_path(local_storage):
+            return override_path or local_storage["path"] or "/"
+
         new_local_storage = [
             LocalStorage(
                 **local_storage,
-                domain=override_domain or local_storage["domain"],
-                path=override_path or local_storage["path"],
+                domain=get_domain(local_storage),
+                path=get_path(local_storage),
             )
             for local_storage in new_local_storage
         ]
