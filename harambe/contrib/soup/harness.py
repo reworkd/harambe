@@ -5,6 +5,7 @@ from curl_cffi.requests import AsyncSession
 
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.soup.tracing import Tracer
+from harambe.proxy import proxy_from_url
 from harambe.types import SetCookieParam
 
 Callback = Callable[[Tracer], Awaitable[None]]
@@ -15,12 +16,23 @@ PageFactory = Callable[..., Awaitable[SoupPage]]
 async def soup_harness(
     *,
     proxy: str | None = None,
+    use_mitm_proxy: Optional[bool],
+    mitm_proxy_url: Optional[str],
     cookies: Sequence[SetCookieParam] = (),
     headers: dict[str, str] | None = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
+    if proxy and use_mitm_proxy:
+        formatted_upstream_proxy = proxy_from_url(proxy)
+        formatted_upstream_proxy = f"http://{formatted_upstream_proxy['username']}:{formatted_upstream_proxy['password']}@{formatted_upstream_proxy['server']}"
+        if headers is None:
+            headers = {}
+
+        headers['X-MITM-PROXY'] = formatted_upstream_proxy
+        proxy = mitm_proxy_url
+
     async with AsyncSession(proxy=proxy, impersonate="chrome", verify=False) as s:
         for c in cookies:
             s.cookies.set(
