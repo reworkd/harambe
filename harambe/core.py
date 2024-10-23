@@ -295,7 +295,7 @@ class SDK:
 
     async def save_local_storage(
         self,
-        override_local_storage: Optional[List[LocalStorage]] = None,
+        override_local_storage: Optional[dict[str, str]] = None,
         override_domain: str | None = None,
         override_path: str | None = None,
     ) -> None:
@@ -309,26 +309,22 @@ class SDK:
         :param override_domain: Optional domain to use for the local storage
         :param override_path: Optional path to use for the local storage
         """
-        new_local_storage = override_local_storage or cast(
-            List[LocalStorage],
-            await self.page.evaluate(
-                "() => Object.entries(localStorage).map(([key, value]) => ({key, value}))"
-            ),
+        new_browser_local_storage = override_local_storage or await self.page.evaluate(
+            "() => localStorage"
         )
 
-        def get_domain(local_storage):
-            return override_domain or local_storage["domain"] or self._domain
-
-        def get_path(local_storage):
-            return override_path or local_storage["path"] or "/"
+        domain = override_domain or self._domain
+        if not domain:
+            raise RuntimeError("No domain provided for local storage")
 
         new_local_storage = [
             LocalStorage(
-                **local_storage,
-                domain=get_domain(local_storage),
-                path=get_path(local_storage),
+                domain=override_domain or self._domain,
+                path=override_path or "/",
+                key=key,
+                value=new_browser_local_storage[key],
             )
-            for local_storage in new_local_storage
+            for key in new_browser_local_storage.keys()
         ]
 
         self._saved_local_storage = self._saved_local_storage + new_local_storage

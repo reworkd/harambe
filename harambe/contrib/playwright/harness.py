@@ -7,7 +7,7 @@ from playwright_stealth import stealth_async
 from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
 from harambe.proxy import proxy_from_url
-from harambe.types import SetCookieParam, BrowserType
+from harambe.types import SetCookieParam, BrowserType, LocalStorage
 from harambe.user_agent import random_user_agent, compute_user_agent, UserAgentFactory
 
 Callback = Callable[[BrowserContext], Awaitable[None]]
@@ -24,7 +24,7 @@ async def playwright_harness(
     cdp_endpoint: str | None = None,
     proxy: str | None = None,
     cookies: Sequence[SetCookieParam] = (),
-    local_storage: Sequence[dict[str, str]] = (),
+    local_storage: Sequence[LocalStorage] = (),
     headers: dict[str, str] | None = None,
     stealth: bool = False,
     default_timeout: int = 30000,
