@@ -448,12 +448,32 @@ async def test_save_local_storage(server, observer, harness):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness])
-async def test_load_local_storage(server, observer, harness):
+@pytest.mark.parametrize(
+    "test_value,expected_value",
+    [
+        # String value
+        ("test_string", "test_string"),
+        # Number value
+        (42, "42"),
+        # List value
+        (["item1", "item2", 3], '["item1", "item2", 3]'),
+        # Dict value
+        ({"key1": "value1", "key2": 2}, '{"key1": "value1", "key2": 2}'),
+        # Nested structure
+        (
+            {"list": [1, 2, {"nested": "value"}]},
+            '{"list": [1, 2, {"nested": "value"}]}',
+        ),
+    ],
+)
+async def test_load_local_storage(
+    server, observer, harness, test_value, expected_value
+):
     local_storage_entry = {
         "domain": "asim-shrestha.com",
         "path": "/",
         "key": "test_key",
-        "value": "test",
+        "value": test_value,
     }
 
     @SDK.scraper("test", "detail", observer=observer)
@@ -464,7 +484,7 @@ async def test_load_local_storage(server, observer, harness):
 
     await SDK.run(
         scraper=scraper,
-        url=f"https://{local_storage_entry["domain"]}/",
+        url=f"https://{local_storage_entry['domain']}/",
         headless=True,
         harness=harness,
         schema={},
@@ -472,6 +492,7 @@ async def test_load_local_storage(server, observer, harness):
     )
 
     assert len(observer.data) == 1
+    print(observer.data)
     assert observer.data[0]["local_storage"] == {
-        local_storage_entry["key"]: local_storage_entry["value"]
+        local_storage_entry["key"]: expected_value
     }
