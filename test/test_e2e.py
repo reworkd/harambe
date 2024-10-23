@@ -443,7 +443,7 @@ async def test_save_local_storage(server, observer, harness):
         schema={},
     )
 
-    # assert len(observer.local_storage) == 1
+    assert len(observer.local_storage) == 1
     assert observer.local_storage == [local_storage_entry]
 
 
