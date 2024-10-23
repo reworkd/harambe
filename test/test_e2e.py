@@ -437,7 +437,7 @@ async def test_local_storage(server, observer, harness):
         headless=True,
         harness=harness,
         schema={},
-        local_storage=[local_storage_entry]
+        local_storage=[local_storage_entry],
     )
 
     assert len(observer.data) == 1
