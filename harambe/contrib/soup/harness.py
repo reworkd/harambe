@@ -16,22 +16,16 @@ PageFactory = Callable[..., Awaitable[SoupPage]]
 async def soup_harness(
     *,
     proxy: str | None = None,
-    use_mitm_proxy: Optional[bool],
-    mitm_proxy_url: Optional[str],
     cookies: Sequence[SetCookieParam] = (),
     headers: dict[str, str] | None = None,
     on_start: Optional[Callback] = None,
     on_end: Optional[Callback] = None,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
-    if proxy and use_mitm_proxy:
-        formatted_upstream_proxy = proxy_from_url(proxy)
-        formatted_upstream_proxy = f"http://{formatted_upstream_proxy['username']}:{formatted_upstream_proxy['password']}@{formatted_upstream_proxy['server']}"
-        if headers is None:
-            headers = {}
-
-        headers['X-MITM-PROXY'] = formatted_upstream_proxy
-        proxy = mitm_proxy_url
+    if headers is not None:
+        header_keys = headers.keys()
+        if "X-MITM-PROXY" in header_keys and 'X-MITM-ADDRESS' in header_keys:
+            proxy = headers['X-MITM-ADDRESS']
 
     async with AsyncSession(proxy=proxy, impersonate="chrome", verify=False) as s:
         for c in cookies:

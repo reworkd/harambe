@@ -24,8 +24,6 @@ async def playwright_harness(
     headless: bool = True,
     cdp_endpoint: str | None = None,
     proxy: str | None = None,
-    use_mitm_proxy: Optional[bool],
-    mitm_proxy_url: Optional[str],
     cookies: Sequence[SetCookieParam] = (),
     local_storage: Sequence[LocalStorage] = (),
     headers: dict[str, str] | None = None,
@@ -67,28 +65,28 @@ async def playwright_harness(
             )
         )
 
-        formatted_upstream_proxy = None
-        if proxy:
-            if use_mitm_proxy:
-                formatted_upstream_proxy = proxy_from_url(proxy)
-                formatted_upstream_proxy = f"http://{formatted_upstream_proxy['username']}:{formatted_upstream_proxy['password']}@{formatted_upstream_proxy['server']}"
-                proxy = proxy_from_url(mitm_proxy_url)
-            else:
-                proxy = proxy_from_url(proxy)
-        else:
-            proxy = None
+        upstream_proxy = None
+        if headers is not None:
+            header_keys = headers.keys()
+            if "X-MITM-PROXY" in header_keys and 'X-MITM-ADDRESS' in header_keys:
+                upstream_proxy = headers['X-MITM-PROXY']
+                proxy = headers['X-MITM-ADDRESS']
 
         ctx = await browser.new_context(
             viewport=viewport or DEFAULT_VIEWPORT,
             ignore_https_errors=True,
             user_agent=await compute_user_agent(user_agent),
-            proxy=proxy,
+            proxy=proxy_from_url(proxy) if proxy else None,
             permissions=["clipboard-read", "clipboard-write"]
             if enable_clipboard
             else None,
         )
 
         ctx.set_default_timeout(default_timeout)
+        if upstream_proxy is not None:
+            await ctx.set_extra_http_headers({
+                "X-MITM-PROXY": upstream_proxy
+            })
 
         if cookies:
             await ctx.add_cookies(cookies)
