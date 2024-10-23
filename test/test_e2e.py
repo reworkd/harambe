@@ -433,7 +433,7 @@ async def test_local_storage(server, observer, harness):
 
     await SDK.run(
         scraper=scraper,
-        url=f"https://asim-shrestha.com/",
+        url=f"https://{local_storage_entry["domain"]}/",
         headless=True,
         harness=harness,
         schema={},
