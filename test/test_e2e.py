@@ -419,11 +419,11 @@ async def test_disable_go_to_url_bug(server, harness):
 @pytest.mark.parametrize("harness", [playwright_harness])
 async def test_local_storage(server, observer, harness):
     local_storage_entry = {
-            "domain": "asim-shrestha.com",
-            "path": "/",
-            "key": "test_key",
-            "value": "test",
-        }
+        "domain": "asim-shrestha.com",
+        "path": "/",
+        "key": "test_key",
+        "value": "test",
+    }
 
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
