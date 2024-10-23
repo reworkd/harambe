@@ -94,7 +94,8 @@ class HarnessOptions(TypedDict, total=False):
     headless: bool
     stealth: bool
     default_timeout: int
-    user_agent: str
+    # TODO: Replace with UserAgentFactory
+    user_agent: str | Callable[[], str | Awaitable[str]]
     proxy: Optional[str]
     cdp_endpoint: Optional[str]
     cookies: Sequence[SetCookieParam]
