@@ -417,7 +417,38 @@ async def test_disable_go_to_url_bug(server, harness):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness])
-async def test_local_storage(server, observer, harness):
+async def test_save_local_storage(server, observer, harness):
+    local_storage_entry = {
+        "domain": "asim-shrestha.com",
+        "path": "/",
+        "key": "test_key",
+        "value": "test",
+    }
+
+    @SDK.scraper(local_storage_entry["domain"], "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+        # Save test local storage key value pair
+        await page.evaluate(
+            f"localStorage.setItem('{local_storage_entry['key']}', '{local_storage_entry['value']}')"
+        )
+
+        await sdk.save_local_storage()
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"https://{local_storage_entry["domain"]}/",
+        headless=True,
+        harness=harness,
+        schema={},
+    )
+
+    assert len(observer.local_storage) == 1
+    assert observer.local_storage == [local_storage_entry]
+
+
+@pytest.mark.parametrize("harness", [playwright_harness])
+async def test_load_local_storage(server, observer, harness):
     local_storage_entry = {
         "domain": "asim-shrestha.com",
         "path": "/",

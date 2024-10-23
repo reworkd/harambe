@@ -11,10 +11,10 @@ from typing import (
 )
 from urllib.parse import quote
 
+from playwright.async_api import Page
+
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Options, Stage, Cookie, LocalStorage
-
-from playwright.async_api import Page
 
 ObservationTrigger = Literal[
     "on_save_data",
@@ -160,7 +160,7 @@ class InMemoryObserver(OutputObserver):
         pass
 
     async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
-        print(f"Local Storage saved : {local_storage}")
+        self._local_storage.extend(local_storage)
 
     @property
     def data(self) -> List[dict[str, Any]]:
