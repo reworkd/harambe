@@ -24,6 +24,7 @@ async def playwright_harness(
     cdp_endpoint: str | None = None,
     proxy: str | None = None,
     cookies: Sequence[SetCookieParam] = (),
+    local_storage: Sequence[dict[str, str]] = (),
     headers: dict[str, str] | None = None,
     stealth: bool = False,
     default_timeout: int = 30000,
@@ -77,6 +78,19 @@ async def playwright_harness(
 
         if cookies:
             await ctx.add_cookies(cookies)
+
+        if local_storage:
+            # There is no exposed API for adding local storage in Playwright
+            # We have to use web apis but they don't allow you to pass in a domain
+            # Everytime we visit a page with the expected domain, we will set the local storage
+            for local_storage_item in local_storage:
+                await ctx.add_init_script(
+                    f"""
+                    if (window.location.hostname.includes('{local_storage_item["domain"]}')) {{
+                        localStorage.setItem('{local_storage_item["key"]}', '{local_storage_item["value"]}');
+                    }}
+                    """
+                )
 
         if abort_unnecessary_requests:
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)
