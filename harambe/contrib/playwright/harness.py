@@ -1,3 +1,4 @@
+import json
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
 
@@ -84,10 +85,17 @@ async def playwright_harness(
             # We have to use web apis but they don't allow you to pass in a domain
             # Everytime we visit a page with the expected domain, we will set the local storage
             for local_storage_item in local_storage:
+                # Browser API only accepts strings
+                str_value = (
+                    json.dumps(local_storage_item["value"])
+                    if isinstance(local_storage_item["value"], (dict, list))
+                    else local_storage_item["value"]
+                )
+
                 await ctx.add_init_script(
                     f"""
                     if (window.location.hostname.includes('{local_storage_item["domain"]}')) {{
-                        localStorage.setItem('{local_storage_item["key"]}', '{local_storage_item["value"]}');
+                        localStorage.setItem('{local_storage_item["key"]}', '{str_value}');
                     }}
                     """
                 )
