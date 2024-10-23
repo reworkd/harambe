@@ -428,7 +428,7 @@ async def test_local_storage(server, observer, harness):
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
-        page_local_storage = await page.evaluate('localStorage')
+        page_local_storage = await page.evaluate("localStorage")
         await sdk.save_data({"local_storage": page_local_storage})
 
     await SDK.run(
