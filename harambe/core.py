@@ -13,7 +13,9 @@ from typing import (
     Protocol,
     Union,
     Unpack,
+    cast,
 )
+
 import aiohttp
 from playwright.async_api import (
     ElementHandle,
@@ -26,11 +28,11 @@ from playwright.async_api import (
 from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
+from harambe.cookies_handler import fix_cookie
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
-from harambe.cookies_handler import fix_cookie
 from harambe.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
@@ -53,6 +55,7 @@ from harambe.types import (
     SetupType,
     Stage,
     Cookie,
+    LocalStorage,
 )
 
 
@@ -92,13 +95,10 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
-        self._validator = (
-            PydanticSchemaParser(schema)
-            if (schema is not None and schema != {})
-            else None
-        )
+        self._validator = PydanticSchemaParser(schema) if schema else None
         self._saved_data: set[ScrapeResult] = set()
         self._saved_cookies: List[Cookie] = []
+        self._saved_local_storage: List[LocalStorage] = []
 
         if not observer:
             observer = [LoggingObserver()]
@@ -271,25 +271,73 @@ class SDK:
         )
         return res[0]
 
-    async def save_cookies(self, cookies: Optional[List[Cookie]] = None) -> None:
+    async def save_cookies(
+        self,
+        override_cookies: Optional[List[Cookie]] = None,
+    ) -> None:
         """
         Save the cookies from the current browser context or use the provided cookies.
 
         This function retrieves all the cookies from the current browser context if none are provided,
         saves them to the SDK instance, and notifies all observers about the action performed.
 
-        :param cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
+        :param override_cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
+
         """
-        existing_cookies = {cookie["name"]: cookie for cookie in self._saved_cookies}
-        if not cookies:
-            cookies = await self.page.context.cookies()
+        new_cookies = override_cookies or cast(
+            List[Cookie], await self.page.context.cookies()
+        )
+        new_cookies = [fix_cookie(cookie) for cookie in new_cookies]
 
-        for cookie in cookies:
-            cookie = fix_cookie(cookie)
-            existing_cookies[cookie["name"]] = cookie
+        self._saved_cookies = self._saved_cookies + new_cookies
 
-        self._saved_cookies = list(existing_cookies.values())
-        await self._notify_observers("on_save_cookies", self._saved_cookies)
+        await self._notify_observers("on_save_cookies", new_cookies)
+
+    async def save_local_storage(
+        self,
+        override_local_storage: Optional[dict[str, str]] = None,
+        override_domain: str | None = None,
+        override_path: str | None = None,
+    ) -> None:
+        """
+        Save the local storage from the current browser context or use the provided local storage data.
+
+        This function retrieves all the local storage data from the current page context if none is provided,
+        updates the SDK instance with new or updated values, and notifies all observers about the action performed.
+
+        :param override_local_storage: Optional list of local storage items (key-value pairs) to save. If None, local storage is retrieved from the current page context.
+        :param override_domain: Optional domain to use for the local storage
+        :param override_path: Optional path to use for the local storage
+        """
+        new_browser_local_storage = override_local_storage or await self.page.evaluate(
+            "() => localStorage"
+        )
+
+        domain = override_domain or self._domain
+        if not domain:
+            raise RuntimeError("No domain provided for local storage")
+
+        new_local_storage = [
+            LocalStorage(
+                domain=override_domain or self._domain,
+                path=override_path or "/",
+                key=key,
+                value=new_browser_local_storage[key],
+            )
+            for key in new_browser_local_storage.keys()
+        ]
+
+        self._saved_local_storage = self._saved_local_storage + new_local_storage
+
+        await self._notify_observers("on_save_local_storage", new_local_storage)
+
+    async def solve_captchas(self) -> None:
+        """
+        Check for captchas on the page and solve them.
+        """
+        await self._notify_observers(
+            "on_check_and_solve_captchas", self.page, check_duplication=False
+        )
 
     async def _notify_observers(
         self,

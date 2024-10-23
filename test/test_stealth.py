@@ -15,7 +15,7 @@ async def async_page():
 
 @pytest.mark.asyncio
 async def test_navigator_webdriver(async_page):
-    await async_page.goto("https://kaliiiiiiiiii.github.io/brotector/")
+    await async_page.goto("https://kaliiiiiiiiii.github.io/brotector/?crash=false")
 
     # Site contains a button to save the results as JSON
     await async_page.get_by_role("button", name="copy as JSON").click()

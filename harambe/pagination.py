@@ -1,9 +1,10 @@
 import hashlib
 import json
 from typing import Any, Optional, Iterable, List
+
 from pydantic import BaseModel
 
-from harambe.types import URL, Context, Options, Cookie
+from harambe.types import URL, Context, Options, Cookie, LocalStorage
 
 
 class PageInfo(BaseModel):
@@ -27,13 +28,21 @@ class DuplicateHandler:
 
         return self._add_data(data)
 
-    def on_save_cookies(self, cookies: List[Cookie]):
+    def on_save_cookies(self, cookies: List[Cookie]) -> bool:
         """
         Save cookies and check if they are duplicated
         :param cookies: cookies to be saved
         :return: bool indicating if the cookies are duplicated, true if it is duplicated
         """
         return self._add_data(cookies)
+
+    def on_save_local_storage(self, local_storage: List[LocalStorage]) -> bool:
+        """
+        Save local storage and check if they are duplicated
+        :param local_storage: local storage to be saved
+        :return: bool indicating if the local storage is duplicated, true if it is duplicated
+        """
+        return self._add_data(local_storage)
 
     def on_queue_url(
         self, url: URL, _: Optional[Context], __: Optional[Options]

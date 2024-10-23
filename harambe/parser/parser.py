@@ -4,7 +4,6 @@ from typing import Any, List, Optional, Type
 from pydantic import (
     BaseModel,
     Field,
-    NameEmail,
     ValidationError,
     create_model,
     ConfigDict,
@@ -14,6 +13,7 @@ from pydantic import (
 from harambe.errors import SchemaValidationError
 from harambe.parser.type_currency import ParserTypeCurrency
 from harambe.parser.type_date import ParserTypeDate
+from harambe.parser.type_email import ParserTypeEmail
 from harambe.parser.type_enum import ParserTypeEnum
 from harambe.parser.type_number import ParserTypeNumber
 from harambe.parser.type_phone_number import ParserTypePhoneNumber
@@ -85,7 +85,7 @@ class PydanticSchemaParser(SchemaParser):
             "float": ParserTypeNumber,
             "double": ParserTypeNumber,
             "currency": ParserTypeCurrency(),
-            "email": NameEmail,
+            "email": ParserTypeEmail,
             "enum": ParserTypeEnum,
             "array": list,
             "object": dict[str, Any],
@@ -270,9 +270,29 @@ def base_model_factory(config: ConfigDict) -> Type[BaseModel]:
         # noinspection PyNestedDecorators
         @model_validator(mode="before")
         @classmethod
-        def normalize_keys(cls, values):
+        def normalize_keys(cls, values: Any) -> Any:
             if isinstance(values, dict):
                 values = {k.strip(): v for k, v in values.items()}
+            return values
+
+        # noinspection PyNestedDecorators
+        @model_validator(mode="before")
+        @classmethod
+        def nullify_empty_strings(cls, values: Any) -> Any:
+            def trim_and_nullify(value: Any) -> Any:
+                if isinstance(value, str):
+                    value = value.strip()
+                    if not value:
+                        return None
+                if isinstance(value, list):
+                    return [trim_and_nullify(v) for v in value]
+                if isinstance(value, dict):
+                    return {k: trim_and_nullify(v) for k, v in value.items()}
+                return value
+
+            if isinstance(values, dict):
+                values = {k: trim_and_nullify(v) for k, v in values.items()}
+
             return values
 
     return PreValidatedBaseModel

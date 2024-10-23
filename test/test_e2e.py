@@ -8,8 +8,8 @@ from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
 from harambe.parser.parser import SchemaValidationError
-from harambe.types import BrowserType
 from harambe.parser.schemas import Schemas
+from harambe.types import BrowserType
 
 
 @pytest.fixture(scope="module")
@@ -54,6 +54,7 @@ async def test_save_data(server, observer, harness, browser_type):
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
 
+        await page.wait_for_load_state()
         for row in await page.query_selector_all("tbody > tr"):
             fruit, price = await row.query_selector_all("td")
 
@@ -413,6 +414,88 @@ async def test_disable_go_to_url_bug(server, harness):
         headless=True,
         harness=harness,
     )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness])
+async def test_save_local_storage(server, observer, harness):
+    local_storage_entry = {
+        "domain": "asim-shrestha.com",
+        "path": "/",
+        "key": "test_key",
+        "value": "test",
+    }
+
+    @SDK.scraper(local_storage_entry["domain"], "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+        # Save test local storage key value pair
+        await page.evaluate(
+            f"localStorage.setItem('{local_storage_entry['key']}', '{local_storage_entry['value']}')"
+        )
+
+        await sdk.save_local_storage()
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"https://{local_storage_entry["domain"]}/",
+        headless=True,
+        harness=harness,
+        schema={},
+    )
+
+    assert len(observer.local_storage) == 1
+    assert observer.local_storage == [local_storage_entry]
+
+
+@pytest.mark.parametrize("harness", [playwright_harness])
+@pytest.mark.parametrize(
+    "test_value,expected_value",
+    [
+        # String value
+        ("test_string", "test_string"),
+        # Number value
+        (42, "42"),
+        # List value
+        (["item1", "item2", 3], '["item1", "item2", 3]'),
+        # Dict value
+        ({"key1": "value1", "key2": 2}, '{"key1": "value1", "key2": 2}'),
+        # Nested structure
+        (
+            {"list": [1, 2, {"nested": "value"}]},
+            '{"list": [1, 2, {"nested": "value"}]}',
+        ),
+    ],
+)
+async def test_load_local_storage(
+    server, observer, harness, test_value, expected_value
+):
+    local_storage_entry = {
+        "domain": "asim-shrestha.com",
+        "path": "/",
+        "key": "test_key",
+        "value": test_value,
+    }
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+        page_local_storage = await page.evaluate("localStorage")
+        await sdk.save_data({"local_storage": page_local_storage})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"https://{local_storage_entry['domain']}/",
+        headless=True,
+        harness=harness,
+        schema={},
+        local_storage=[local_storage_entry],
+    )
+
+    assert len(observer.data) == 1
+    print(observer.data)
+    assert observer.data[0]["local_storage"] == {
+        local_storage_entry["key"]: expected_value
+    }
 
 
 @pytest.mark.parametrize("harness", [playwright_harness])

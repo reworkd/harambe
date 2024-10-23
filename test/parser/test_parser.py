@@ -177,6 +177,11 @@ def test_pydantic_schema_validator_success(
                 ],
             },
         ),
+        (
+            {"test": {"type": "string"}, "phone_number": {"type": "phone_number"}},
+            {"test": "Test", "phone_number": ""},
+            {"test": "Test", "phone_number": None},
+        ),
     ],
 )
 def test_pydantic_schema_data_update(
@@ -565,3 +570,16 @@ def test_config_allow_extra_fields() -> None:
     output_data = validator.validate(data, base_url="http://example.com")
 
     assert output_data == data
+
+
+def test_dump_email() -> None:
+    schema = {
+        "email": {"type": "email"},
+    }
+
+    data = {"email": "adam.watkins@gmail.com"}
+
+    validator = PydanticSchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+    assert output_data == data
+    assert isinstance(output_data["email"], str)
