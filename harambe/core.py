@@ -367,7 +367,7 @@ class SDK:
     async def run(
         scraper: AsyncScraperType,
         url: str | Path,
-        schema: Schema,
+        schema: Schema | None = None,
         context: Optional[Context] = None,
         setup: Optional[SetupType] = None,
         harness: WebHarness = playwright_harness,
