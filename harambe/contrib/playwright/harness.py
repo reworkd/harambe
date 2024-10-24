@@ -66,7 +66,6 @@ async def playwright_harness(
             )
         )
 
-        # Collect local storage elements of a given domain
         domain_storage = defaultdict(list)
         for item in local_storage:
             domain_storage[item["domain"]].append(item)
