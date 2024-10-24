@@ -4,7 +4,7 @@ from pydantic import ValidationError, BaseModel
 from harambe.parser.type_email import ParserTypeEmail
 
 
-class TestModel(BaseModel):
+class _TestModel(BaseModel):
     email: ParserTypeEmail
 
 
@@ -24,7 +24,7 @@ class TestModel(BaseModel):
     ],
 )
 def test_parser_success(email, expected):
-    model = TestModel(email=email)
+    model = _TestModel(email=email)
     assert model.email == expected
 
 
@@ -34,4 +34,4 @@ def test_parser_success(email, expected):
 )
 def test_parser_fail(invalid_email):
     with pytest.raises(ValidationError):
-        TestModel(email=invalid_email)
+        _TestModel(email=invalid_email)

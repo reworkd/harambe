@@ -469,10 +469,17 @@ async def test_save_local_storage(server, observer, harness):
 async def test_load_local_storage(
     server, observer, harness, test_value, expected_value
 ):
-    local_storage_entry = {
+    local_storage_entry_1 = {
         "domain": "asim-shrestha.com",
         "path": "/",
         "key": "test_key",
+        "value": test_value,
+    }
+
+    local_storage_entry_2 = {
+        "domain": "asim-shrestha.com",
+        "path": "/",
+        "key": "another_key",
         "value": test_value,
     }
 
@@ -484,15 +491,46 @@ async def test_load_local_storage(
 
     await SDK.run(
         scraper=scraper,
-        url=f"https://{local_storage_entry['domain']}/",
+        url=f"https://{local_storage_entry_1['domain']}/",
         headless=True,
         harness=harness,
         schema={},
-        local_storage=[local_storage_entry],
+        local_storage=[local_storage_entry_1, local_storage_entry_2],
     )
 
     assert len(observer.data) == 1
     print(observer.data)
     assert observer.data[0]["local_storage"] == {
-        local_storage_entry["key"]: expected_value
+        local_storage_entry_1["key"]: expected_value,
+        local_storage_entry_2["key"]: expected_value,
     }
+
+
+@pytest.mark.parametrize("harness", [playwright_harness])
+async def test_reset_local_storage(server, observer, harness):
+    local_storage_entry = {
+        "domain": "asim-shrestha.com",
+        "path": "/",
+        "key": "test_key",
+        "value": "test_value",
+    }
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
+        page = sdk.page
+        await page.evaluate("localStorage.clear();")
+        await page.goto(current_url)
+        page_local_storage = await page.evaluate("localStorage")
+        await sdk.save_data({"local_storage": page_local_storage})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"https://{local_storage_entry['domain']}/",
+        headless=True,
+        harness=harness,
+        schema={},
+        local_storage=[local_storage_entry, local_storage_entry],
+    )
+
+    assert len(observer.data) == 1
+    assert observer.data[0]["local_storage"] == {}

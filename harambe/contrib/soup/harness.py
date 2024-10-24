@@ -5,7 +5,6 @@ from curl_cffi.requests import AsyncSession
 
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.soup.tracing import Tracer
-from harambe.proxy import proxy_from_url
 from harambe.types import SetCookieParam
 
 Callback = Callable[[Tracer], Awaitable[None]]
@@ -24,8 +23,8 @@ async def soup_harness(
 ) -> AsyncGenerator[PageFactory, None]:
     if headers is not None:
         header_keys = headers.keys()
-        if "X-MITM-PROXY" in header_keys and 'X-MITM-ADDRESS' in header_keys:
-            proxy = headers['X-MITM-ADDRESS']
+        if "X-MITM-PROXY" in header_keys and "X-MITM-ADDRESS" in header_keys:
+            proxy = headers["X-MITM-ADDRESS"]
 
     async with AsyncSession(proxy=proxy, impersonate="chrome", verify=False) as s:
         for c in cookies:
