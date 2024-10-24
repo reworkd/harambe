@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
 
@@ -65,6 +66,39 @@ async def playwright_harness(
             )
         )
 
+        domain_storage = defaultdict(list)
+        for item in local_storage:
+            domain_storage[item["domain"]].append(item)
+
+        # Create the storage state structure
+        storage_state = {
+            "origins": [
+                {
+                    "origin": f"https://{domain}",
+                    "localStorage": [
+                        {
+                            "name": item["key"],
+                            # Local storage only supports strings
+                            "value": (
+                                json.dumps(item["value"])
+                                if isinstance(item["value"], (dict, list))
+                                else str(item["value"])
+                            ),
+                        }
+                        for item in items
+                    ],
+                }
+                for domain, items in domain_storage.items()
+            ]
+        }
+
+        upstream_proxy = None
+        if headers is not None:
+            header_keys = headers.keys()
+            if "X-MITM-PROXY" in header_keys and "X-MITM-ADDRESS" in header_keys:
+                upstream_proxy = headers["X-MITM-PROXY"]
+                proxy = headers["X-MITM-ADDRESS"]
+
         ctx = await browser.new_context(
             viewport=viewport or DEFAULT_VIEWPORT,
             ignore_https_errors=True,
@@ -73,32 +107,15 @@ async def playwright_harness(
             permissions=["clipboard-read", "clipboard-write"]
             if enable_clipboard
             else None,
+            storage_state=storage_state,
         )
 
         ctx.set_default_timeout(default_timeout)
+        if upstream_proxy is not None:
+            await ctx.set_extra_http_headers({"X-MITM-PROXY": upstream_proxy})
 
         if cookies:
             await ctx.add_cookies(cookies)
-
-        if local_storage:
-            # There is no exposed API for adding local storage in Playwright
-            # We have to use web apis but they don't allow you to pass in a domain
-            # Everytime we visit a page with the expected domain, we will set the local storage
-            for local_storage_item in local_storage:
-                # Browser API only accepts strings
-                str_value = (
-                    json.dumps(local_storage_item["value"])
-                    if isinstance(local_storage_item["value"], (dict, list))
-                    else local_storage_item["value"]
-                )
-
-                await ctx.add_init_script(
-                    f"""
-                    if (window.location.hostname.includes('{local_storage_item["domain"]}')) {{
-                        localStorage.setItem('{local_storage_item["key"]}', '{str_value}');
-                    }}
-                    """
-                )
 
         if abort_unnecessary_requests:
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)
