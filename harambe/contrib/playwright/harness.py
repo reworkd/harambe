@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
 
@@ -65,6 +66,31 @@ async def playwright_harness(
             )
         )
 
+        # Collect local storage elements of a given domain
+        domain_storage = defaultdict(list)
+        for item in local_storage:
+            domain_storage[item["domain"]].append(item)
+
+        # Create the storage state structure
+        storage_state = {
+            "origins": [
+                {
+                    "origin": f"https://{domain}",
+                    "localStorage": [
+                        {
+                            "name": item["key"],
+                            # Local storage only supports strings
+                            "value": (json.dumps(item["value"])
+                                      if isinstance(item["value"], (dict, list))
+                                      else str(item["value"]))
+                        }
+                        for item in items
+                    ]
+                }
+                for domain, items in domain_storage.items()
+            ]
+        }
+
         upstream_proxy = None
         if headers is not None:
             header_keys = headers.keys()
@@ -80,6 +106,7 @@ async def playwright_harness(
             permissions=["clipboard-read", "clipboard-write"]
             if enable_clipboard
             else None,
+            storage_state=storage_state,
         )
 
         ctx.set_default_timeout(default_timeout)
@@ -90,26 +117,6 @@ async def playwright_harness(
 
         if cookies:
             await ctx.add_cookies(cookies)
-
-        if local_storage:
-            # There is no exposed API for adding local storage in Playwright
-            # We have to use web apis but they don't allow you to pass in a domain
-            # Everytime we visit a page with the expected domain, we will set the local storage
-            for local_storage_item in local_storage:
-                # Browser API only accepts strings
-                str_value = (
-                    json.dumps(local_storage_item["value"])
-                    if isinstance(local_storage_item["value"], (dict, list))
-                    else local_storage_item["value"]
-                )
-
-                await ctx.add_init_script(
-                    f"""
-                    if (window.location.hostname.includes('{local_storage_item["domain"]}')) {{
-                        localStorage.setItem('{local_storage_item["key"]}', '{str_value}');
-                    }}
-                    """
-                )
 
         if abort_unnecessary_requests:
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)
