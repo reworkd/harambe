@@ -80,12 +80,14 @@ async def playwright_harness(
                         {
                             "name": item["key"],
                             # Local storage only supports strings
-                            "value": (json.dumps(item["value"])
-                                      if isinstance(item["value"], (dict, list))
-                                      else str(item["value"]))
+                            "value": (
+                                json.dumps(item["value"])
+                                if isinstance(item["value"], (dict, list))
+                                else str(item["value"])
+                            ),
                         }
                         for item in items
-                    ]
+                    ],
                 }
                 for domain, items in domain_storage.items()
             ]
@@ -94,9 +96,9 @@ async def playwright_harness(
         upstream_proxy = None
         if headers is not None:
             header_keys = headers.keys()
-            if "X-MITM-PROXY" in header_keys and 'X-MITM-ADDRESS' in header_keys:
-                upstream_proxy = headers['X-MITM-PROXY']
-                proxy = headers['X-MITM-ADDRESS']
+            if "X-MITM-PROXY" in header_keys and "X-MITM-ADDRESS" in header_keys:
+                upstream_proxy = headers["X-MITM-PROXY"]
+                proxy = headers["X-MITM-ADDRESS"]
 
         ctx = await browser.new_context(
             viewport=viewport or DEFAULT_VIEWPORT,
@@ -111,9 +113,7 @@ async def playwright_harness(
 
         ctx.set_default_timeout(default_timeout)
         if upstream_proxy is not None:
-            await ctx.set_extra_http_headers({
-                "X-MITM-PROXY": upstream_proxy
-            })
+            await ctx.set_extra_http_headers({"X-MITM-PROXY": upstream_proxy})
 
         if cookies:
             await ctx.add_cookies(cookies)

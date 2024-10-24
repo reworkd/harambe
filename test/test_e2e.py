@@ -502,13 +502,12 @@ async def test_load_local_storage(
     print(observer.data)
     assert observer.data[0]["local_storage"] == {
         local_storage_entry_1["key"]: expected_value,
-        local_storage_entry_2["key"]: expected_value
+        local_storage_entry_2["key"]: expected_value,
     }
 
+
 @pytest.mark.parametrize("harness", [playwright_harness])
-async def test_reset_local_storage(
-    server, observer, harness
-):
+async def test_reset_local_storage(server, observer, harness):
     local_storage_entry = {
         "domain": "asim-shrestha.com",
         "path": "/",
