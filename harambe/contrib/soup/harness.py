@@ -21,11 +21,6 @@ async def soup_harness(
     on_end: Optional[Callback] = None,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
-    if headers is not None:
-        header_keys = headers.keys()
-        if "X-MITM-PROXY" in header_keys and "X-MITM-ADDRESS" in header_keys:
-            proxy = headers["X-MITM-ADDRESS"]
-
     async with AsyncSession(proxy=proxy, impersonate="chrome", verify=False) as s:
         for c in cookies:
             s.cookies.set(

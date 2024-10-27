@@ -8,8 +8,9 @@ class HarambeException(Exception):
 
 
 class SchemaValidationError(HarambeException):
-    def __init__(self, schema: Schema, data: ScrapeResult, message: str):
-        super().__init__(f"Data {data} does not match schema {schema}. {message}")
+    def __init__(self, _: Schema, __: ScrapeResult, message: str):
+        # TODO: Remove the unused parameters everywhere
+        super().__init__(message)
 
 
 class CaptchaError(HarambeException):
