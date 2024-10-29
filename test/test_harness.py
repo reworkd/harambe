@@ -33,3 +33,20 @@ async def test_default_url(web_harness):
     async with web_harness() as page_factory:
         page = await page_factory()
         assert page.url == "about:blank"
+
+
+async def test_with_two_connections():
+    async with playwright_harness(
+        launch_args=["--remote-debugging-port=9222"]
+    ) as p1, playwright_harness(cdp_endpoint="http://localhost:9222") as p2:
+        page_1 = await p1()
+        await page_1.goto("https://example.com/")
+
+        page_2 = await p2()
+        assert page_2.url == "about:blank"
+        assert page_2.context.browser.contexts[0].pages[0].url == "https://example.com/"
+
+        await (
+            page_2.context.browser.contexts[0].pages[0].goto("https://www.reworkd.ai/")
+        )
+        assert page_1.url == "https://www.reworkd.ai/"

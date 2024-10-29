@@ -282,7 +282,6 @@ class SDK:
         saves them to the SDK instance, and notifies all observers about the action performed.
 
         :param override_cookies: Optional list of cookie dictionaries to save. If None, cookies are retrieved from the current page context.
-
         """
         new_cookies = override_cookies or cast(
             List[Cookie], await self.page.context.cookies()
