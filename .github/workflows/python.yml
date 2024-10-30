@@ -65,5 +65,5 @@ jobs:
         run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Build and Publish
         run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-          poetry publish --build
+          uv build
+          uv publish --token ${{ secrets.PYPI_TOKEN }}
