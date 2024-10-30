@@ -88,7 +88,7 @@ jobs:
         working-directory: core
         run: |
           uv build
-          uv publish --token ${{ secrets.PYPI_TOKEN }}
+          uv publish --token ${{ secrets.PYPI_TOKEN_CORE }}
 
   publish-sdk:
     needs: [ check-version, format, pytest-core, pytest-sdk ]
