@@ -49,7 +49,6 @@ jobs:
 
   pytest-core:
     runs-on: ubuntu-latest
-    working-directory: core
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -57,11 +56,11 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Run pytest
+        working-directory: core
         run: uv run pytest -vv --cov="${{ inputs.package }}" .
 
   pytest-sdk:
     runs-on: ubuntu-latest
-    working-directory: sdk
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -71,12 +70,12 @@ jobs:
       - name: Install playwright
         run:  uv run playwright install chromium firefox webkit --with-deps
       - name: Run pytest
+        working-directory: sdk
         run: uv run pytest -vv --cov="${{ inputs.package }}" .
 
   publish-core:
     needs: [ check-version, format, pytest-core, pytest-sdk ]
     runs-on: ubuntu-latest
-    working-directory: core
     if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_publish == 'true'
     steps:
       - uses: actions/checkout@v4
@@ -85,14 +84,14 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Build and Publish
+        working-directory: core
         run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-          poetry publish --build
+          uv build
+          uv publish --token ${{ secrets.PYPI_TOKEN }}
 
   publish-sdk:
     needs: [ check-version, format, pytest-core, pytest-sdk ]
     runs-on: ubuntu-latest
-    working-directory: sdk
     if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_publish == 'true'
     steps:
       - uses: actions/checkout@v4
@@ -101,6 +100,7 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Build and Publish
+        working-directory: sdk
         run: |
           uv build
           uv publish --token ${{ secrets.PYPI_TOKEN }}
