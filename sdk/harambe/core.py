@@ -58,6 +58,7 @@ from harambe.types import (
 
 from harambe_core import SchemaParser, Schema
 
+
 class AsyncScraper(Protocol):
     """
     Protocol that all classed based scrapers should implement.
