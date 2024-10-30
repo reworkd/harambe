@@ -12,7 +12,7 @@
         "float",
         "boolean",
         "currency",
-        "enu🫡"
+        "enum"
       ]
     },
     "baseField": {
