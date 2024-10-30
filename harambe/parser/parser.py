@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Type
+from typing import Any, List, Optional, Type, Self
 
 from pydantic import (
     BaseModel,
@@ -11,6 +11,7 @@ from pydantic import (
 )
 
 from harambe.errors import SchemaValidationError
+from harambe.parser.expression import ExpressionEvaluator
 from harambe.parser.type_currency import ParserTypeCurrency
 from harambe.parser.type_date import ParserTypeDate
 from harambe.parser.type_email import ParserTypeEmail
@@ -55,22 +56,16 @@ class PydanticSchemaParser(SchemaParser):
 
         if missing_fields:
             raise SchemaValidationError(
-                data=data,
-                schema=self.schema,
                 message=f"Missing required fields: {', '.join(missing_fields)}, All required fields are: {', '.join(self.all_required_fields)}",
             )
         if self._all_fields_empty(data):
             raise SchemaValidationError(
-                data=data,
-                schema=self.schema,
                 message="All fields are null or empty.",
             )
         try:
             return self.model(**data).model_dump()
         except ValidationError as validation_error:
-            raise SchemaValidationError(
-                data=data, schema=self.schema, message=str(validation_error)
-            )
+            raise SchemaValidationError(message=str(validation_error))
 
     @staticmethod
     def _get_field_types(base_url: str) -> dict[SchemaFieldType, Any]:
@@ -131,12 +126,15 @@ class PydanticSchemaParser(SchemaParser):
         Convert a JSON schema to a Pydantic model dynamically. All fields are optional
         """
         fields = {}
+        computed_fields = {}
+
         for field_name, field_info in schema.items():
             if field_name == "__config__":
                 continue
 
             field_description = field_info.get("description", None)
             field_type = field_info.get("type")
+            field = Field(..., description=field_description)
 
             if field_type == "object":
                 python_type = self._schema_to_pydantic_model(
@@ -152,17 +150,18 @@ class PydanticSchemaParser(SchemaParser):
                 ]
             elif field_type == "enum":
                 python_type = self._get_type(field_type)(field_info["variants"])
+            elif expression := field_info.get("expression"):
+                python_type = self._get_type(field_type)
+                field = Field(default=None, description=field_description)
+                computed_fields[field_name] = expression
             else:
                 python_type = Optional[self._get_type(field_type)]  # type: ignore
 
-            fields[field_name] = (
-                python_type,
-                Field(..., description=field_description),
-            )
+            fields[field_name] = (python_type, field)
 
         config: ConfigDict = {"extra": "forbid", "str_strip_whitespace": True}
         config.update(schema.get("__config__", {}))
-        base_model = base_model_factory(config)
+        base_model = base_model_factory(config, computed_fields)
 
         return create_model(model_name, __base__=base_model, **fields)
 
@@ -263,7 +262,9 @@ class PydanticSchemaParser(SchemaParser):
         return all(is_empty(value) for value in data.values())
 
 
-def base_model_factory(config: ConfigDict) -> Type[BaseModel]:
+def base_model_factory(
+    config: ConfigDict, computed_fields: dict[str, str]
+) -> Type[BaseModel]:
     class PreValidatedBaseModel(BaseModel):
         model_config: ConfigDict = config
 
@@ -294,5 +295,12 @@ def base_model_factory(config: ConfigDict) -> Type[BaseModel]:
                 values = {k: trim_and_nullify(v) for k, v in values.items()}
 
             return values
+
+        @model_validator(mode="after")
+        def evaluate_computed_fields(self) -> Self:
+            for field, expression in computed_fields.items():
+                res = ExpressionEvaluator.evaluate(expression, self)
+                setattr(self, field, res)
+            return self
 
     return PreValidatedBaseModel

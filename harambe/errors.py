@@ -1,6 +1,3 @@
-from harambe.types import ScrapeResult, Schema
-
-
 class HarambeException(Exception):
     """Base exception for all custom exceptions in Harambe."""
 
@@ -8,8 +5,7 @@ class HarambeException(Exception):
 
 
 class SchemaValidationError(HarambeException):
-    def __init__(self, _: Schema, __: ScrapeResult, message: str):
-        # TODO: Remove the unused parameters everywhere
+    def __init__(self, message: str = None):
         super().__init__(message)
 
 
