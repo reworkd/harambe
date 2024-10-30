@@ -49,10 +49,7 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Install playwright
-        run: | 
-          uv run playwright install chromium
-          uv run playwright install firefox
-          uv run playwright install webkit
+        run:  uv run playwright install chromium firefox webkit --with-deps
       - name: Run pytest
         run: uv run pytest -vv --cov="${{ inputs.package }}" .
 

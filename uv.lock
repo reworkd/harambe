@@ -428,7 +428,7 @@ wheels = [
 
 [[package]]
 name = "harambe-sdk"
-version = "0.31.6"
+version = "0.32.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
