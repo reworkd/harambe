@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "resource": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "link": {
+        "type": "url"
+      }
+    }
+  }
+}

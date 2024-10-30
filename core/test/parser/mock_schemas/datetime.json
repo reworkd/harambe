@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "event": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "The name of the event."
+      },
+      "date": {
+        "type": "datetime",
+        "description": "The date of the event."
+      }
+    }
+  }
+}
