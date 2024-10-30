@@ -2,14 +2,8 @@ from typing import Any
 
 import pytest
 
-from harambe_cores.parser.parser import PydanticSchemaParser, SchemaValidationError
-from test.parser.schemas import (
-    datetime_schema,
-    list_with_nested_types_schema,
-    object_with_nested_types_schema,
-    phone_number_schema,
-    url_schema,
-)
+from harambe_core.parser.parser import SchemaParser, SchemaValidationError
+from test.parser.mock_schemas.load_schema import load_schema
 
 
 @pytest.mark.parametrize(
@@ -17,25 +11,25 @@ from test.parser.schemas import (
     [
         # Test datetime schema
         (
-            datetime_schema,
+            load_schema("datetime"),
             {"event": {"name": "Conference", "date": "2024-06-27 10:00:00"}},
             {"event": {"name": "Conference", "date": "2024-06-27T10:00:00"}},
         ),
         # Test datetime schema with extra spaces
         (
-            datetime_schema,
+            load_schema("datetime"),
             {"event": {"name": "   Conference", "date": "    2024-06-27 10:00:00    "}},
             {"event": {"name": "Conference", "date": "2024-06-27T10:00:00"}},
         ),
         # # Test phone number schema
         (
-            phone_number_schema,
+            load_schema("phone_number"),
             {"contact": {"name": "John Doe", "phone": "+1 (800) 555-1234"}},
             {"contact": {"name": "John Doe", "phone": "+1 800-555-1234"}},
         ),
         # # Test URL schema
         (
-            url_schema,
+            load_schema("url"),
             {"resource": {"name": "API Documentation", "link": "/docs"}},
             {
                 "resource": {
@@ -46,7 +40,7 @@ from test.parser.schemas import (
         ),
         # # Test URL schema with extra spaces
         (
-            url_schema,
+            load_schema("url"),
             {"  resource  ": {"  name   ": "  API Documentation  ", "link": " /docs "}},
             {
                 "resource": {
@@ -57,7 +51,7 @@ from test.parser.schemas import (
         ),
         # # Test object with nested types
         (
-            object_with_nested_types_schema,
+            load_schema("object_with_nested_types"),
             {
                 "profile": {
                     "user": "johndoe",
@@ -77,7 +71,7 @@ from test.parser.schemas import (
         ),
         # # Test list with nested types
         (
-            list_with_nested_types_schema,
+            load_schema("list_with_nested_types"),
             {
                 "events": [
                     {
@@ -104,7 +98,7 @@ from test.parser.schemas import (
         ),
         # # Test list with nested types with extra spaces
         (
-            list_with_nested_types_schema,
+            load_schema("list_with_nested_types"),
             {
                 "events": [
                     {
@@ -134,7 +128,7 @@ from test.parser.schemas import (
 def test_parser_with_updated_types_success(
     schema: dict[str, Any], data: dict[str, Any], expected: dict[str, Any]
 ) -> None:
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     validated_data = validator.validate(data, base_url="http://example.com")
     assert validated_data == expected
 
@@ -144,22 +138,22 @@ def test_parser_with_updated_types_success(
     [
         # Invalid datetime
         (
-            datetime_schema,
+            load_schema("datetime"),
             {"event": {"name": "Conference", "date": "InvalidDate"}},
         ),
         # Invalid phone number
         (
-            phone_number_schema,
+            load_schema("phone_number"),
             {"contact": {"name": "John Doe", "phone": "12345"}},
         ),
         # Invalid URL
         (
-            url_schema,
+            load_schema("url"),
             {"resource": {"name": "API Documentation", "link": "invalid-url"}},
         ),
         # Invalid object with nested types
         (
-            object_with_nested_types_schema,
+            load_schema("object_with_nested_types"),
             {
                 "profile": {
                     "user": "johndoe",
@@ -171,7 +165,7 @@ def test_parser_with_updated_types_success(
         ),
         # Invalid list with nested types
         (
-            list_with_nested_types_schema,
+            load_schema("list_with_nested_types"),
             {
                 "events": [
                     {
@@ -188,6 +182,6 @@ def test_parser_with_updated_types_success(
 def parser_with_updated_types_error(
     schema: dict[str, Any], data: dict[str, Any]
 ) -> None:
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     with pytest.raises(SchemaValidationError):
         validator.validate(data, base_url="http://example.com")

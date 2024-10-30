@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "tags": {
+    "type": "array",
+    "items": {
+      "type": "string"
+    }
+  }
+}

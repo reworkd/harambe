@@ -2,11 +2,10 @@ from typing import Any
 
 import pytest
 
-
 from harambe_core.errors import SchemaValidationError
-from harambe_core.parser import schemas
-from harambe_core.parser.parser import PydanticSchemaParser
+from harambe_core.parser.parser import SchemaParser
 from harambe_core.types import Schema
+from test.parser.mock_schemas.load_schema import load_schema
 
 
 @pytest.mark.parametrize(
@@ -17,18 +16,18 @@ from harambe_core.types import Schema
             {"price": "1,515.99"},
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {"title": "Document One", "document_url": "http://example.com/doc1"},
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": "An interesting document title",
                 "document_url": "https://example.com/doc2",
             },
         ),
         (
-            schemas.contact_schema,
+            load_schema("contact"),
             {
                 "name": {"first_name": "Jane", "last_name": "Doe"},
                 "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890},
@@ -36,7 +35,7 @@ from harambe_core.types import Schema
             },
         ),
         (
-            schemas.contact_schema,
+            load_schema("contact"),
             {
                 "name": {"first_name": None, "last_name": None},
                 "address": {"street": None, "city": None, "zip": None},
@@ -44,7 +43,7 @@ from harambe_core.types import Schema
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": [
                     {
@@ -55,11 +54,11 @@ from harambe_core.types import Schema
             },
         ),
         (
-            schemas.list_of_strings_schema,
+            load_schema("list_of_strings"),
             {"tags": ["python", "pydantic", "typing"]},
         ),
         (
-            schemas.list_of_objects_schema,
+            load_schema("list_of_objects"),
             {
                 "users": [
                     {"name": "Alice", "email": "alice@example.com"},
@@ -68,15 +67,15 @@ from harambe_core.types import Schema
             },
         ),
         (
-            schemas.object_with_list_schema,
+            load_schema("object_with_list"),
             {"team": {"name": "Developers", "members": ["Alice", "Bob"]}},
         ),
         (
-            schemas.list_of_lists_schema,
+            load_schema("list_of_lists"),
             {"matrix": [[1, 2], [3, 4]]},
         ),
         (
-            schemas.nested_lists_and_objects_schema,
+            load_schema("nested_lists_and_objects"),
             {
                 " departments\n  \n\t": [  # ✅ handles all kinds of whitespace
                     {
@@ -89,7 +88,7 @@ from harambe_core.types import Schema
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": [
                     {
@@ -100,7 +99,7 @@ from harambe_core.types import Schema
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents ": [
                     {
@@ -111,7 +110,7 @@ from harambe_core.types import Schema
             },
         ),
         (
-            schemas.enums_schema,
+            load_schema("enums"),
             {"season": "spring"},
         ),
     ],
@@ -119,7 +118,7 @@ from harambe_core.types import Schema
 def test_pydantic_schema_validator_success(
     schema: Schema, data: dict[str, Any]
 ) -> None:
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     validator.validate(data, base_url="http://example.com")
 
 
@@ -142,7 +141,7 @@ def test_pydantic_schema_validator_success(
             {"url": "http://example.com/one%20two%20three"},
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": [
                     {
@@ -161,7 +160,7 @@ def test_pydantic_schema_validator_success(
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": [
                     {
@@ -189,7 +188,7 @@ def test_pydantic_schema_validator_success(
 def test_pydantic_schema_data_update(
     schema: dict[str, Any], data: dict[str, Any], expected_data: dict[str, Any]
 ) -> None:
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     updated_data = validator.validate(data, base_url="http://example.com")
     assert updated_data == expected_data
 
@@ -198,7 +197,7 @@ def test_pydantic_schema_data_update(
     "schema, data",
     [
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": "Document Three",
                 "document_url": 123,
@@ -206,7 +205,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": "Document One",
                 "document_url": "http://example.com/doc1",
@@ -216,46 +215,46 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": "Document Three",
                 "document_url": 123,  # ❌ Invalid URL type
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": 456,  # ❌ Invalid title type
                 "document_url": "http://example.com/doc4",
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 # ❌ Missing title
                 "document_url": "http://example.com/doc5"
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {},  # ❌ Missing everything
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": "Document Six",
                 "document_url": "gopher://example.com/doc6",  # ❌ Bad URL scheme
             },
         ),
         (
-            schemas.contact_schema,
+            load_schema("contact"),
             {
                 "name": {"first_name": None, "last_name": "Doe"},
                 "address": None,  # ❌ No sub-fields
             },
         ),
         (
-            schemas.contact_schema,
+            load_schema("contact"),
             {
                 "name": {"first_name": None, "last_name": "Doe"},
                 "address": {"street": "456 Elm St", "city": "Other town", "zip": 67890},
@@ -263,13 +262,13 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": None  # ❌ Null list
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 # ❌ Invalid type in list
                 "documents": [
@@ -281,7 +280,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": [
                     {
@@ -293,7 +292,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": [
                     None  # ❌ Null item in list
@@ -301,7 +300,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.list_of_strings_schema,
+            load_schema("list_of_strings"),
             {
                 "tags": [
                     None,  # ❌ None in list of strings
@@ -311,7 +310,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.list_of_objects_schema,
+            load_schema("list_of_objects"),
             {
                 "users": [
                     {
@@ -322,7 +321,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.object_with_list_schema,
+            load_schema("object_with_list"),
             {
                 "team": {
                     "name": "Developers",
@@ -331,7 +330,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.list_of_lists_schema,
+            load_schema("list_of_lists"),
             {
                 "matrix": [
                     [1, "a"],  # ❌ Invalid type in nested list
@@ -340,7 +339,7 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.nested_lists_and_objects_schema,
+            load_schema("nested_lists_and_objects"),
             {
                 "departments": [
                     {
@@ -359,40 +358,40 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.enums_schema,
+            load_schema("enums"),
             {
                 "season": "autumn"  # ❌ Value that doesn't match any of the enum variants
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": None,
                 "document_url": None,  # ❌ Do not allow objects with all null values
             },
         ),
         (
-            schemas.documents_schema,
+            load_schema("documents"),
             {
                 "documents": []  # ❌ Do not allow objects with all null arrays
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": "",  # ❌ Do not allow objects with all empty strings
                 "document_url": "",
             },
         ),
         (
-            schemas.document_schema,
+            load_schema("document"),
             {
                 "title": "",  # ❌ Do not allow objects with all empty strings
                 "document_url": "",
             },
         ),
         (
-            schemas.nested_lists_and_objects_schema,
+            load_schema("documents"),
             {
                 "departments": [
                     {"name": "", "teams": [{"team_name": None, "members": []}]}
@@ -400,49 +399,42 @@ def test_pydantic_schema_data_update(
             },
         ),
         (
-            schemas.object_with_list_of_objects_schema,
+            load_schema("object_with_list_of_objects"),
             {"list": [{"members": {"a": None, "b": [], "c": {"d": "", "e": ""}}}]},
         ),
     ],
 )
 def test_pydantic_schema_validator_error(schema: Schema, data: dict[str, Any]) -> None:
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     with pytest.raises(SchemaValidationError):
         validator.validate(data, base_url="http://example.com")
 
 
-@pytest.mark.parametrize(
-    "schema, data",
-    [
-        (
-            schemas.documents_schema,
+def test_pydantic_schema_validator_bad_base_url_error() -> None:
+    schema = load_schema("documents")
+    data = {
+        "documents": [
             {
-                "documents": [
-                    {
-                        "title": "Document Seven",
-                        "document_url": "/doc7",
-                    },
-                ]
+                "title": "Document Seven",
+                "document_url": "/doc7",
             },
-        ),
-    ],
-)
-def test_pydantic_schema_validator_bad_base_url_error(
-    schema: Schema, data: dict[str, Any]
-) -> None:
-    validator = PydanticSchemaParser(schema)
+        ]
+    }
+
+    validator = SchemaParser(schema)
     with pytest.raises(SchemaValidationError):
         validator.validate(data, base_url="gemini://example.com")
 
 
-@pytest.mark.parametrize(
-    "schema",
-    [
-        schemas.non_existing_type_schema,
-    ],
-)
-def test_pydantic_schema_validator_non_existing_type_error(schema: Schema) -> None:
-    validator = PydanticSchemaParser(schema)
+def test_pydantic_schema_validator_non_existing_type_error() -> None:
+    schema = {
+        "title": {
+            "type": "this_type_does_not_exist",
+            "description": "Purely to cause error in the test",
+        }
+    }
+
+    validator = SchemaParser(schema)
     with pytest.raises(ValueError):
         validator.validate({}, base_url="gemini://example.com")
 
@@ -473,7 +465,7 @@ def test_stripping_keeps_order() -> None:
         "email": None,
     }
 
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
 
     for i in range(len(data)):
@@ -492,7 +484,7 @@ def test_allow_extra() -> None:
         "last_name": "Poop my pants",
     }
 
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
 
     assert output_data == data
@@ -534,7 +526,7 @@ def test_allow_extra_nested() -> None:
         ],
     }
 
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
 
     assert output_data == data
@@ -551,7 +543,7 @@ def test_config_ignore_extra_fields() -> None:
         "last_name": "Poop my pants",
     }
 
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
 
     assert output_data == {"first_name": "Adam"}
@@ -568,7 +560,7 @@ def test_config_allow_extra_fields() -> None:
         "last_name": "Poop my pants",
     }
 
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
 
     assert output_data == data
@@ -581,7 +573,7 @@ def test_dump_email() -> None:
 
     data = {"email": "adam.watkins@gmail.com"}
 
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
     assert output_data == data
     assert isinstance(output_data["email"], str)
@@ -608,7 +600,7 @@ def test_computed_field() -> None:
         "last_name": "Watkins",
     }
 
-    validator = PydanticSchemaParser(schema)
+    validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
     assert output_data["full_name"] == "Adam Watkins"
     assert output_data["slug"] == "adam-watkins-bachelor-of-science-computer-science"

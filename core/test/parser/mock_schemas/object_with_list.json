@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "team": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "members": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

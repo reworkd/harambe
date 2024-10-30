@@ -149,3 +149,4 @@ cython_debug/
 *.bin
 /screenshots/
 /data/
+*.venv

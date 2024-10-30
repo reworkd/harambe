@@ -7,8 +7,6 @@ from aiohttp import web
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
-from harambe_core.parser.parser import SchemaValidationError
-from harambe_core.parser.schemas import Schemas
 from harambe.types import BrowserType
 
 
@@ -300,104 +298,6 @@ async def test_currency_validator(server, harness):
         headless=True,
         harness=harness,
     )
-
-
-@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_schema_validation_error_on_null_fields(server, harness):
-    async def scraper(sdk: SDK, *args, **kwargs):
-        invalid_data = {
-            "title": None,
-            "description": "",
-            "classification": None,
-            "is_cancelled": None,
-            "start_time": None,
-            "end_time": None,
-            "is_all_day_event": "",
-            "time_notes": "",
-            "location": {},
-            "links": [
-                {
-                    "title": "",
-                    "url": None,
-                }
-            ],
-        }
-        await sdk.save_data(invalid_data)
-
-    with pytest.raises(SchemaValidationError):
-        await SDK.run(
-            scraper=scraper,
-            url=f"{server}/table",
-            schema=Schemas.government_meetings,
-            headless=True,
-            harness=harness,
-        )
-
-
-@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_strip_all_values(server, harness):
-    async def scraper(sdk: SDK, *args, **kwargs):
-        test_strip_values_data = {
-            "  title  ": "test title   ",
-            " description": "  test description   ",
-            "classification ": " test classification",
-            "is_cancelled  ": True,
-            "start_time  ": "  05/29/2024 02:00:00 PM  ",
-            "end_time": "December 17, 1995 03:24:00    ",
-            " is_all_day_event": False,
-            " time_notes": "     test trim       notes   ",
-            "  location": {
-                " name ": "test location name  ",
-                "address   ": "    test address    ",
-            },
-            "links ": [
-                {
-                    "   title   ": "  ",
-                    "   url": "  /example.com  ",
-                },
-            ],
-        }
-        await sdk.save_data(test_strip_values_data)
-
-    await SDK.run(
-        scraper=scraper,
-        url=f"{server}/table",
-        schema=Schemas.government_meetings,
-        headless=True,
-        harness=harness,
-    )
-
-
-@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_required_feilds(server, harness):
-    async def scraper(sdk: SDK, *args, **kwargs):
-        test_required_fields_schema = {
-            "id": None,
-            "title": "test title",
-            "description": "test description",
-            "location": "test location",
-            "type": "test type",
-            "category": "test category",
-            "posted_date": "test posted date",
-            "due_date": "test due date",
-            "agency": "test agency",
-            "contact_name": "test contact name",
-            "contact_email": "test contact email",
-            "contact_number": "test contact number",
-            "attachments": [
-                {"title": "test attachment title", "url": "test attachment url"}
-            ],
-        }
-        await sdk.save_data(test_required_fields_schema)
-
-    with pytest.raises(SchemaValidationError):
-        await SDK.run(
-            scraper=scraper,
-            url=f"{server}/table",
-            schema=Schemas.government_contracts_small,
-            headless=True,
-            harness=harness,
-        )
 
 
 @pytest.mark.parametrize("harness", [soup_harness])

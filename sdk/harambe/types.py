@@ -6,12 +6,9 @@ from typing import (
     Optional,
     Sequence,
     TypedDict,
-    NotRequired,
-    Required,
 )
 
 from playwright.async_api import ViewportSize
-from pydantic import ConfigDict
 
 Enum = str
 URL = str

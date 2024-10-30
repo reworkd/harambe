@@ -24,7 +24,7 @@ from harambe_core.types import SchemaFieldType
 from harambe_core.types import Schema
 
 
-class PydanticSchemaParser:
+class SchemaParser:
     """
     A schema parser that uses Pydantic models to validate data against a JSON schema
     """
@@ -32,6 +32,9 @@ class PydanticSchemaParser:
     model: Type[BaseModel]
 
     def __init__(self, schema: Schema):
+        if "$schema" in schema:
+            del schema["$schema"]
+
         self.schema = schema
         self.field_types: dict[SchemaFieldType, Any] = {}
         self.all_required_fields = self._get_all_required_fields(self.schema)

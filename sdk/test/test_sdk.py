@@ -5,8 +5,8 @@ from playwright.async_api import Page
 
 from harambe.core import SDK, URL, AsyncScraperType, Context
 from harambe.observer import OutputObserver
-from harambe_core.parser.parser import SchemaValidationError
-from harambe_core.types import Schema
+from harambe_core.errors import SchemaValidationError
+from harambe_core import Schema
 
 
 @pytest.fixture

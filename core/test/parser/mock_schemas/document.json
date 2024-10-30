@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "title": {
+    "type": "string",
+    "description": "The title of the document."
+  },
+  "document_url": {
+    "type": "url",
+    "description": "The URL of the document.",
+    "actions": {
+      "download": true
+    }
+  }
+}

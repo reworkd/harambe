@@ -56,9 +56,7 @@ from harambe.types import (
     LocalStorage,
 )
 
-from harambe_core.parser.parser import PydanticSchemaParser
-from harambe_core.types import Schema
-
+from harambe_core import SchemaParser, Schema
 
 class AsyncScraper(Protocol):
     """
@@ -96,7 +94,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
-        self._validator = PydanticSchemaParser(schema) if schema else None
+        self._validator = SchemaParser(schema) if schema else None
         self._saved_data: set[ScrapeResult] = set()
         self._saved_cookies: List[Cookie] = []
         self._saved_local_storage: List[LocalStorage] = []
