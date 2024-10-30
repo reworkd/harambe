@@ -1,38 +1,36 @@
-[tool.poetry]
+[project]
 name = "harambe-sdk"
 version = "0.32.0"
 description = "Data extraction SDK for Playwright 🐒🍌"
-authors = ["awtkns <hello@awtkns.com>"]
+authors = [
+    { name = "Adam Watkins", email = "adam@reworkd.ai" }
+]
+requires-python = ">=3.11,<4.0"
 readme = "README.md"
-packages = [
-    { include = "harambe", from = "." },
+dependencies = [
+    "pydantic==2.9.2",
+    "playwright==1.47.0",
+    "setuptools==73.0.0",
+    "beautifulsoup4==4.12.3",
+    "dateparser==1.2.0",
+    "requests==2.32.3",
+    "playwright-stealth==1.0.6",
+    "aiohttp==3.10.10",
+    "email-validator==2.2.0",
+    "phonenumbers==8.13.47",
+    "curl-cffi==0.7.3",
+    "ua-generator==1.0.5",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0"
-pydantic = "^2.9.2"
-playwright = "^1.47.0"
-setuptools = "^73.0.0"
-beautifulsoup4 = "^4.12.3"
-dateparser = "^1.2.0"
-requests = "^2.32.3"
-playwright-stealth = "^1.0.6" # TODO: self host this package
-aiohttp = "^3.10.10"
-email-validator = "^2.2.0"
-phonenumbers = "^8.13.47"
-curl-cffi = "^0.7.3"
-ua-generator = "^1.0.5"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.4.10"
-mypy = "^1.11.1"
-types-dateparser = "^1.2.0.20240420"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.4.4"
-pytest-cov = "^4.1.0"
-pytest-asyncio = "^0.21.2"
-pytest-mock = "^3.14.0"
+[tool.uv]
+dev-dependencies = [
+    "ruff==0.4.10",
+    "mypy==1.11.1",
+    "types-dateparser==1.2.0.20240420",
+    "pytest==7.4.4",
+    "pytest-cov==4.1.0",
+    "pytest-asyncio==0.21.2",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -54,7 +52,3 @@ warn_return_any = false
 namespace_packages = true
 files = "harambe"
 exclude = ["test", "extractors"]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

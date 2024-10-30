@@ -38,6 +38,7 @@ async def playwright_harness(
     on_new_page: Optional[PageCallback] = None,
     browser_type: Optional[BrowserType] = None,
     enable_clipboard: bool = False,
+    launch_args: Sequence[str] = (),
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -52,6 +53,7 @@ async def playwright_harness(
             else getattr(p, cast(str, browser_type or "chromium")).launch(
                 headless=headless,
                 args=[
+                    *launch_args,
                     *(
                         # Disables navigator.webdriver showing up
                         ["--disable-blink-features=AutomationControlled"]

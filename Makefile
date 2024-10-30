@@ -27,7 +27,7 @@ format: ## Format code using Docker
 
 FORMAT: ## Format code
 	@echo "Formatting code 🧹"
-	@poetry run ruff format
+	@uv run ruff format
 .PHONY: FORMAT
 
 format_check: ## Check code formatting using Docker
@@ -36,7 +36,7 @@ format_check: ## Check code formatting using Docker
 
 FORMAT_CHECK: ## Check code formatting
 	@echo "Checking code 🧹"
-	@poetry run ruff format --diff
+	@uv run ruff format --diff
 .PHONY: FORMAT_CHECK
 
 lint: ## Lint code using Docker
@@ -44,7 +44,7 @@ lint: ## Lint code using Docker
 .PHONY: lint
 
 LINT: ## Lint code
-	@poetry run ruff check --fix
+	@uv run ruff check --fix
 .PHONY: LINT
 
 lint_check: ## Check code quality using Docker
@@ -52,7 +52,7 @@ lint_check: ## Check code quality using Docker
 .PHONY: lint_check
 
 LINT_CHECK: ## Check code quality
-	@poetry run ruff check
+	@uv run ruff check
 .PHONY: LINT_CHECK
 
 test: $(HARAMBE) $(OUTPUT_DIR) $(CONFIG_FILE) ## Run tests using Docker
@@ -61,7 +61,7 @@ test: $(HARAMBE) $(OUTPUT_DIR) $(CONFIG_FILE) ## Run tests using Docker
 .PHONY: test
 
 TEST: ## Run tests
-	@poetry run pytest . -v
+	@uv run pytest . -v
 .PHONY: TEST
 
 shell: ## Enter Docker container's shell
