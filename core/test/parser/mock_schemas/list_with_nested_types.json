@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "events": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "dates": {
+          "type": "array",
+          "items": {
+            "type": "datetime"
+          }
+        },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "phone_number"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "url"
+          }
+        }
+      }
+    }
+  }
+}

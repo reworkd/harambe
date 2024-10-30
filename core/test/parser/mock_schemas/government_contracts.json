@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "id": {
+    "type": "string"
+  },
+  "title": {
+    "type": "string"
+  },
+  "status": {
+    "type": "string"
+  },
+  "description": {
+    "type": "string"
+  },
+  "location": {
+    "type": "string"
+  },
+  "type": {
+    "type": "string"
+  },
+  "category": {
+    "type": "string"
+  },
+  "posted_date": {
+    "type": "string"
+  },
+  "due_date": {
+    "type": "string"
+  },
+  "buyer_name": {
+    "type": "string"
+  },
+  "buyer_contact_name": {
+    "type": "string"
+  },
+  "buyer_contact_email": {
+    "type": "string"
+  },
+  "buyer_contact_number": {
+    "type": "string"
+  },
+  "attachments": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "procurement_items": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "code_type": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "code_description": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

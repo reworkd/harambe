@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "contact": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "phone": {
+        "type": "phone_number"
+      }
+    }
+  }
+}

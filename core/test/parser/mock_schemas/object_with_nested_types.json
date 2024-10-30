@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "profile": {
+    "type": "object",
+    "properties": {
+      "user": {
+        "type": "string",
+        "description": "Username"
+      },
+        "contact": {
+            "type": "phone_number",
+            "description": "Contact number"
+        },
+        "event_date": {
+            "type": "datetime",
+            "description": "Event date"
+        },
+        "website": {
+          "type": "url",
+          "description": "Website URL"
+        }
+    }
+  }
+}
+
