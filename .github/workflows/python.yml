@@ -68,6 +68,7 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Install playwright
+        working-directory: sdk
         run:  uv run playwright install chromium firefox webkit --with-deps
       - name: Run pytest
         working-directory: sdk
