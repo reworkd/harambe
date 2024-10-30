@@ -149,3 +149,5 @@ cython_debug/
 *.bin
 /screenshots/
 /data/
+*.venv
+*.DS_Store
