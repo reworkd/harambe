@@ -7,7 +7,7 @@ from playwright.async_api import BrowserContext, ViewportSize, async_playwright,
 from playwright_stealth import stealth_async
 
 from harambe.contrib.playwright.impl import PlaywrightPage
-from harambe.handlers import UnnecessaryResourceHandler
+from harambe.handlers import UnnecessaryResourceHandler, MailtoTelBlockerHandler
 from harambe.proxy import proxy_from_url
 from harambe.types import SetCookieParam, BrowserType, LocalStorage
 from harambe.user_agent import random_user_agent, compute_user_agent, UserAgentFactory
@@ -112,9 +112,11 @@ async def playwright_harness(
 
         if abort_unnecessary_requests:
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)
+        await ctx.route("**/*", MailtoTelBlockerHandler().handle)
 
         async def page_factory(*_: Any, **__: Any) -> PlaywrightPage:
             page = await ctx.new_page()
+            page.on("dialog", lambda dialog: dialog.dismiss())
             if on_new_page:
                 await on_new_page(page)
             if stealth:

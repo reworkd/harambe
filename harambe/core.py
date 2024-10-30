@@ -406,9 +406,18 @@ class SDK:
             )
             if setup:
                 await setup(sdk)
-
             if not harness_options.get("disable_go_to_url", False):
                 await page.goto(url)
+                if harness == playwright_harness:
+                    await page.wait_for_load_state("domcontentloaded")
+                    await page.evaluate("""
+                            document.addEventListener('click', (event) => {
+                                const target = event.target.closest('a[href^="mailto:"], a[href^="tel:"]');
+                                if (target) {
+                                    event.preventDefault();
+                                }
+                            });
+                        """)
             elif isinstance(page, SoupPage):
                 page.url = url
             await scraper(sdk, url, context)
