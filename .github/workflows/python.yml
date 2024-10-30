@@ -33,31 +33,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'poetry'
-      - run: make RESOLVE_DEPS
-      - name: Check code formatting
-        run: make FORMAT_CHECK
-      - name: Run linter
-        run: make LINT_CHECK
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Run ruff check
+        run: uvx ruff format --check .
 
   pytest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'poetry'
-      - run: make RESOLVE_DEPS
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Install playwright
+        run: | 
+          uv run playwright install chromium
+          uv run playwright install firefox
+          uv run playwright install webkit
       - name: Run pytest
-        run: make TEST
+        run: uv run pytest -vv --cov="${{ inputs.package }}" .
 
   publish:
     needs: [ check-version, format, pytest ]
@@ -65,13 +62,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_publish == 'true'
     steps:
       - uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "poetry"
-      - run: make RESOLVE_DEPS
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Build and Publish
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
