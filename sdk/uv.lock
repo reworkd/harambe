@@ -428,7 +428,7 @@ wheels = [
 
 [[package]]
 name = "harambe-core"
-version = "0.32.0"
+version = "0.40.2"
 source = { editable = "../core" }
 dependencies = [
     { name = "dateparser" },
@@ -436,6 +436,7 @@ dependencies = [
     { name = "phonenumbers" },
     { name = "playwright" },
     { name = "pydantic" },
+    { name = "python-slugify" },
 ]
 
 [package.metadata]
@@ -445,6 +446,7 @@ requires-dist = [
     { name = "phonenumbers", specifier = "==8.13.47" },
     { name = "playwright", specifier = "==1.47.0" },
     { name = "pydantic", specifier = "==2.9.2" },
+    { name = "python-slugify", specifier = ">=8.0.4" },
 ]
 
 [package.metadata.requires-dev]
@@ -459,7 +461,7 @@ dev = [
 
 [[package]]
 name = "harambe-sdk"
-version = "0.32.0"
+version = "0.40.2"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -472,6 +474,7 @@ dependencies = [
     { name = "playwright" },
     { name = "playwright-stealth" },
     { name = "pydantic" },
+    { name = "python-slugify" },
     { name = "requests" },
     { name = "setuptools" },
     { name = "ua-generator" },
@@ -499,6 +502,7 @@ requires-dist = [
     { name = "playwright", specifier = "==1.47.0" },
     { name = "playwright-stealth", specifier = "==1.0.6" },
     { name = "pydantic", specifier = "==2.9.2" },
+    { name = "python-slugify", specifier = ">=8.0.4" },
     { name = "requests", specifier = "==2.32.3" },
     { name = "setuptools", specifier = "==73.0.0" },
     { name = "ua-generator", specifier = "==1.0.5" },
@@ -867,6 +871,18 @@ wheels = [
 ]
 
 [[package]]
+name = "python-slugify"
+version = "8.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "text-unidecode" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/87/c7/5e1547c44e31da50a460df93af11a535ace568ef89d7a811069ead340c4a/python-slugify-8.0.4.tar.gz", hash = "sha256:59202371d1d05b54a9e7720c5e038f928f45daaffe41dd10822f3907b937c856", size = 10921 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/62/02da182e544a51a5c3ccf4b03ab79df279f9c60c5e82d5e8bec7ca26ac11/python_slugify-8.0.4-py2.py3-none-any.whl", hash = "sha256:276540b79961052b66b7d116620b36518847f52d5fd9e3a70164fc8c50faa6b8", size = 10051 },
+]
+
+[[package]]
 name = "pytz"
 version = "2024.2"
 source = { registry = "https://pypi.org/simple" }
@@ -992,6 +1008,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d7/ce/fbaeed4f9fb8b2daa961f90591662df6a86c1abf25c548329a86920aedfb/soupsieve-2.6.tar.gz", hash = "sha256:e2e68417777af359ec65daac1057404a3c8a5455bb8abc36f1a9866ab1a51abb", size = 101569 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/c2/fe97d779f3ef3b15f05c94a2f1e3d21732574ed441687474db9d342a7315/soupsieve-2.6-py3-none-any.whl", hash = "sha256:e72c4ff06e4fb6e4b5a9f0f55fe6e81514581fca1515028625d0f299c602ccc9", size = 36186 },
+]
+
+[[package]]
+name = "text-unidecode"
+version = "1.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/e2/e9a00f0ccb71718418230718b3d900e71a5d16e701a3dae079a21e9cd8f8/text-unidecode-1.3.tar.gz", hash = "sha256:bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93", size = 76885 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a6/a5/c0b6468d3824fe3fde30dbb5e1f687b291608f9473681bbf7dabbf5a87d7/text_unidecode-1.3-py2.py3-none-any.whl", hash = "sha256:1311f10e8b895935241623731c2ba64f4c455287888b18189350b67134a822e8", size = 78154 },
 ]
 
 [[package]]

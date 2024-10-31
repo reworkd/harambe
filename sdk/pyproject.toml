@@ -1,6 +1,6 @@
 [project]
 name = "harambe-sdk"
-version = "0.40.2"
+version = "0.41.0"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = [
     { name = "Adam Watkins", email = "adam@reworkd.ai" }
@@ -21,6 +21,7 @@ dependencies = [
     "phonenumbers==8.13.47",
     "curl-cffi==0.7.3",
     "ua-generator==1.0.5",
+    "python-slugify>=8.0.4",
 ]
 
 [tool.uv]

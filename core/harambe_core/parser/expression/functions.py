@@ -1,5 +1,5 @@
-import re
 from typing import Any
+from slugify import slugify as python_slugify
 
 from harambe_core.parser.expression.evaluator import ExpressionEvaluator
 
@@ -10,8 +10,13 @@ def noop(*args: Any) -> Any:
 
 
 @ExpressionEvaluator.register("CONCAT")
-def concat(*args: str) -> str:
-    return "".join(str(arg) for arg in args if arg is not None)
+def concat(*args: Any, seperator: str = "") -> str:
+    return seperator.join(str(arg) for arg in args if arg is not None)
+
+
+@ExpressionEvaluator.register("CONCAT_WS")
+def concat_ws(seperator: str, *args: Any) -> str:
+    return concat(*args, seperator=seperator)
 
 
 @ExpressionEvaluator.register("COALESCE")
@@ -23,11 +28,9 @@ def coalesce(*args: Any) -> Any:
 
 
 @ExpressionEvaluator.register("SLUGIFY")
-def slugify(*args: str) -> str:
-    text = concat(*args)
-    text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)
-    return re.sub(r"[-\s]+", "-", text)
+def slugify(*args: Any) -> str:
+    text = concat_ws(" ", *args)
+    return python_slugify(text)
 
 
 @ExpressionEvaluator.register("UPPER")

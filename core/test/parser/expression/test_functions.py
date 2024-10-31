@@ -5,6 +5,7 @@ from harambe_core.parser.expression.functions import (
     coalesce,
     concat,
     noop,
+    concat_ws,
 )
 
 
@@ -19,6 +20,12 @@ def test_concat():
     assert concat(None, None) == ""
 
 
+def test_concat_ws():
+    assert concat_ws(" ", "hello", "world") == "hello world"
+    assert concat_ws(",", "hello", "world") == "hello,world"
+    assert concat_ws(":-:", "hello", None, "world") == "hello:-:world"
+
+
 def test_coalesce():
     assert coalesce(None, None, "firstNonNull") == "firstNonNull"
     assert coalesce(None, False, 0, "", 1) == 1
@@ -29,6 +36,8 @@ def test_slugify():
     assert slugify("Hello World!") == "hello-world"
     assert slugify(" Hello   World!  ") == "hello-world"
     assert slugify("Hello-World") == "hello-world"
+    assert slugify("Hello World", "Another") == "hello-world-another"
+    assert slugify("Hello World", "Another", 2) == "hello-world-another-2"
 
 
 def test_upper():
