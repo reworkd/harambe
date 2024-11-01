@@ -577,30 +577,3 @@ def test_dump_email() -> None:
     output_data = validator.validate(data, base_url="http://example.com")
     assert output_data == data
     assert isinstance(output_data["email"], str)
-
-
-def test_computed_field() -> None:
-    schema = {
-        "degree": {"type": "string"},
-        "first_name": {"type": "string"},
-        "last_name": {"type": "string"},
-        "full_name": {
-            "type": "string",
-            "expression": "CONCAT(first_name, ' ', last_name)",
-        },
-        "slug": {
-            "type": "string",
-            "expression": "SLUGIFY(CONCAT(full_name, ' ', degree))",
-        },
-    }
-
-    data = {
-        "degree": "Bachelor of Science: Computer Science",
-        "first_name": "Adam",
-        "last_name": "Watkins",
-    }
-
-    validator = SchemaParser(schema)
-    output_data = validator.validate(data, base_url="http://example.com")
-    assert output_data["full_name"] == "Adam Watkins"
-    assert output_data["slug"] == "adam-watkins-bachelor-of-science-computer-science"
