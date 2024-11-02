@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Type, Self
 
 from pydantic import (
@@ -20,8 +19,8 @@ from harambe_core.parser.type_number import ParserTypeNumber
 from harambe_core.parser.type_phone_number import ParserTypePhoneNumber
 from harambe_core.parser.type_string import ParserTypeString
 from harambe_core.parser.type_url import ParserTypeUrl
-from harambe_core.types import SchemaFieldType
 from harambe_core.types import Schema
+from harambe_core.types import SchemaFieldType
 
 
 class SchemaParser:
@@ -31,10 +30,16 @@ class SchemaParser:
 
     model: Type[BaseModel]
 
-    def __init__(self, schema: Schema):
+    def __init__(
+        self, schema: Schema, evaluator: ExpressionEvaluator | None = None
+    ) -> None:
         if "$schema" in schema:
             del schema["$schema"]
 
+        if evaluator is None:
+            evaluator = ExpressionEvaluator()
+
+        self.evaluator = evaluator
         self.schema = schema
         self.field_types: dict[SchemaFieldType, Any] = {}
         self.all_required_fields = self._get_all_required_fields(self.schema)
@@ -154,7 +159,7 @@ class SchemaParser:
 
         config: ConfigDict = {"extra": "forbid", "str_strip_whitespace": True}
         config.update(schema.get("__config__", {}))
-        base_model = base_model_factory(config, computed_fields)
+        base_model = base_model_factory(config, computed_fields, self.evaluator)
 
         return create_model(model_name, __base__=base_model, **fields)
 
@@ -256,7 +261,7 @@ class SchemaParser:
 
 
 def base_model_factory(
-    config: ConfigDict, computed_fields: dict[str, str]
+    config: ConfigDict, computed_fields: dict[str, str], evaluator: ExpressionEvaluator
 ) -> Type[BaseModel]:
     class PreValidatedBaseModel(BaseModel):
         model_config: ConfigDict = config
@@ -292,7 +297,7 @@ def base_model_factory(
         @model_validator(mode="after")
         def evaluate_computed_fields(self) -> Self:
             for field, expression in computed_fields.items():
-                res = ExpressionEvaluator.evaluate(expression, self)
+                res = evaluator.evaluate(expression, self)
                 setattr(self, field, res)
             return self
 

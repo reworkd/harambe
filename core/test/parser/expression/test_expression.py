@@ -5,7 +5,7 @@ from harambe_core.parser.expression import ExpressionEvaluator
 
 @pytest.fixture
 def evaluator():
-    return ExpressionEvaluator
+    return ExpressionEvaluator()
 
 
 def test_evaluate_simple(evaluator):
@@ -101,3 +101,17 @@ def test_evaluate_unknown_function(evaluator):
 def test_invalid_parenthesis(evaluator, expression):
     with pytest.raises(SyntaxError):
         evaluator.evaluate(expression, {})
+
+
+def test_register_custom_function():
+    evaluator1 = ExpressionEvaluator()
+    evaluator2 = ExpressionEvaluator()
+
+    @evaluator1.define_function("CUSTOM")
+    def custom_func(a, b):
+        return a + b
+
+    assert evaluator1.evaluate("CUSTOM(a, b)", {"a": 10, "b": 20}) == 30
+
+    with pytest.raises(ValueError, match="Unknown function: CUSTOM"):
+        evaluator2.evaluate("CUSTOM(a, b)", {"a": 10, "b": 20})
