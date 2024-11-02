@@ -1,24 +1,31 @@
 from functools import wraps
-from typing import Any
+from typing import Any, Callable
+
+Func = Callable[..., Any]
 
 
 class ExpressionEvaluator:
-    functions = {}
+    __builtins__ = {}
 
-    @classmethod
-    def register(cls, func_name: str):
-        def decorator(func):
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
+    def __init__(self):
+        self._functions = {}
 
-            cls.functions[func_name.upper()] = wrapper
-            return wrapper
+    def __contains__(self, function_name: str) -> bool:
+        return (
+            function_name.upper() in self._functions
+            or function_name.upper() in self.__builtins__
+        )
 
-        return decorator
+    def __getitem__(self, function_name: str) -> Func:
+        return (
+            self._functions.get(function_name.upper())
+            or self.__builtins__[function_name.upper()]
+        )
 
-    @staticmethod
-    def evaluate(expression: str, obj: Any) -> Any:
+    def __call__(self, func_name: str, *args: Any, **kwargs: Any) -> Any:
+        return self[func_name](*args, **kwargs)
+
+    def evaluate(self, expression: str, obj: Any) -> Any:
         expression = expression.strip()
 
         if not expression:
@@ -31,7 +38,7 @@ class ExpressionEvaluator:
         if not func_name:
             raise ValueError("Invalid function name")
 
-        if func_name not in ExpressionEvaluator.functions:
+        if func_name not in self:
             raise ValueError(f"Unknown function: {func_name}")
 
         remaining = expression[len(func_name) :].strip()
@@ -70,11 +77,18 @@ class ExpressionEvaluator:
             if ExpressionEvaluator._is_string_literal(arg):
                 evaluated_args.append(arg[1:-1])
             elif "(" in arg:
-                evaluated_args.append(ExpressionEvaluator.evaluate(arg, obj))
+                evaluated_args.append(self.evaluate(arg, obj))
             else:
                 evaluated_args.append(ExpressionEvaluator._get_field_value(arg, obj))
 
-        return ExpressionEvaluator.functions[func_name](*evaluated_args)
+        return self(func_name, *evaluated_args)
+
+    def define_function(self, func_name: str):
+        return self._wrap(func_name, self._functions)
+
+    @classmethod
+    def define_builtin(cls, func_name: str):
+        return cls._wrap(func_name, cls.__builtins__)
 
     @staticmethod
     def _is_string_literal(arg: str):
@@ -105,3 +119,17 @@ class ExpressionEvaluator:
                 return None
 
         return current
+
+    @staticmethod
+    def _wrap(
+        func_name: str, function_store: dict[str, Callable[..., Any]]
+    ) -> Callable[..., Any]:
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            function_store[func_name.upper()] = wrapper
+            return wrapper
+
+        return decorator

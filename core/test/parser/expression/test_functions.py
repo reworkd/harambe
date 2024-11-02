@@ -38,6 +38,7 @@ def test_slugify():
     assert slugify("Hello-World") == "hello-world"
     assert slugify("Hello World", "Another") == "hello-world-another"
     assert slugify("Hello World", "Another", 2) == "hello-world-another-2"
+    assert slugify(1, 2, 3, "four") == "1-2-3-four"
 
 
 def test_upper():

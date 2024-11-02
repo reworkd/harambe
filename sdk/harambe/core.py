@@ -57,6 +57,7 @@ from harambe.types import (
 )
 
 from harambe_core import SchemaParser, Schema
+from harambe_core.parser.expression import ExpressionEvaluator
 
 
 class AsyncScraper(Protocol):
@@ -88,6 +89,7 @@ class SDK:
         context: Optional[Context] = None,
         schema: Optional[Schema] = None,
         deduper: Optional[DuplicateHandler] = None,
+        evaluator: Optional[ExpressionEvaluator] = None,
     ):
         self.page: Page = page  # type: ignore
         self._id = run_id or uuid.uuid4()
@@ -95,7 +97,7 @@ class SDK:
         self._stage = stage
         self._scraper = scraper
         self._context = context or {}
-        self._validator = SchemaParser(schema) if schema else None
+        self._validator = SchemaParser(schema, evaluator) if schema else None
         self._saved_data: set[ScrapeResult] = set()
         self._saved_cookies: List[Cookie] = []
         self._saved_local_storage: List[LocalStorage] = []
