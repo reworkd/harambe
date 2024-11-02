@@ -372,6 +372,7 @@ class SDK:
         context: Optional[Context] = None,
         setup: Optional[SetupType] = None,
         harness: WebHarness = playwright_harness,
+        evaluator: Optional[ExpressionEvaluator] = None,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
@@ -383,6 +384,7 @@ class SDK:
         :param context: additional context to pass to the scrapers
         :param setup: setup function to run before the scraper
         :param harness: the harness to use for the browser
+        :param evaluator: expression evaluator to use for the scraper
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
@@ -405,6 +407,7 @@ class SDK:
                 scraper=scraper,
                 context=context,
                 schema=schema,
+                evaluator=evaluator,
             )
             if setup:
                 await setup(sdk)
