@@ -14,28 +14,21 @@ from typing import (
     Union,
     Unpack,
     cast,
+    Tuple,
 )
 
 import aiohttp
-from playwright.async_api import (
-    ElementHandle,
-    Page,
-)
-from playwright.async_api import (
-    TimeoutError as PlaywrightTimeoutError,
-)
-
-from harambe.contrib import WebHarness, playwright_harness
+from bs4 import BeautifulSoup
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
-from harambe.cookies_handler import fix_cookie
+from harambe.cookie_utils import fix_cookie
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
-from harambe_core.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
+    HTMLMetadata,
     LocalStorageObserver,
     LoggingObserver,
     ObservationTrigger,
@@ -55,9 +48,20 @@ from harambe.types import (
     Cookie,
     LocalStorage,
 )
-
 from harambe_core import SchemaParser, Schema
+from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
+from playwright.async_api import (
+    ElementHandle,
+    Page,
+)
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeoutError,
+)
+
+from harambe.contrib import WebHarness, playwright_harness
+
+4
 
 
 class AsyncScraper(Protocol):
