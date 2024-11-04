@@ -31,8 +31,7 @@ class DownloadMeta(TypedDict):
     filename: str
 
 
-class HTMLMetadata(TypedDict):
-    download: DownloadMeta
+class HTMLMetadata(DownloadMeta):
     html: str
     inner_text: str
 

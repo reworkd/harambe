@@ -22,6 +22,7 @@ dependencies = [
     "curl-cffi==0.7.3",
     "ua-generator==1.0.5",
     "python-slugify>=8.0.4",
+    "nanoid>=2.0.0",
 ]
 
 [tool.uv]

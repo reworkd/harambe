@@ -287,7 +287,12 @@ class SDK:
                 check_duplication=False,
             )
 
-        return {"download": downloads[0], "html": html, "inner_text": inner_text}
+        return {
+            "url": downloads[0]["url"],
+            "filename": downloads[0]["filename"],
+            "html": html,
+            "inner_text": inner_text,
+        }
 
     async def _get_html(
         self, selector: str, exclude_selectors: List[str]

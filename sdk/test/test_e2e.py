@@ -443,22 +443,10 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         full_html_metadata = await sdk.capture_html()
-        await sdk.save_data(
-            {
-                "html_url": full_html_metadata["download"]["url"],
-                "html": full_html_metadata["html"],
-                "inner_text": full_html_metadata["inner_text"],
-            }
-        )
+        await sdk.save_data(full_html_metadata)
 
         table_html_metadata = await sdk.capture_html("table", ["thead"])
-        await sdk.save_data(
-            {
-                "html_url": table_html_metadata["download"]["url"],
-                "html": table_html_metadata["html"],
-                "inner_text": table_html_metadata["inner_text"],
-            }
-        )
+        await sdk.save_data(table_html_metadata)
 
     await SDK.run(
         scraper=scraper,
@@ -477,6 +465,12 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
     assert "<tbody" in doc_data["html"]
     assert "Apple" in doc_data["inner_text"]
 
+    # Verify download fields all available
+    print(doc_data)
+    print(doc_data)
+    assert doc_data["url"]
+    assert doc_data["filename"]
+
     # Verify table capture with exclusion
     table_data = observer.data[1]
     assert table_data["html"].startswith("<!DOCTYPE html>")
@@ -484,7 +478,6 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
     assert "<thead" not in table_data["html"]
     assert "Price" not in table_data["inner_text"]
     assert "Apple" in table_data["inner_text"]
-    print(table_data)
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
