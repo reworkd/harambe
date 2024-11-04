@@ -259,6 +259,68 @@ class SDK:
         )
         return res[0]
 
+    async def capture_html(
+        self,
+        selector: str = "html",
+        exclude_selectors: List[str] | None = None,
+    ) -> HTMLMetadata:
+        """
+        Capture and download the full html content of the page or a specific element. The returned HTML
+        will be cleaned of any excluded elements and will be wrapped in a proper HTML document structure.
+
+        :param selector: CSS selector of element to capture. Defaults to "html" for the document element.
+        :param exclude_selectors: List of CSS selectors for elements to exclude from capture.
+        :return: HTMLMetadata containing download URL, HTML content and inner text.
+        :raises ValueError: If the specified selector doesn't match any element.
+        """
+        html, inner_text = await self._get_html(selector, exclude_selectors or [])
+
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as temp_file:
+            temp_file.write(html)
+            temp_file.flush()
+
+            downloads = await self._notify_observers(
+                "on_download",
+                self.page.url,
+                nanoid_factory(),
+                html,
+                check_duplication=False,
+            )
+
+        return {"download": downloads[0], "html": html, "inner_text": inner_text}
+
+    async def _get_html(
+        self, selector: str, exclude_selectors: List[str]
+    ) -> Tuple[str, str]:
+        element = await self.page.query_selector(selector)
+
+        if not element:
+            raise ValueError(f"Element not found for selector: {selector}")
+
+        raw_inner_html = await element.inner_html()
+
+        soup = BeautifulSoup(raw_inner_html, "html.parser")
+        for selector in exclude_selectors:
+            for element_to_remove in soup.select(selector):
+                element_to_remove.decompose()
+        inner_text = soup.get_text(separator="\n", strip=True)
+
+        return self._wrap_html(str(soup)), inner_text
+
+    @staticmethod
+    def _wrap_html(content: str) -> str:
+        return (
+            "<!DOCTYPE html>\n"
+            "<html>\n"
+            "<head>\n"
+            '    <meta charset="utf-8">\n'
+            "</head>\n"
+            "<body>\n"
+            f"{content}\n"
+            "</body>\n"
+            "</html>"
+        )
+
     async def capture_pdf(
         self,
     ) -> DownloadMeta:

@@ -438,7 +438,6 @@ async def test_reset_local_storage(server, observer, harness):
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_capture_html_with_and_without_exclusions(server, observer, harness):
-    """Test capturing different parts of the page with and without exclusions"""
     url = f"{server}/table"
 
     @SDK.scraper("test", "detail", observer=observer)
