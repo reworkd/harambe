@@ -452,7 +452,7 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
         scraper=scraper,
         url=url,
         schema={},
-        headless=False,
+        headless=True,
         harness=harness,
     )
 
