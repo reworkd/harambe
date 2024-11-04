@@ -48,7 +48,6 @@ from harambe.types import (
     Cookie,
     LocalStorage,
 )
-from harambe.utils import nanoid_factory
 from harambe_core import SchemaParser, Schema
 from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
@@ -278,7 +277,7 @@ class SDK:
         downloads = await self._notify_observers(
             method="on_download",
             download_url=self.page.url,
-            filename=nanoid_factory(),
+            filename=str(uuid.uuid4()),
             content=html,
             check_duplication=False,
         )
