@@ -3,11 +3,11 @@ from typing import cast
 
 import pytest
 from aiohttp import web
+from harambe.observer import InMemoryObserver
+from harambe.types import BrowserType
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
-from harambe.observer import InMemoryObserver
-from harambe.types import BrowserType
 
 
 @pytest.fixture(scope="module")
@@ -434,3 +434,75 @@ async def test_reset_local_storage(server, observer, harness):
 
     assert len(observer.data) == 1
     assert observer.data[0]["local_storage"] == {}
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_capture_html_with_and_without_exclusions(server, observer, harness):
+    """Test capturing different parts of the page with and without exclusions"""
+    url = f"{server}/table"
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        full_html_metadata = await sdk.capture_html()
+        await sdk.save_data(
+            {
+                "html_url": full_html_metadata["download"]["url"],
+                "html": full_html_metadata["html"],
+                "inner_text": full_html_metadata["inner_text"],
+            }
+        )
+
+        table_html_metadata = await sdk.capture_html("table", ["thead"])
+        await sdk.save_data(
+            {
+                "html_url": table_html_metadata["download"]["url"],
+                "html": table_html_metadata["html"],
+                "inner_text": table_html_metadata["inner_text"],
+            }
+        )
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=False,
+        harness=harness,
+    )
+
+    assert len(observer.data) == 2
+
+    # Verify full document capture
+    doc_data = observer.data[0]
+    assert doc_data["html"].startswith("<!DOCTYPE html>")
+    assert "<table" in doc_data["html"]
+    assert "<tbody" in doc_data["html"]
+    assert "Apple" in doc_data["inner_text"]
+
+    # Verify table capture with exclusion
+    table_data = observer.data[1]
+    assert table_data["html"].startswith("<!DOCTYPE html>")
+    assert "<tbody" in doc_data["html"]
+    assert "<thead" not in table_data["html"]
+    assert "Price" not in table_data["inner_text"]
+    assert "Apple" in table_data["inner_text"]
+    print(table_data)
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_capture_html_element_not_found(server, observer, harness):
+    url = f"{server}/table"
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        with pytest.raises(ValueError):
+            await sdk.capture_html("#missing .selector .lies .adam-watkins")
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+    )
+
+    assert len(observer.data) == 0
