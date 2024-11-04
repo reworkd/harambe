@@ -265,7 +265,7 @@ class SDK:
         exclude_selectors: List[str] | None = None,
     ) -> HTMLMetadata:
         """
-        Capture and download the full html content of the page or a specific element. The returned HTML
+        Capture and download the html content of the document or a specific element. The returned HTML
         will be cleaned of any excluded elements and will be wrapped in a proper HTML document structure.
 
         :param selector: CSS selector of element to capture. Defaults to "html" for the document element.
