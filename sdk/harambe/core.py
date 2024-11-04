@@ -280,7 +280,7 @@ class SDK:
             temp_file.flush()
 
             downloads = await self._notify_observers(
-                "on_download",
+                method="on_download",
                 download_url=self.page.url,
                 filename=nanoid_factory(),
                 content=html,
