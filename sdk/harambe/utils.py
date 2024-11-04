@@ -3,21 +3,7 @@ import re
 from typing import Callable, List, Optional, ParamSpec, TypeVar, Union
 from urllib.parse import urljoin
 
-from nanoid import generate
 from playwright.async_api import Locator, Page
-
-alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-size = 16
-
-
-def nanoid_factory() -> str:
-    """
-    30T IDs needed, in order to have a 1% probability of at least one collision.
-    @return: a random ID
-    """
-
-    return generate(alphabet=alphabet, size=size)
-
 
 PageLocator = Union[Locator, Page]
 
