@@ -275,17 +275,13 @@ class SDK:
         """
         html, inner_text = await self._get_html(selector, exclude_selectors or [])
 
-        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as temp_file:
-            temp_file.write(html)
-            temp_file.flush()
-
-            downloads = await self._notify_observers(
-                method="on_download",
-                download_url=self.page.url,
-                filename=nanoid_factory(),
-                content=html,
-                check_duplication=False,
-            )
+        downloads = await self._notify_observers(
+            method="on_download",
+            download_url=self.page.url,
+            filename=nanoid_factory(),
+            content=html,
+            check_duplication=False,
+        )
 
         return {
             "url": downloads[0]["url"],
@@ -310,21 +306,7 @@ class SDK:
                 element_to_remove.decompose()
         inner_text = soup.get_text(separator="\n", strip=True)
 
-        return self._wrap_html(str(soup)), inner_text
-
-    @staticmethod
-    def _wrap_html(content: str) -> str:
-        return (
-            "<!DOCTYPE html>\n"
-            "<html>\n"
-            "<head>\n"
-            '    <meta charset="utf-8">\n'
-            "</head>\n"
-            "<body>\n"
-            f"{content}\n"
-            "</body>\n"
-            "</html>"
-        )
+        return str(soup), inner_text
 
     async def capture_pdf(
         self,
