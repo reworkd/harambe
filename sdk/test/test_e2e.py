@@ -466,8 +466,6 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
     assert "Apple" in doc_data["inner_text"]
 
     # Verify download fields all available
-    print(doc_data)
-    print(doc_data)
     assert doc_data["url"]
     assert doc_data["filename"]
 
