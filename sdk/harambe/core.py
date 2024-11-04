@@ -48,6 +48,7 @@ from harambe.types import (
     Cookie,
     LocalStorage,
 )
+from harambe.utils import nanoid_factory
 from harambe_core import SchemaParser, Schema
 from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
@@ -60,8 +61,6 @@ from playwright.async_api import (
 )
 
 from harambe.contrib import WebHarness, playwright_harness
-
-4
 
 
 class AsyncScraper(Protocol):
