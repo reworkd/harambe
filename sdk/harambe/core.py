@@ -281,9 +281,9 @@ class SDK:
 
             downloads = await self._notify_observers(
                 "on_download",
-                self.page.url,
-                nanoid_factory(),
-                html,
+                download_url=self.page.url,
+                filename=nanoid_factory(),
+                content=html,
                 check_duplication=False,
             )
 
