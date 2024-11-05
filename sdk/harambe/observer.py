@@ -11,10 +11,9 @@ from typing import (
 )
 from urllib.parse import quote
 
-from playwright.async_api import Page
-
 from harambe.tracker import FileDataTracker
 from harambe.types import URL, Context, Options, Stage, Cookie, LocalStorage
+from playwright.async_api import Page
 
 ObservationTrigger = Literal[
     "on_save_data",
@@ -30,6 +29,11 @@ ObservationTrigger = Literal[
 class DownloadMeta(TypedDict):
     url: str
     filename: str
+
+
+class HTMLMetadata(DownloadMeta):
+    html: str
+    inner_text: str
 
 
 @runtime_checkable

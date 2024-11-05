@@ -14,28 +14,21 @@ from typing import (
     Union,
     Unpack,
     cast,
+    Tuple,
 )
 
 import aiohttp
-from playwright.async_api import (
-    ElementHandle,
-    Page,
-)
-from playwright.async_api import (
-    TimeoutError as PlaywrightTimeoutError,
-)
-
-from harambe.contrib import WebHarness, playwright_harness
+from bs4 import BeautifulSoup
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
-from harambe.cookies_handler import fix_cookie
+from harambe.cookie_utils import fix_cookie
 from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
-from harambe_core.normalize_url import normalize_url
 from harambe.observer import (
     DownloadMeta,
+    HTMLMetadata,
     LocalStorageObserver,
     LoggingObserver,
     ObservationTrigger,
@@ -55,9 +48,18 @@ from harambe.types import (
     Cookie,
     LocalStorage,
 )
-
 from harambe_core import SchemaParser, Schema
+from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
+from playwright.async_api import (
+    ElementHandle,
+    Page,
+)
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeoutError,
+)
+
+from harambe.contrib import WebHarness, playwright_harness
 
 
 class AsyncScraper(Protocol):
@@ -255,6 +257,55 @@ class SDK:
             check_duplication=False,
         )
         return res[0]
+
+    async def capture_html(
+        self,
+        selector: str = "html",
+        exclude_selectors: List[str] | None = None,
+    ) -> HTMLMetadata:
+        """
+        Capture and download the html content of the document or a specific element. The returned HTML
+        will be cleaned of any excluded elements and will be wrapped in a proper HTML document structure.
+
+        :param selector: CSS selector of element to capture. Defaults to "html" for the document element.
+        :param exclude_selectors: List of CSS selectors for elements to exclude from capture.
+        :return: HTMLMetadata containing download URL, HTML content and inner text.
+        :raises ValueError: If the specified selector doesn't match any element.
+        """
+        html, inner_text = await self._get_html(selector, exclude_selectors or [])
+
+        downloads = await self._notify_observers(
+            method="on_download",
+            download_url=self.page.url,
+            filename=str(uuid.uuid4()),
+            content=html,
+            check_duplication=False,
+        )
+
+        return {
+            "url": downloads[0]["url"],
+            "filename": downloads[0]["filename"],
+            "html": html,
+            "inner_text": inner_text,
+        }
+
+    async def _get_html(
+        self, selector: str, exclude_selectors: List[str]
+    ) -> Tuple[str, str]:
+        element = await self.page.query_selector(selector)
+
+        if not element:
+            raise ValueError(f"Element not found for selector: {selector}")
+
+        raw_inner_html = await element.inner_html()
+
+        soup = BeautifulSoup(raw_inner_html, "html.parser")
+        for selector in exclude_selectors:
+            for element_to_remove in soup.select(selector):
+                element_to_remove.decompose()
+        inner_text = soup.get_text(separator="\n", strip=True)
+
+        return str(soup), inner_text
 
     async def capture_pdf(
         self,
