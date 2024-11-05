@@ -32,7 +32,7 @@ class ExpressionEvaluator:
             raise ValueError("Empty expression")
 
         if "(" not in expression and ")" not in expression:
-            return ExpressionEvaluator._get_field_value(expression, obj)
+            expression = f"NOOP({expression})"
 
         func_name = expression.split("(", 1)[0].strip().upper()
         if not func_name:

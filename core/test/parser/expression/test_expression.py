@@ -8,7 +8,16 @@ def evaluator():
     return ExpressionEvaluator()
 
 
-def test_evaluate_simple(evaluator):
+def test_evaluate_literal(evaluator):
+    assert evaluator.evaluate("'hello'", {}) == "hello"
+    assert evaluator.evaluate('"hello"', {}) == "hello"
+
+
+def test_evaluate_single_variable(evaluator):
+    assert evaluator.evaluate("name", {"name": "adam"}) == "adam"
+
+
+def test_evaluate_single_func(evaluator):
     assert evaluator.evaluate("UPPER('hello')", {}) == "HELLO"
     assert evaluator.evaluate("CONCAT('hello', 'world')", {}) == "helloworld"
     assert evaluator.evaluate("COALESCE('', 'world')", {}) == "world"
