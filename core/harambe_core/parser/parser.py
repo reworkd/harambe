@@ -50,14 +50,7 @@ class SchemaParser:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
         model = self._schema_to_pydantic_model(self.schema)
-        missing_fields = self._find_missing_required_fields(
-            data, self.all_required_fields
-        )
 
-        if missing_fields:
-            raise SchemaValidationError(
-                message=f"Missing required fields: {', '.join(missing_fields)}, All required fields are: {', '.join(self.all_required_fields)}",
-            )
         if self._all_fields_empty(data):
             raise SchemaValidationError(
                 message="All fields are null or empty.",
@@ -119,9 +112,9 @@ class SchemaParser:
 
         # Every enum has its own unique variants
         if item_type == "enum":
-            return self._get_type(item_type)(items_info["variants"])
+            return self._get_type(item_type, required=True)(items_info["variants"])
 
-        return self._get_type(item_type)
+        return self._get_type(item_type, required=True)
 
     def _schema_to_pydantic_model(
         self, schema: Schema, model_name: str = "DynamicModel"
@@ -153,13 +146,17 @@ class SchemaParser:
                     )
                 ]
             elif field_type == "enum":
-                python_type = self._get_type(field_type)(field_info["variants"])
+                python_type = self._get_type(field_type, required=True)(
+                    field_info["variants"]
+                )
             elif expression := field_info.get("expression"):
-                python_type = self._get_type(field_type)
+                python_type = self._get_type(field_type, required=False)
                 field = Field(default=None, description=field_description)
                 computed_fields[field_name] = expression
             else:
-                python_type = Optional[self._get_type(field_type)]  # type: ignore
+                python_type = self._get_type(
+                    field_type, required=field_info.get("required")
+                )
 
             fields[field_name] = (python_type, field)
 
@@ -240,10 +237,12 @@ class SchemaParser:
 
         return missing_fields
 
-    def _get_type(self, field: SchemaFieldType) -> Type[Any]:
+    def _get_type(self, field: SchemaFieldType, required: bool | None) -> Type[Any]:
         field_type = self.field_types.get(field)
         if not field_type:
             raise ValueError(f"Unsupported field type: {field}")
+        if not required:
+            field_type = Optional[field_type]
         return field_type
 
     def _all_fields_empty(self, data: dict[str, Any]) -> bool:

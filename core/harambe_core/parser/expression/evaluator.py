@@ -127,7 +127,10 @@ class ExpressionEvaluator:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
+                try:
+                    return func(*args, **kwargs)
+                except AttributeError:
+                    return None
 
             function_store[func_name.upper()] = wrapper
             return wrapper

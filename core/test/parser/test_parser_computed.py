@@ -1,6 +1,7 @@
 import pytest
 
 from harambe_core import SchemaParser
+from harambe_core.errors import SchemaValidationError
 from test.parser.mock_schemas.load_schema import load_schema
 
 
@@ -124,3 +125,22 @@ def test_parser_computed_pk():
     validator = SchemaParser(schema_)
     output_data = validator.validate(data, base_url="http://example.com")
     assert output_data["$pk"] == "API Documentation_https://reworkd.ai/docs"
+
+
+def test_computed_on_nullable_field(schema, data):
+    data["degree"] = ""
+    schema["degree"]["expression"] = "UPPER(degree)"
+
+    validator = SchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+    assert output_data["degree"] is None
+
+
+def test_computed_on_required_field(schema, data):
+    data["degree"] = None
+    schema["degree"]["expression"] = "UPPER('BA in Social Studies')"
+    schema["degree"]["required"] = True
+
+    validator = SchemaParser(schema)
+    output_data = validator.validate(data, base_url="http://example.com")
+    assert output_data["degree"] == "BA IN SOCIAL STUDIES"

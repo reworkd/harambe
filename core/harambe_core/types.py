@@ -31,6 +31,7 @@ class Schema(TypedDict, total=False):
     items: NotRequired["Schema"]
     variants: NotRequired[Sequence[str]]
     expression: NotRequired[str]
+    required: NotRequired[bool]
 
 
 Schema.__annotations__["__extra_fields__"] = dict[str, "Schema"]
