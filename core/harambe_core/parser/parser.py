@@ -28,13 +28,15 @@ class SchemaParser:
     A schema parser that uses Pydantic models to validate data against a JSON schema
     """
 
-    model: Type[BaseModel]
-
     def __init__(
         self, schema: Schema, evaluator: ExpressionEvaluator | None = None
     ) -> None:
+        self._pk_expression = schema.get("$pk", None)
+
         if "$schema" in schema:
             del schema["$schema"]
+        if "$pk" in schema:
+            del schema["$pk"]
 
         if evaluator is None:
             evaluator = ExpressionEvaluator()
@@ -47,7 +49,7 @@ class SchemaParser:
     def validate(self, data: dict[str, Any], base_url: str) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
-        self.model = self._schema_to_pydantic_model(self.schema)
+        model = self._schema_to_pydantic_model(self.schema)
         missing_fields = self._find_missing_required_fields(
             data, self.all_required_fields
         )
@@ -61,7 +63,11 @@ class SchemaParser:
                 message="All fields are null or empty.",
             )
         try:
-            return self.model(**data).model_dump()
+            res = model(**data).model_dump()
+            if self._pk_expression:
+                res["$pk"] = self.evaluator.evaluate(self._pk_expression, res)
+            return res
+
         except ValidationError as validation_error:
             raise SchemaValidationError(message=str(validation_error))
 

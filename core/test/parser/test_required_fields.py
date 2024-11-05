@@ -340,5 +340,4 @@ def test_pydantic_schema_validation_success(
     schema: Dict[str, Any], data: Dict[str, Any]
 ):
     validator = SchemaParser(schema)
-    validated_data = validator.validate(data, base_url="http://example.com")
-    assert validated_data == validator.model(**data).model_dump()
+    validator.validate(data, base_url="http://example.com")

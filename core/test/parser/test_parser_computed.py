@@ -1,6 +1,7 @@
 import pytest
 
 from harambe_core import SchemaParser
+from test.parser.mock_schemas.load_schema import load_schema
 
 
 @pytest.fixture
@@ -94,11 +95,32 @@ def test_nested_reference(schema, data):
 
     validator = SchemaParser(schema)
     output_data = validator.validate(data, base_url="http://example.com")
+    assert output_data == {
+        "children": [
+            {
+                "first_name": "Alice",
+                "middle_name": "G",
+                "last_name": "Watkins",
+            },
+            {
+                "first_name": "Bob",
+                "middle_name": "H",
+                "last_name": "Watkins",
+            },
+        ]
+    }
 
-    assert output_data["children"][0]["first_name"] == "Alice"
-    assert output_data["children"][0]["middle_name"] == "G"
-    assert output_data["children"][0]["last_name"] == "Watkins"
 
-    assert output_data["children"][1]["first_name"] == "Bob"
-    assert output_data["children"][1]["middle_name"] == "H"
-    assert output_data["children"][1]["last_name"] == "Watkins"
+def test_parser_computed_pk():
+    schema_ = load_schema("computed_pk")
+    schema_["$pk"] = "CONCAT(resource.name, '_', resource.link)"
+    data = {
+        "resource": {
+            "name": "API Documentation",
+            "link": "https://reworkd.ai/docs",
+        }
+    }
+
+    validator = SchemaParser(schema_)
+    output_data = validator.validate(data, base_url="http://example.com")
+    assert output_data["$pk"] == "API Documentation_https://reworkd.ai/docs"

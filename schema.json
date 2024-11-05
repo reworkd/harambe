@@ -18,10 +18,18 @@
     "baseField": {
       "type": "object",
       "properties": {
-        "description": { "type": "string" },
-        "primary_key": { "type": "boolean" },
-        "required": { "type": "boolean" },
-        "expression": { "type": "string" }
+        "description": {
+          "type": "string"
+        },
+        "primary_key": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "expression": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -45,57 +53,99 @@
             "enum"
           ]
         },
-        "description": { "type": "string" },
-        "primary_key": { "type": "boolean" },
-        "required": { "type": "boolean" },
-        "expression": { "type": "string" },
-        "items": { "$ref": "#/definitions/field" },
+        "description": {
+          "type": "string"
+        },
+        "primary_key": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "expression": {
+          "type": "string"
+        },
+        "items": {
+          "$ref": "#/definitions/field"
+        },
         "properties": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/definitions/field" }
+          "additionalProperties": {
+            "$ref": "#/definitions/field"
+          }
         },
         "actions": {
           "type": "object",
           "properties": {
-            "download": { "type": "boolean" }
+            "download": {
+              "type": "boolean"
+            }
           }
         }
       },
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "allOf": [
         {
           "if": {
             "properties": {
-              "type": { "const": "array" }
+              "type": {
+                "const": "array"
+              }
             }
           },
           "then": {
-            "required": ["items"],
-            "not": { "required": ["properties"] }
+            "required": [
+              "items"
+            ],
+            "not": {
+              "required": [
+                "properties"
+              ]
+            }
           }
         },
         {
           "if": {
             "properties": {
-              "type": { "const": "object" }
+              "type": {
+                "const": "object"
+              }
             }
           },
           "then": {
-            "required": ["properties"],
-            "not": { "required": ["items"] }
+            "required": [
+              "properties"
+            ],
+            "not": {
+              "required": [
+                "items"
+              ]
+            }
           }
         },
         {
           "if": {
             "properties": {
-              "type": { "$ref": "#/definitions/simpleTypes" }
+              "type": {
+                "$ref": "#/definitions/simpleTypes"
+              }
             }
           },
           "then": {
             "not": {
               "anyOf": [
-                { "required": ["items"] },
-                { "required": ["properties"] }
+                {
+                  "required": [
+                    "items"
+                  ]
+                },
+                {
+                  "required": [
+                    "properties"
+                  ]
+                }
               ]
             }
           }
@@ -105,14 +155,19 @@
             "properties": {
               "type": {
                 "not": {
-                  "enum": ["string", "integer"]
+                  "enum": [
+                    "string",
+                    "integer"
+                  ]
                 }
               }
             }
           },
           "then": {
             "not": {
-              "required": ["expression"]
+              "required": [
+                "expression"
+              ]
             }
           }
         }
@@ -122,7 +177,15 @@
   },
   "type": "object",
   "properties": {
-    "$schema": { "type": "string" }
+    "$schema": {
+      "type": "string"
+    },
+    "$pk": {
+      "type": "string",
+      "description": "Primary key expression override"
+    }
   },
-  "additionalProperties": { "$ref": "#/definitions/field" }
+  "additionalProperties": {
+    "$ref": "#/definitions/field"
+  }
 }
