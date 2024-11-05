@@ -1,7 +1,6 @@
 import pytest
 
 from harambe_core import SchemaParser
-from harambe_core.errors import SchemaValidationError
 from test.parser.mock_schemas.load_schema import load_schema
 
 
@@ -114,7 +113,7 @@ def test_nested_reference(schema, data):
 
 def test_parser_computed_pk():
     schema_ = load_schema("computed_pk")
-    schema_["$pk"] = "CONCAT(resource.name, '_', resource.link)"
+    schema_["$primary_key"] = "CONCAT(resource.name, '_', resource.link)"
     data = {
         "resource": {
             "name": "API Documentation",
@@ -124,7 +123,7 @@ def test_parser_computed_pk():
 
     validator = SchemaParser(schema_)
     output_data = validator.validate(data, base_url="http://example.com")
-    assert output_data["$pk"] == "API Documentation_https://reworkd.ai/docs"
+    assert output_data["$primary_key"] == "API Documentation_https://reworkd.ai/docs"
 
 
 def test_computed_on_nullable_field(schema, data):

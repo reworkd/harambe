@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
-  "$pk": "CONCAT_WS('_', resource.name, resource.link)",
+  "$primary_key": "CONCAT_WS('_', resource.name, resource.link)",
   "resource": {
     "type": "object",
     "properties": {

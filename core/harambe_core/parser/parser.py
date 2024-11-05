@@ -31,12 +31,12 @@ class SchemaParser:
     def __init__(
         self, schema: Schema, evaluator: ExpressionEvaluator | None = None
     ) -> None:
-        self._pk_expression = schema.get("$pk", None)
+        self._pk_expression = schema.get("$primary_key", None)
 
         if "$schema" in schema:
             del schema["$schema"]
-        if "$pk" in schema:
-            del schema["$pk"]
+        if "$primary_key" in schema:
+            del schema["$primary_key"]
 
         if evaluator is None:
             evaluator = ExpressionEvaluator()
@@ -58,7 +58,7 @@ class SchemaParser:
         try:
             res = model(**data).model_dump()
             if self._pk_expression:
-                res["$pk"] = self.evaluator.evaluate(self._pk_expression, res)
+                res["$primary_key"] = self.evaluator.evaluate(self._pk_expression, res)
             return res
 
         except ValidationError as validation_error:

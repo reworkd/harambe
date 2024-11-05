@@ -180,7 +180,7 @@
     "$schema": {
       "type": "string"
     },
-    "$pk": {
+    "$primary_key": {
       "type": "string",
       "description": "Primary key expression override"
     }
