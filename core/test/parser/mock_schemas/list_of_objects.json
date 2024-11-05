@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "users": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "email"
+        }
+      }
+    }
+  }
+}

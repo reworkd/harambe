@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "matrix": {
+    "type": "array",
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "season": {
+    "type": "enum",
+    "variants": [
+      "spring",
+      "summer",
+      "fall",
+      "winter"
+    ]
+  }
+}

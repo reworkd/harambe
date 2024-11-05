@@ -18,13 +18,20 @@ jobs:
       - name: Check if current version is published
         id: pre-val
         run: |
-          LOCAL_VERSION=$(grep '^version =' pyproject.toml | head -1 | awk -F '"' '{print $2}')
-          REMOTE_VERSION=$(curl -s https://pypi.org/pypi/tarsier/json | jq -r .info.version)
+          LOCAL_CORE_VERSION=$(grep '^version =' core/pyproject.toml | head -1 | awk -F '"' '{print $2}')
+          LOCAL_SDK_VERSION=$(grep '^version =' sdk/pyproject.toml | head -1 | awk -F '"' '{print $2}')
+          REMOTE_VERSION=$(curl -s https://pypi.org/pypi/harambe/json | jq -r .info.version)
 
-          echo "Local version: $LOCAL_VERSION"
+          echo "Local core version: $LOCAL_CORE_VERSION"
+          echo "Local SDK version: $LOCAL_SDK_VERSION"
           echo "Remote version: $REMOTE_VERSION"
+          
+          if [ $LOCAL_CORE_VERSION != $LOCAL_SDK_VERSION ]; then
+              echo "Core and SDK versions do not match"
+              exit 1
+          fi
 
-          if [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
+          if [ "$LOCAL_SDK_VERSION" != "$REMOTE_VERSION" ]; then
               echo "Version $LOCAL_VERSION is not published yet"
               echo "::set-output name=should_publish::true"
           fi
@@ -33,46 +40,68 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'poetry'
-      - run: make RESOLVE_DEPS
-      - name: Check code formatting
-        run: make FORMAT_CHECK
-      - name: Run linter
-        run: make LINT_CHECK
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Run ruff check
+        run: uvx ruff format --check .
 
-  pytest:
+  pytest-core:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'poetry'
-      - run: make RESOLVE_DEPS
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Run pytest
-        run: make TEST
+        working-directory: core
+        run: uv run pytest -vv --cov="${{ inputs.package }}" .
 
-  publish:
-    needs: [ check-version, format, pytest ]
+  pytest-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Install playwright
+        working-directory: sdk
+        run:  uv run playwright install chromium firefox webkit --with-deps
+      - name: Run pytest
+        working-directory: sdk
+        run: uv run pytest -vv --cov="${{ inputs.package }}" .
+
+  publish-core:
+    needs: [ check-version, format, pytest-core, pytest-sdk ]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_publish == 'true'
     steps:
       - uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "poetry"
-      - run: make RESOLVE_DEPS
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Build and Publish
+        working-directory: core
         run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-          poetry publish --build
+          uv build
+          uv publish --token ${{ secrets.PYPI_TOKEN_CORE }}
+
+  publish-sdk:
+    needs: [ check-version, format, pytest-core, pytest-sdk ]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_publish == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Build and Publish
+        working-directory: sdk
+        run: |
+          uv build
+          uv publish --token ${{ secrets.PYPI_TOKEN }}

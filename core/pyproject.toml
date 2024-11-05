@@ -1,0 +1,48 @@
+[project]
+name = "harambe-core"
+version = "0.46.0"
+description = "Core types for harambe SDK 🐒🍌"
+authors = [
+    { name = "Adam Watkins", email = "adam@reworkd.ai" }
+]
+requires-python = ">=3.11,<4.0"
+readme = "README.md"
+dependencies = [
+    "pydantic==2.9.2",
+    "playwright==1.47.0",
+    "dateparser==1.2.0",
+    "email-validator==2.2.0",
+    "phonenumbers==8.13.47",
+    "python-slugify>=8.0.4",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff==0.4.10",
+    "mypy==1.11.1",
+    "types-dateparser==1.2.0.20240420",
+    "pytest==7.4.4",
+    "pytest-cov==4.1.0",
+    "pytest-asyncio==0.21.2",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+allow_subclassing_any = true
+allow_untyped_calls = true
+pretty = true
+show_error_codes = true
+implicit_reexport = true
+allow_untyped_decorators = true
+warn_unused_ignores = false
+warn_return_any = false
+namespace_packages = true
+files = "harambe"
+exclude = ["test", "extractors"]
