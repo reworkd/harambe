@@ -533,7 +533,6 @@ async def test_with_locators(server, observer, harness):
         scrape,
         url,
         schema={},
-        headless=False,
         harness=harness,
         context={"status": "Open"},
         observer=observer,
