@@ -76,7 +76,7 @@ class SchemaParser:
             "number": ParserTypeNumber,
             "float": ParserTypeNumber,
             "double": ParserTypeNumber,
-            "currency": ParserTypePrice(),
+            "price": ParserTypePrice(),
             "email": ParserTypeEmail,
             "enum": ParserTypeEnum,
             "array": list,
