@@ -272,7 +272,7 @@ class SDK:
         :return: HTMLMetadata containing download URL, HTML content and inner text.
         :raises ValueError: If the specified selector doesn't match any element.
         """
-        html, inner_text = await self._get_html(selector, exclude_selectors or [])
+        html, text = await self._get_html(selector, exclude_selectors or [])
 
         downloads = await self._notify_observers(
             method="on_download",
@@ -286,7 +286,7 @@ class SDK:
             "url": downloads[0]["url"],
             "filename": downloads[0]["filename"],
             "html": html,
-            "inner_text": inner_text,
+            "text": text,
         }
 
     async def _get_html(
@@ -303,9 +303,9 @@ class SDK:
         for selector in exclude_selectors:
             for element_to_remove in soup.select(selector):
                 element_to_remove.decompose()
-        inner_text = soup.get_text(separator="\n", strip=True)
+        text = soup.get_text(separator="\n", strip=True)
 
-        return str(soup), inner_text
+        return str(soup), text
 
     async def capture_pdf(
         self,

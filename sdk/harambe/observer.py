@@ -33,7 +33,7 @@ class DownloadMeta(TypedDict):
 
 class HTMLMetadata(DownloadMeta):
     html: str
-    inner_text: str
+    text: str
 
 
 @runtime_checkable
