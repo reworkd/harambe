@@ -424,6 +424,7 @@ class SDK:
         setup: Optional[SetupType] = None,
         harness: WebHarness = playwright_harness,
         evaluator: Optional[ExpressionEvaluator] = None,
+        observer: Optional[OutputObserver | List[OutputObserver]] = None,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
@@ -436,11 +437,12 @@ class SDK:
         :param setup: setup function to run before the scraper
         :param harness: the harness to use for the browser
         :param evaluator: expression evaluator to use for the scraper
+        :param observer: observer to use for the scraper
         :return none: everything should be saved to the database or file
         """
         domain = getattr(scraper, "domain", None)
         stage = getattr(scraper, "stage", None)
-        observer = getattr(scraper, "observer", None)
+        observer = observer or getattr(scraper, "observer", None)
         context = context or {}
 
         harness_options.setdefault("headers", getattr(scraper, "extra_headers", None))  # type: ignore

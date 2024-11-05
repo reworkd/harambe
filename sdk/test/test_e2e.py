@@ -3,11 +3,11 @@ from typing import cast
 
 import pytest
 from aiohttp import web
-from harambe.observer import InMemoryObserver
-from harambe.types import BrowserType
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
+from harambe.observer import InMemoryObserver
+from harambe.types import BrowserType
 
 
 @pytest.fixture(scope="module")
@@ -495,3 +495,55 @@ async def test_capture_html_element_not_found(server, observer, harness):
     )
 
     assert len(observer.data) == 0
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_with_locators(server, observer, harness):
+    url = f"{server}/solicitation"
+
+    async def scrape(sdk: SDK, url, context) -> None:
+        from harambe.utils import PlaywrightUtils as Pu
+
+        page = sdk.page
+        await page.wait_for_selector("span#ctl00_MainBody_lblBidNo")
+
+        solicitation_id = await Pu.get_text(page, "span#ctl00_MainBody_lblBidNo")
+        title = await Pu.get_text(page, "span#ctl00_MainBody_lblBidTitle")
+        description = await Pu.get_text(page, "span#ctl00_MainBody_lblDesc")
+
+        attachments = []
+        attachment_titles = await Pu.get_texts(
+            page, "table#ctl00_MainBody_dgFileList a"
+        )
+        attachment_urls = await Pu.get_links(page, "table#ctl00_MainBody_dgFileList a")
+        for attachment_title, attachment_url in zip(attachment_titles, attachment_urls):
+            attachments.append({"title": attachment_title, "url": attachment_url})
+
+        await sdk.save_data(
+            {
+                "solicitation_id": solicitation_id,
+                "title": title,
+                "description": description,
+                "attachments": attachments,
+                "status": context.get("status"),
+            }
+        )
+
+    await SDK.run(
+        scrape,
+        url,
+        schema={},
+        headless=False,
+        harness=harness,
+        context={"status": "Open"},
+        observer=observer,
+    )
+    assert len(observer.data) == 1
+    assert observer.data[0]["solicitation_id"] == "6100062375"
+    assert observer.data[0]["title"] == "23SW SGL 111 Conn Road"
+    assert (
+        observer.data[0]["description"]
+        == "The State of Pennsylvania is seeking proposals for IT services"
+    )
+    assert observer.data[0]["status"] == "Open"
+    assert len(observer.data[0]["attachments"]) == 4

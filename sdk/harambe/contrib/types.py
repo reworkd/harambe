@@ -71,3 +71,7 @@ class AbstractPage(Selectable[T], abc.ABC):
     @abc.abstractmethod
     async def set_default_timeout(self, timeout: float) -> None:
         raise NotImplementedError()
+
+    @abc.abstractmethod
+    async def locator(self, selector: str) -> T | None:
+        raise NotImplementedError()

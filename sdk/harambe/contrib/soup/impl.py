@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup, Tag
 from curl_cffi.requests import AsyncSession, HeaderTypes
 
 from harambe.contrib.soup.tracing import Tracer
-from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectable
+from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectable, T
 
 
 class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
@@ -87,6 +87,9 @@ class SoupPage(AbstractPage[SoupElementHandle]):
     async def query_selector(self, selector: str) -> SoupElementHandle | None:
         return SoupElementHandle.from_tag(self._soup.select_one(selector))
 
+    def locator(self, selector: str) -> "SoupLocator":
+        return SoupLocator(selector, self)
+
     async def inner_text(self, selector: str) -> str | None:
         if el := await self.query_selector(selector):
             return await el.inner_text()
@@ -122,3 +125,12 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         if title:
             return title.string
         return None
+
+
+class SoupLocator:
+    def __init__(self, selector: str, page: SoupPage) -> None:
+        self._selector = selector
+        self._page = page
+
+    async def all(self) -> list[SoupElementHandle]:
+        return await self._page.query_selector_all(self._selector)
