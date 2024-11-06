@@ -1,6 +1,6 @@
 [project]
 name = "harambe-sdk"
-version = "0.46.1"
+version = "0.49.0"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = [
     { name = "Adam Watkins", email = "adam@reworkd.ai" }
