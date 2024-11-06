@@ -277,7 +277,7 @@ class SDK:
         downloads = await self._notify_observers(
             method="on_download",
             download_url=self.page.url,
-            filename=str(uuid.uuid4()),
+            filename=f"{str(uuid.uuid4())}.html",
             content=html.encode("utf-8"),
             check_duplication=False,
         )
