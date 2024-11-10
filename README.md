@@ -61,7 +61,7 @@ import math
 import re
 from typing import Any
 from playwright.async_api import Page
-from harambe import SDK, Schemas
+from harambe import SDK, Schema
 from harambe import PlaywrightUtils as Pu
 
 @SDK.scraper(
