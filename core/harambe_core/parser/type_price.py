@@ -1,5 +1,5 @@
 from pydantic import BeforeValidator
-from typing import Any
+from typing import Any, Union
 import re
 from typing_extensions import Annotated
 
@@ -30,15 +30,17 @@ price_not_available_phrases = {
 
 class ParserTypePrice:
     def __new__(cls) -> Any:
-        return Annotated[float | None, BeforeValidator(cls.validate_currency)]
+        return Annotated[Union[float, None], BeforeValidator(cls.validate_price)]
 
     @staticmethod
-    def validate_currency(value: str) -> float | None:
+    def validate_price(value: str) -> Union[float, None]:
         if isinstance(value, (float, int)):
             return float(value)
 
-        value = str(value).strip()
+        if value is None:
+            return None
 
+        value = str(value).strip()
         if value.lower() in price_not_available_phrases:
             return None
 
