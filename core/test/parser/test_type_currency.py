@@ -25,6 +25,7 @@ class _TestModel(BaseModel):
         ("$0.1", {"currency": "USD", "currency_symbol": "$", "amount": 0.1}),
         ("€.1", {"currency": "EUR", "currency_symbol": "€", "amount": 0.1}),
         ("1000", {"currency": None, "currency_symbol": None, "amount": 1000.00}),
+        (1000, {"currency": None, "currency_symbol": None, "amount": 1000.00}),
         (
             "$1,234.5678",
             {"currency": "USD", "currency_symbol": "$", "amount": 1234.5678},
