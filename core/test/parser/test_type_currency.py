@@ -37,6 +37,10 @@ class _TestModel(BaseModel):
         ("€1.234", {"currency": "EUR", "currency_symbol": "€", "amount": 1234.0}),
         ("1,234$", {"currency": "USD", "currency_symbol": "$", "amount": 1234.0}),
         ("1,234 $", {"currency": "USD", "currency_symbol": "$", "amount": 1234.0}),
+        ("1,234 USD", {"currency": "USD", "currency_symbol": "$", "amount": 1234.0}),
+        ("1.234 EUR", {"currency": "EUR", "currency_symbol": "€", "amount": 1234.0}),
+        ("1000.00 JPY", {"currency": "JPY", "currency_symbol": "¥", "amount": 1000.00}),
+        ("1000 INR", {"currency": "INR", "currency_symbol": "₹", "amount": 1000.00}),
         ("1.234,45", {"currency": None, "currency_symbol": None, "amount": 1234.45}),
         (
             "1.234.456,00",

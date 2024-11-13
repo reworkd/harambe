@@ -57,7 +57,7 @@ class CurrencyParser:
         currency_name = None
         if amount is not None:
             for sym, curr in popular_currencies:
-                if sym in value or curr in value:
+                if sym in value or curr.lower() in value.lower():
                     currency_name = curr
                     symbol = sym
                     break
