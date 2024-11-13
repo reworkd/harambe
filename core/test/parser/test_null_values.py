@@ -118,7 +118,7 @@ def test_pydantic_schema_validation_error_fail(data: Dict[str, Any]) -> None:
                     "code_type": "",
                     "code": "",
                     "code_description": "",
-                    "description": "",
+                    "description": "Somthing",
                 }
             ],
         },
@@ -127,3 +127,59 @@ def test_pydantic_schema_validation_error_fail(data: Dict[str, Any]) -> None:
 def test_pydantic_schema_validation_success(data: Dict[str, Any]):
     validator = SchemaParser(government_contracts)
     validator.validate(data, base_url="http://example.com")
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"group": "Team", "members": [{}]},
+        {
+            "group": "Team",
+            "members": [
+                {
+                    "name": "",
+                    "age": None,
+                },
+            ],
+        },
+    ],
+)
+def test_with_emtpy_objects(data):
+    schema = {
+        "group": {"type": "string"},
+        "members": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "age": {"type": "integer"},
+                },
+            },
+        },
+    }
+
+    with pytest.raises(SchemaValidationError):
+        validator = SchemaParser(schema)
+        validator.validate(data, base_url="http://example.com")
+
+
+@pytest.mark.parametrize(
+    "strings",
+    [
+        (
+            ["", None, None],
+            [None, None],
+            ["a", "  "],
+            ["a", "b", "c", ""],
+        )
+    ],
+)
+def test_with_empty_literals(strings):
+    schema = {
+        "strings": {"type": "array", "items": {"type": "integer"}},
+    }
+
+    with pytest.raises(SchemaValidationError):
+        validator = SchemaParser(schema)
+        validator.validate({"strings": strings}, base_url="http://example.com")
