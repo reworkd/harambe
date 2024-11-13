@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "profile": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "description": "User ID"
+      },
+      "personal_info": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name"
+          },
+          "age": {
+            "type": "integer",
+            "description": "Age"
+          }
+        }
+      }
+    }
+  }
+}
+

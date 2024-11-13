@@ -56,8 +56,8 @@ class SchemaParser:
                 res["$primary_key"] = self.evaluator.evaluate(self._pk_expression, res)
             return res
 
-        except ValidationError as validation_error:
-            raise SchemaValidationError(message=str(validation_error))
+        except (TypeError, ValidationError) as e:
+            raise SchemaValidationError(message=str(e))
 
     @staticmethod
     def _get_field_types(base_url: str) -> dict[SchemaFieldType, Any]:
@@ -112,7 +112,7 @@ class SchemaParser:
         return self._get_type(item_type, required=True)
 
     def _schema_to_pydantic_model(
-        self, schema: Schema, model_name: str = "DynamicModel"
+        self, schema: Schema, model_name: str = "DynamicModel", required: bool = True
     ) -> Type[BaseModel]:
         """
         Convert a JSON schema to a Pydantic model dynamically. All fields are optional
@@ -132,6 +132,7 @@ class SchemaParser:
                 python_type = self._schema_to_pydantic_model(
                     field_info.get("properties", {}) or {},
                     model_name=f"{model_name}{field_name.capitalize()}",
+                    required=field_info.get("required", False),
                 )
             elif field_type == "array":
                 python_type = List[  # type: ignore
@@ -158,8 +159,12 @@ class SchemaParser:
         config: ConfigDict = {"extra": "forbid", "str_strip_whitespace": True}
         config.update(schema.get("__config__", {}))
         base_model = base_model_factory(config, computed_fields, self.evaluator)
+        new_model = create_model(model_name, __base__=base_model, **fields)
 
-        return create_model(model_name, __base__=base_model, **fields)
+        if not required:
+            new_model = Optional[new_model]
+
+        return new_model
 
     def _get_type(self, field: SchemaFieldType, required: bool | None) -> Type[Any]:
         field_type = self.field_types.get(field)
