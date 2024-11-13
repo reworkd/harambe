@@ -249,10 +249,10 @@ async def test_text_content(server, observer, harness):
     assert observer.data[0]["page_content"] == observer.data[1]["table_content"]
     for text in ["Apple", "Orange", "Banana"]:
         assert (
-                text in observer.data[0]["page_content"]
+            text in observer.data[0]["page_content"]
         ), f"{text} not in {observer.data[0]['page_content']}"
         assert (
-                text in observer.data[1]["table_content"]
+            text in observer.data[1]["table_content"]
         ), f"{text} not in {observer.data[1]['table_content']}"
 
 
@@ -361,13 +361,13 @@ async def test_save_local_storage(server, observer, harness):
         ({"key1": "value1", "key2": 2}, '{"key1": "value1", "key2": 2}'),
         # Nested structure
         (
-                {"list": [1, 2, {"nested": "value"}]},
-                '{"list": [1, 2, {"nested": "value"}]}',
+            {"list": [1, 2, {"nested": "value"}]},
+            '{"list": [1, 2, {"nested": "value"}]}',
         ),
     ],
 )
 async def test_load_local_storage(
-        server, observer, harness, test_value, expected_value
+    server, observer, harness, test_value, expected_value
 ):
     local_storage_entry_1 = {
         "domain": "asim-shrestha.com",
@@ -541,8 +541,8 @@ async def test_with_locators(server, observer, harness):
     assert observer.data[0]["solicitation_id"] == "6100062375"
     assert observer.data[0]["title"] == "23SW SGL 111 Conn Road"
     assert (
-            observer.data[0]["description"]
-            == "The State of Pennsylvania is seeking proposals for IT services"
+        observer.data[0]["description"]
+        == "The State of Pennsylvania is seeking proposals for IT services"
     )
     assert observer.data[0]["status"] == "Open"
     assert len(observer.data[0]["attachments"]) == 4
