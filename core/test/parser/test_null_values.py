@@ -118,7 +118,7 @@ def test_pydantic_schema_validation_error_fail(data: Dict[str, Any]) -> None:
                     "code_type": "",
                     "code": "",
                     "code_description": "",
-                    "description": "Somthing",
+                    "description": "Something",
                 }
             ],
         },
