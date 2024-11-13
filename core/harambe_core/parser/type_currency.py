@@ -40,7 +40,7 @@ popular_currencies = sorted(
 )
 
 
-class ParserTypeCurrency:
+class CurrencyParser:
     @staticmethod
     def parse_currency_amount(
         value: Union[str, float, int, None],
@@ -65,6 +65,6 @@ class ParserTypeCurrency:
         return {"currency": currency_name, "currency_symbol": symbol, "amount": amount}
 
 
-ParserTypeCurrencyType = Annotated[
-    dict[str, Optional[Union[str, float]]], BeforeValidator(ParserTypeCurrency())
+ParserTypeCurrency = Annotated[
+    dict[str, Optional[Union[str, float]]], BeforeValidator(CurrencyParser())
 ]
