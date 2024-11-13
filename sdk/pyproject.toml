@@ -8,7 +8,7 @@ authors = [
 requires-python = ">=3.11,<4.0"
 readme = "README.md"
 dependencies = [
-    "harambe_core==0.50.1",
+    "harambe_core==0.50.2",
     "pydantic==2.9.2",
     "playwright==1.47.0",
     "setuptools==73.0.0",

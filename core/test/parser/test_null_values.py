@@ -181,10 +181,10 @@ def test_with_emtpy_objects(data):
     "strings",
     [
         (
-            ["", None, None],
-            [None, None],
-            ["a", "  "],
-            ["a", "b", "c", ""],
+                ["", None, None],
+                [None, None],
+                ["a", "  "],
+                ["a", "b", "c", ""],
         )
     ],
 )
@@ -196,3 +196,35 @@ def test_with_empty_literals(strings):
     with pytest.raises(SchemaValidationError):
         validator = SchemaParser(schema)
         validator.validate({"strings": strings}, base_url="http://example.com")
+
+
+def test_nullable_object():
+    schema = {
+        "name": {"type": "string"},
+        "age": {"type": "integer"},
+        "address": {"type": "object", "properties": {"street": {"type": "string"}}},
+    }
+    data = {
+        "name": "Adam",
+        "age": 29,
+        "address": None,
+    }
+
+    validator = SchemaParser(schema)
+    res = validator.validate(data, base_url="http://example.com")
+    assert res["address"] is None
+
+
+def test_nullable_object_sub_schema():
+    schema = load_schema("object_with_nested_objects")
+    data = {
+        "profile": {
+            "id": 123,
+            "personal_info": None,
+        }
+    }
+
+    validator = SchemaParser(schema)
+    res = validator.validate(data, base_url="http://example.com")
+    assert res["profile"]["id"] == 123
+    assert res["profile"]["personal_info"] is None
