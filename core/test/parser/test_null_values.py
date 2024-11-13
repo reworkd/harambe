@@ -181,10 +181,10 @@ def test_with_emtpy_objects(data):
     "strings",
     [
         (
-                ["", None, None],
-                [None, None],
-                ["a", "  "],
-                ["a", "b", "c", ""],
+            ["", None, None],
+            [None, None],
+            ["a", "  "],
+            ["a", "b", "c", ""],
         )
     ],
 )
