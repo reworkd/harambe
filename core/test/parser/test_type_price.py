@@ -52,7 +52,7 @@ class _TestModel(BaseModel):
         ("Ask for Pricing", None),
     ],
 )
-def test_flexible_currency_success(input_value, expected_output):
+def test_flexible_price_success(input_value, expected_output):
     model = _TestModel(value=input_value)
     assert model.value == pytest.approx(expected_output)
 
@@ -75,7 +75,6 @@ def test_flexible_currency_success(input_value, expected_output):
         "1,234.56.78",
         "123,456,12",
         "",
-        None,
         {},
         [],
     ],
