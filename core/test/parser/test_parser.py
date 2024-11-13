@@ -37,8 +37,8 @@ from test.parser.mock_schemas.load_schema import load_schema
         (
             load_schema("contact"),
             {
-                "name": {"first_name": None, "last_name": None},
-                "address": {"street": None, "city": None, "zip": None},
+                "name": {"first_name": "Adam", "last_name": None},
+                "address": {"street": None, "city": None, "zip": "9104"},
                 "phone_numbers": [{"type": "mobile", "number": "+1 (628) 555-3456"}],
             },
         ),

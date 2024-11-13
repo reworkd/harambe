@@ -52,10 +52,6 @@ class SchemaParser:
         self.field_types = self._get_field_types(base_url)
         model = self._schema_to_pydantic_model(self.schema)
 
-        if self._all_fields_empty(data):
-            raise SchemaValidationError(
-                message="All fields are null or empty.",
-            )
         try:
             res = model(**data).model_dump()
             if self._pk_expression:
@@ -247,25 +243,6 @@ class SchemaParser:
             field_type = Optional[field_type]
         return field_type
 
-    def _all_fields_empty(self, data: dict[str, Any]) -> bool:
-        """
-        Recursively check if all fields in the data are either None or empty.
-        This includes handling nested dictionaries and lists.
-        """
-
-        def is_empty(value: Any) -> bool:
-            if value is None:
-                return True
-            if isinstance(value, dict):
-                return all(is_empty(v) for v in value.values())
-            if isinstance(value, list):
-                return all(is_empty(v) for v in value)
-            if isinstance(value, str):
-                return not value.strip()
-            return False
-
-        return all(is_empty(value) for value in data.values())
-
 
 def base_model_factory(
     config: ConfigDict, computed_fields: dict[str, str], evaluator: ExpressionEvaluator
@@ -306,6 +283,32 @@ def base_model_factory(
             for field, expression in computed_fields.items():
                 res = evaluator.evaluate(expression, self)
                 setattr(self, field, res)
+
+            if _all_fields_empty(self.model_dump()):
+                raise SchemaValidationError(
+                    message="All fields are null or empty.",
+                )
+
             return self
 
     return PreValidatedBaseModel
+
+
+def _all_fields_empty(data: dict[str, Any]) -> bool:
+    """
+    Recursively check if all fields in the data are either None or empty.
+    This includes handling nested dictionaries and lists.
+    """
+
+    def is_empty(value: Any) -> bool:
+        if value is None:
+            return True
+        if isinstance(value, dict):
+            return all(is_empty(v) for v in value.values())
+        if isinstance(value, list):
+            return all(is_empty(v) for v in value)
+        if isinstance(value, str):
+            return not value.strip()
+        return False
+
+    return all(is_empty(value) for value in data.values())
