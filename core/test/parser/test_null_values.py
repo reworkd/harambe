@@ -142,6 +142,19 @@ def test_pydantic_schema_validation_success(data: Dict[str, Any]):
                 },
             ],
         },
+        {
+            "group": "Team",
+            "members": [
+                {
+                    "name": "Adam",
+                    "age": 29,
+                },
+                {
+                    "name": "",
+                    "age": None,
+                },
+            ],
+        },
     ],
 )
 def test_with_emtpy_objects(data):
