@@ -7,12 +7,14 @@ from harambe_core.parser.parser import SchemaParser
 from harambe_core.types import Schema
 from test.parser.mock_schemas.load_schema import load_schema
 
-@pytest.mark.parametrize('data', [None, {}, ''])
+
+@pytest.mark.parametrize("data", [None, {}, ""])
 def test_no_data(data) -> None:
-    schema = load_schema('document')
+    schema = load_schema("document")
     validator = SchemaParser(schema)
     with pytest.raises(SchemaValidationError):
-        validator.validate(data, base_url='http://example.com')
+        validator.validate(data, base_url="http://example.com")
+
 
 @pytest.mark.parametrize(
     "schema, data",
