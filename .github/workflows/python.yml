@@ -20,6 +20,7 @@ jobs:
         run: |
           LOCAL_CORE_VERSION=$(grep '^version =' core/pyproject.toml | head -1 | awk -F '"' '{print $2}')
           LOCAL_SDK_VERSION=$(grep '^version =' sdk/pyproject.toml | head -1 | awk -F '"' '{print $2}')
+          LOCAL_SDK_DEP=$(grep 'harambe_core==' sdk/pyproject.toml | awk -F'==' '{print $2}' | sed 's/[",]//g')
           REMOTE_VERSION=$(curl -s https://pypi.org/pypi/harambe/json | jq -r .info.version)
 
           echo "Local core version: $LOCAL_CORE_VERSION"
@@ -28,6 +29,11 @@ jobs:
           
           if [ $LOCAL_CORE_VERSION != $LOCAL_SDK_VERSION ]; then
               echo "Core and SDK versions do not match"
+              exit 1
+          fi
+          
+          if [ "$LOCAL_SDK_DEP" != "$LOCAL_CORE_VERSION" ]; then
+              echo "SDK dependency of core does not match core version"
               exit 1
           fi
 
