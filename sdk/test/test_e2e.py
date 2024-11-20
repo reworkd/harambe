@@ -3,11 +3,11 @@ from typing import cast
 
 import pytest
 from aiohttp import web
+from harambe.observer import InMemoryObserver
+from harambe.types import BrowserType
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
-from harambe.observer import InMemoryObserver
-from harambe.types import BrowserType
 
 
 @pytest.fixture(scope="module")
@@ -84,7 +84,7 @@ async def test_enqueue_data(server, observer):
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("?page=1")
-        await sdk.enqueue("/terms", "https://reworkd.ai")
+        await sdk.enqueue("/terms", "https://reworkd.ai", stage="category")
 
     await SDK.run(scraper=scraper, url=server, schema={}, headless=True)
 
@@ -98,6 +98,10 @@ async def test_enqueue_data(server, observer):
     assert observer.urls[0][1] == {"__url": url}
     assert observer.urls[1][1] == {"__url": url}
     assert observer.urls[2][1] == {"__url": url}
+
+    assert observer.urls[0][3] == "detail"
+    assert observer.urls[1][3] == "category"
+    assert observer.urls[2][3] == "category"
 
 
 async def test_enqueue_data_with_context(server, observer):

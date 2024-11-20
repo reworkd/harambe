@@ -43,7 +43,9 @@ class OutputObserver(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
-    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
+    async def on_queue_url(
+        self, url: URL, context: Context, options: Options, stage: Stage
+    ) -> None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -73,8 +75,12 @@ class LoggingObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
         pprint(data, width=240)
 
-    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
-        print(f"Enqueuing: {url} with context {context} and options {options}")
+    async def on_queue_url(
+        self, url: URL, context: Context, options: Options, stage: Stage
+    ) -> None:
+        print(
+            f"Enqueuing: {url} with context {context} and options {options} in stage {stage}"
+        )
 
     async def on_download(
         self, download_url: str, filename: str, content: bytes
@@ -105,8 +111,12 @@ class LocalStorageObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._tracker.save_data(data)
 
-    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
-        self._tracker.save_data({"url": url, "context": context, "options": options})
+    async def on_queue_url(
+        self, url: URL, context: Context, options: Options, stage: Stage
+    ) -> None:
+        self._tracker.save_data(
+            {"url": url, "context": context, "options": options, "stage": stage}
+        )
 
     async def on_download(
         self, download_url: str, filename: str, content: bytes
@@ -134,7 +144,7 @@ class LocalStorageObserver(OutputObserver):
 class InMemoryObserver(OutputObserver):
     def __init__(self) -> None:
         self._data: List[dict[str, Any]] = []
-        self._urls: List[Tuple[URL, Context, Options]] = []
+        self._urls: List[Tuple[URL, Context, Options, Stage]] = []
         self._files: List[Tuple[str, bytes]] = []
         self._cookies: List[Cookie] = []
         self._local_storage: List[LocalStorage] = []
@@ -142,8 +152,10 @@ class InMemoryObserver(OutputObserver):
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._data.append(data)
 
-    async def on_queue_url(self, url: URL, context: Context, options: Options) -> None:
-        self._urls.append((url, context, options))
+    async def on_queue_url(
+        self, url: URL, context: Context, options: Options, stage: Stage
+    ) -> None:
+        self._urls.append((url, context, options, stage))
 
     async def on_download(
         self, download_url: str, filename: str, content: bytes
@@ -171,7 +183,7 @@ class InMemoryObserver(OutputObserver):
         return self._data
 
     @property
-    def urls(self) -> List[Tuple[URL, Context, Options]]:
+    def urls(self) -> List[Tuple[URL, Context, Options, Stage]]:
         return self._urls
 
     @property

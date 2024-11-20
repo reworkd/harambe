@@ -43,15 +43,15 @@ async def test_stop_pagination_observer_duplicate_data_error(duplicate_handler):
 
 
 async def test_stop_pagination_observer_duplicate_url_error(duplicate_handler):
-    unduplicated = duplicate_handler.on_queue_url(
-        "https://example.com", {"foo": "bar"}, {}
+    first_pass_duplicated = duplicate_handler.on_queue_url(
+        "https://example.com", {"foo": "bar"}, {}, None
     )
     duplicate_handler.on_paginate("https://example.com/page2")
-    duplicated = duplicate_handler.on_queue_url(
-        "https://example.com", {"foo": "bar"}, {}
+    second_pass_duplicated = duplicate_handler.on_queue_url(
+        "https://example.com", {"foo": "bar"}, {}, None
     )
 
-    assert not unduplicated and duplicated
+    assert not first_pass_duplicated and second_pass_duplicated
     assert duplicate_handler.get_number_of_pages() == 2
     assert duplicate_handler.get_current_page_info() == PageInfo(
         page=2, total_rows=1, duplicated_rows=1
@@ -61,14 +61,28 @@ async def test_stop_pagination_observer_duplicate_url_error(duplicate_handler):
         duplicate_handler.on_paginate("https://example.com/page3")
 
 
+async def test_urls_across_stages_not_deduped(duplicate_handler):
+    first_duplicated = duplicate_handler.on_queue_url(
+        "https://example.com", {"foo": "bar"}, {}, "category"
+    )
+    assert not first_duplicated
+
+    second_duplicated = duplicate_handler.on_queue_url(
+        "https://example.com", {"foo": "bar"}, {}, "listing"
+    )
+    assert not second_duplicated
+
+
 async def test_stop_pagination_observer_duplicate_download_error(duplicate_handler):
-    unduplicated = duplicate_handler.on_download(
+    first_pass_duplicated = duplicate_handler.on_download(
         "https://example.com", "foo.txt", b"foo"
     )
     duplicate_handler.on_paginate("https://example.com/page2")
-    duplicated = duplicate_handler.on_download("https://example.com", "foo.txt", b"foo")
+    second_pass_duplicated = duplicate_handler.on_download(
+        "https://example.com", "foo.txt", b"foo"
+    )
 
-    assert not unduplicated and duplicated
+    assert not first_pass_duplicated and second_pass_duplicated
     assert duplicate_handler.get_number_of_pages() == 2
     assert duplicate_handler.get_current_page_info() == PageInfo(
         page=2, total_rows=1, duplicated_rows=1
@@ -129,10 +143,10 @@ async def test_duplicate_data_without_pagination(duplicate_handler):
     )
 
     un_duplicated = duplicate_handler.on_queue_url(
-        "https://example.com", {"foo": "bar"}, {}
+        "https://example.com", {"foo": "bar"}, {}, None
     )
     duplicated = duplicate_handler.on_queue_url(
-        "https://example.com", {"foo": "bar"}, {}
+        "https://example.com", {"foo": "bar"}, {}, None
     )
     assert not un_duplicated and duplicated
     assert duplicate_handler.get_current_page_info() == PageInfo(
