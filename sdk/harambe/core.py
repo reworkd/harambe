@@ -148,7 +148,7 @@ class SDK:
         :param urls: urls to enqueue
         :param context: additional context to pass to the next run of the next stage/url
         :param options: job level options to pass to the next stage/url
-        :param stage: the override stage to use for the next job
+        :param stage: the override stage to use for the next job. Will use the next stage in the sequence if not provided.
         """
         context = context or {}
         options = options or {}
