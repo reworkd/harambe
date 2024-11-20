@@ -501,7 +501,7 @@ class SDK:
         :return: None: the scraper should save data to the database or file
         """
         domain: str = getattr(scraper, "domain", "")
-        stage: str = getattr(scraper, "stage", "")
+        stage: Stage = getattr(scraper, "stage", "")
         headers: dict[str, str] = getattr(scraper, "extra_headers", {})
         observer: Optional[OutputObserver] = getattr(scraper, "observer", None)
 
@@ -510,19 +510,23 @@ class SDK:
 
         tracker = FileDataTracker(domain, stage)
 
-        prev = "listing" if stage == "detail" else "category"
-        file_path = tracker.get_storage_filepath(prev)
+        previous_stage = get_previous_stage(stage)
+        file_path = tracker.get_storage_filepath(previous_stage)
 
         if not file_path.exists():
             raise ValueError(
                 f"Could not find {file_path}."
-                f" No listing data found for this domain. Run the listing scraper first."
+                f" No {previous_stage} data found for this domain. Run the {previous_stage} scraper first."
             )
 
-        listing_data = tracker.load_data(domain, prev)
+        previous_stage_data = tracker.load_data(domain, previous_stage)
         async with playwright_harness(**harness_options) as page_factory:
             page = await page_factory()
-            for listing in listing_data:
+            for enqueue_data in [
+                enqueue_data
+                for enqueue_data in previous_stage_data
+                if enqueue_data["stage"] == stage
+            ]:
                 sdk = SDK(
                     page,
                     domain=domain,
@@ -536,11 +540,11 @@ class SDK:
 
                 if headers:
                     await page.set_extra_http_headers(headers)
-                await page.goto(listing["url"])
+                await page.goto(enqueue_data["url"])
                 await scraper(
                     sdk,
-                    listing["url"],
-                    listing["context"],
+                    enqueue_data["url"],
+                    enqueue_data["context"],
                 )
 
         return sdk
@@ -604,6 +608,14 @@ def get_next_stage(previous_stage: Stage | None) -> Stage:
     if previous_stage == "category":
         return "listing"
     return "detail"
+
+
+def get_previous_stage(stage: Stage | None) -> Stage:
+    if stage == "detail" or stage is None:
+        return "listing"
+    if stage == "listing":
+        return "category"
+    return "parent_category"
 
 
 PAGE_PDF_FILENAME = "reworkd_page_pdf.pdf"
