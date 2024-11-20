@@ -1,12 +1,11 @@
 from unittest.mock import AsyncMock, call
 
 import pytest
-from playwright.async_api import Page
-
 from harambe.core import SDK, URL, AsyncScraperType, Context
 from harambe.observer import OutputObserver
-from harambe_core.errors import SchemaValidationError
 from harambe_core import Schema
+from harambe_core.errors import SchemaValidationError
+from playwright.async_api import Page
 
 
 @pytest.fixture
@@ -53,12 +52,16 @@ async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer():
     urls = ["https://example.org", "https://example.com"]
     context = {"foo": "bar"}
     options = {"zoo": "zar"}
+    stage = "listing"
 
-    await sdk.enqueue(*urls, context=context, options=options)
+    await sdk.enqueue(*urls, context=context, options=options, stage=stage)
 
     assert observer.on_queue_url.call_count == len(urls)
     observer.on_queue_url.assert_has_awaits(
-        [call(urls[0], context, options), call(urls[1], context, options)],
+        [
+            call(urls[0], context, options, stage),
+            call(urls[1], context, options, stage),
+        ],
         any_order=False,
     )
 

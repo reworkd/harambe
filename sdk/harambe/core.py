@@ -138,6 +138,7 @@ class SDK:
         *urls: URL | Awaitable[URL],
         context: Optional[Context] = None,
         options: Optional[Options] = None,
+        stage: Optional[Stage] = None,
     ) -> None:
         """
         Enqueue url to be scraped. This will be passed to the on_enqueue callback.
@@ -147,9 +148,11 @@ class SDK:
         :param urls: urls to enqueue
         :param context: additional context to pass to the next run of the next stage/url
         :param options: job level options to pass to the next stage/url
+        :param stage: the override stage to use for the next job
         """
         context = context or {}
         options = options or {}
+        stage = stage or get_next_stage(self._stage)
         context["__url"] = self.page.url
 
         for url in urls:
@@ -160,7 +163,7 @@ class SDK:
                 normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
             )
             await self._notify_observers(
-                "on_queue_url", normalized_url, context, options
+                "on_queue_url", normalized_url, context, options, stage
             )
 
     async def paginate(
@@ -593,6 +596,14 @@ class SDK:
             return wrapper
 
         return decorator
+
+
+def get_next_stage(previous_stage: Stage | None) -> Stage:
+    if previous_stage == "parent_category":
+        return "category"
+    if previous_stage == "category":
+        return "listing"
+    return "detail"
 
 
 PAGE_PDF_FILENAME = "reworkd_page_pdf.pdf"

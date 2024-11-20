@@ -2,9 +2,8 @@ import hashlib
 import json
 from typing import Any, Optional, Iterable, List
 
+from harambe.types import URL, Context, Options, Cookie, LocalStorage, Stage
 from pydantic import BaseModel
-
-from harambe.types import URL, Context, Options, Cookie, LocalStorage
 
 
 class PageInfo(BaseModel):
@@ -45,16 +44,17 @@ class DuplicateHandler:
         return self._add_data(local_storage)
 
     def on_queue_url(
-        self, url: URL, _: Optional[Context], __: Optional[Options]
+        self, url: URL, _: Optional[Context], __: Optional[Options], stage: Stage
     ) -> bool:
         """
         Save url and check if it is duplicated
         :param url: url to be saved
         :param _: context unused
         :param __: options unused
+        :param stage: stage of the enqueued url
         :return: bool indicating if the url is duplicated, true if it is duplicated
         """
-        return self._add_data(url)
+        return self._add_data((url, stage))
 
     # noinspection PyTypeChecker
     def on_download(self, download_url: str, filename: str, content: bytes) -> bool:
