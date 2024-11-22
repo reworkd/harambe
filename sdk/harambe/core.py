@@ -55,7 +55,6 @@ from playwright.async_api import (
     ElementHandle,
     Page,
 )
-from playwright.async_api import Response
 from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
@@ -467,13 +466,10 @@ class SDK:
                 await setup(sdk)
 
             if not harness_options.get("disable_go_to_url", False):
-                maybe_response = await page.goto(url)
-                if (
-                    maybe_response
-                    and (status := cast(Response, maybe_response).status) >= 400
-                ):
+                response = await page.goto(url)
+                if response.status >= 400:
                     raise RuntimeError(
-                        f"Got an unexpected status code of {status} when attempting to load the page"
+                        f"Got an unexpected status code of {response.status} when attempting to load the page"
                     )
             elif isinstance(page, SoupPage):
                 page.url = url

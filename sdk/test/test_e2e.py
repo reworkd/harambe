@@ -551,7 +551,8 @@ async def test_with_locators(server, observer, harness):
     assert len(observer.data[0]["attachments"]) == 4
 
 
-async def test_403_status_on_goto(server, observer):
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_403_status_on_goto(server, observer, harness):
     url = f"{server}/403"
 
     async def scrape(sdk: SDK, current_url, context) -> None:
@@ -563,6 +564,7 @@ async def test_403_status_on_goto(server, observer):
         await SDK.run(
             scrape,
             url,
+            harness=harness,
             schema={},
             context={"status": "Open"},
             observer=observer,
