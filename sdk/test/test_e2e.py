@@ -3,11 +3,12 @@ from typing import cast
 
 import pytest
 from aiohttp import web
+from harambe.observer import InMemoryObserver
+from harambe.types import BrowserType
+from harambe_core.errors import GotoError
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
-from harambe.observer import InMemoryObserver
-from harambe.types import BrowserType
 
 
 @pytest.fixture(scope="module")
@@ -20,6 +21,9 @@ def mock_html_folder():
 @pytest.fixture
 async def server(mock_html_folder):
     async def handle(request):
+        if request.path == "/403":
+            return web.Response(text="Forbidden", status=403)
+
         file_path = mock_html_folder / f"{request.path.strip('/')}.html"
         if not file_path.exists():
             return web.FileResponse(mock_html_folder / "404.html")
@@ -552,3 +556,25 @@ async def test_with_locators(server, observer, harness):
     )
     assert observer.data[0]["status"] == "Open"
     assert len(observer.data[0]["attachments"]) == 4
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_403_status_on_goto(server, observer, harness):
+    url = f"{server}/403"
+
+    async def scrape(sdk: SDK, current_url, context) -> None:
+        await sdk.save_data(
+            {"key": "this should't be saved as we're throwing an exception"}
+        )
+
+    with pytest.raises(GotoError):
+        await SDK.run(
+            scrape,
+            url,
+            harness=harness,
+            schema={},
+            context={"status": "Open"},
+            observer=observer,
+        )
+
+    assert len(observer.data) == 0

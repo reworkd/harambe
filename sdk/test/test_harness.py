@@ -36,9 +36,10 @@ async def test_default_url(web_harness):
 
 
 async def test_with_two_connections():
-    async with playwright_harness(
-        launch_args=["--remote-debugging-port=9222"]
-    ) as p1, playwright_harness(cdp_endpoint="http://localhost:9222") as p2:
+    async with (
+        playwright_harness(launch_args=["--remote-debugging-port=9222"]) as p1,
+        playwright_harness(cdp_endpoint="http://localhost:9222") as p2,
+    ):
         page_1 = await p1()
         await page_1.goto("https://example.com/")
 
