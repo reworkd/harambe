@@ -468,7 +468,10 @@ class SDK:
 
             if not harness_options.get("disable_go_to_url", False):
                 maybe_response = await page.goto(url)
-                if maybe_response and (status := cast(Response, maybe_response).status) >= 400:
+                if (
+                    maybe_response
+                    and (status := cast(Response, maybe_response).status) >= 400
+                ):
                     raise RuntimeError(
                         f"Got an unexpected status code of {status} when attempting to load the page"
                     )
