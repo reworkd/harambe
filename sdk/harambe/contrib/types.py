@@ -2,7 +2,7 @@ import abc
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from contextlib import _AsyncGeneratorContextManager
-from typing import Any, Awaitable, Callable, Generic, Optional, TypeVar
+from typing import Any, Awaitable, Callable, Generic, Optional, TypeVar, Protocol
 
 T = TypeVar("T", bound="AbstractElementHandle")
 WebHarness = Callable[
@@ -42,6 +42,12 @@ class Selectable(Generic[T], abc.ABC):
         raise NotImplementedError()
 
 
+class ResponseWithStatus(Protocol):
+    """Protocol for goto responses across all harnesses. Use minimal attributes required for current use cases."""
+
+    status: int
+
+
 class AbstractPage(Selectable[T], abc.ABC):
     @property
     @abc.abstractmethod
@@ -49,7 +55,7 @@ class AbstractPage(Selectable[T], abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    async def goto(self, url: str, **kwargs: Any) -> None:
+    async def goto(self, url: str, **kwargs: Any) -> ResponseWithStatus:
         raise NotImplementedError()
 
     @abc.abstractmethod

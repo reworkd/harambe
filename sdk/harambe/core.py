@@ -49,6 +49,7 @@ from harambe.types import (
     LocalStorage,
 )
 from harambe_core import SchemaParser, Schema
+from harambe_core.errors import GotoError
 from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
 from playwright.async_api import (
@@ -371,7 +372,7 @@ class SDK:
 
         new_local_storage = [
             LocalStorage(
-                domain=override_domain or self._domain,
+                domain=domain,
                 path=override_path or "/",
                 key=key,
                 value=new_browser_local_storage[key],
@@ -466,7 +467,9 @@ class SDK:
                 await setup(sdk)
 
             if not harness_options.get("disable_go_to_url", False):
-                await page.goto(url)
+                response = await page.goto(url)
+                if response.status >= 400:
+                    raise GotoError(url, response.status)
             elif isinstance(page, SoupPage):
                 page.url = url
             await scraper(sdk, url, context)
