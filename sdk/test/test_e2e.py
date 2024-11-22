@@ -5,6 +5,7 @@ import pytest
 from aiohttp import web
 from harambe.observer import InMemoryObserver
 from harambe.types import BrowserType
+from harambe_core.errors import GotoError
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
@@ -560,7 +561,7 @@ async def test_403_status_on_goto(server, observer, harness):
             {"key": "this should't be saved as we're throwing an exception"}
         )
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(GotoError):
         await SDK.run(
             scrape,
             url,

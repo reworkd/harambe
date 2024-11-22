@@ -49,6 +49,7 @@ from harambe.types import (
     LocalStorage,
 )
 from harambe_core import SchemaParser, Schema
+from harambe_core.errors import GotoError
 from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
 from playwright.async_api import (
@@ -468,9 +469,7 @@ class SDK:
             if not harness_options.get("disable_go_to_url", False):
                 response = await page.goto(url)
                 if response.status >= 400:
-                    raise RuntimeError(
-                        f"Got an unexpected status code of {response.status} when attempting to load the page"
-                    )
+                    raise GotoError(url, response.status)
             elif isinstance(page, SoupPage):
                 page.url = url
             await scraper(sdk, url, context)
