@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, cast
 
 import ua_generator
 
@@ -19,4 +19,4 @@ async def compute_user_agent(factory: UserAgentFactory) -> str:
     if asyncio.iscoroutine(result):
         return await result
 
-    return result
+    return cast(str, result)
