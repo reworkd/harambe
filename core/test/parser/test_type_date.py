@@ -5,7 +5,7 @@ from harambe_core.parser.type_date import ParserTypeDate, common_non_specific_da
 
 def assert_is_iso_format(date_string):
     try:
-        datetime.fromisoformat(date_string)  # Validate the format
+        datetime.fromisoformat(date_string)
     except ValueError:
         assert False, f"Date string '{date_string}' is not in ISO 8601 format."
 
@@ -27,6 +27,19 @@ def assert_is_iso_format(date_string):
         "November 23rd, 2024 at 6:30pm",
         "Nov 23 2024 6:30 PM (GMT+1)",
         "23rd November 2024, 18:30",
+    ],
+)
+def test_pydantic_type_date_validate_type_success(date_string):
+    parsed_date = ParserTypeDate.validate_type(date_string)
+    assert isinstance(
+        parsed_date, str
+    ), f"Expected string for '{date_string}', got {parsed_date}"
+    assert_is_iso_format(parsed_date)
+
+
+@pytest.mark.parametrize(
+    "date_string",
+    [
         "TBD",
         "TBA",
         "TBC",
@@ -43,18 +56,9 @@ def assert_is_iso_format(date_string):
         "Unknown",
     ],
 )
-def test_pydantic_type_date_validate_type_success(date_string):
+def test_parser_handles_non_specific_dates_correctly(date_string):
     parsed_date = ParserTypeDate.validate_type(date_string)
-
-    if date_string.lower() in common_non_specific_dates:
-        assert (
-            parsed_date is None
-        ), f"Expected None for '{date_string}', got {parsed_date}"
-    else:
-        assert isinstance(
-            parsed_date, str
-        ), f"Expected string for '{date_string}', got {parsed_date}"
-        assert_is_iso_format(parsed_date)
+    assert parsed_date is None, f"Expected None for '{date_string}', got {parsed_date}"
 
 
 @pytest.mark.parametrize(
