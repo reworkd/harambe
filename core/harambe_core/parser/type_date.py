@@ -43,8 +43,7 @@ class ParserTypeDate:
         if len(date) == 0:
             raise ValueError("Empty input")
 
-        check_date = True if date.lower() in common_non_specific_dates else False
-        if check_date:
+        if date.lower() in common_non_specific_dates:
             return None
         # Attempt to parse date string using dateparser
         parsed_date = dateparser.parse(date)
