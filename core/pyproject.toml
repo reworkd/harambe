@@ -1,6 +1,6 @@
 [project]
 name = "harambe-core"
-version = "0.51.0"
+version = "0.51.1"
 description = "Core types for harambe SDK 🐒🍌"
 authors = [
     { name = "Adam Watkins", email = "adam@reworkd.ai" }
