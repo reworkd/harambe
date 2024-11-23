@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from harambe_core.parser.type_date import ParserTypeDate, common_non_specific_dates
+from harambe_core.parser.type_date import ParserTypeDate
 
 
 def assert_is_iso_format(date_string):
