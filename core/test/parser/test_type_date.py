@@ -60,15 +60,10 @@ def test_pydantic_type_date_validate_type_success(date_string):
 @pytest.mark.parametrize(
     "date_string",
     [
-        # Invalid inputs
-        # 0
-        "",  # Empty string
-        # 1
-        123,  # Number instead of string
-        # 2
-        "InvalidDateFormat",  # Completely invalid string
-        # 3
-        "32/13/2024",  # Invalid date format
+        "",
+        123,
+        "InvalidDateFormat",
+        "32/13/2024",
     ],
 )
 def test_pydantic_type_date_validate_type_error(date_string):
