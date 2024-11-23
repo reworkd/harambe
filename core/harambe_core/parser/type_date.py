@@ -1,18 +1,38 @@
 import re
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 import dateparser
 from pydantic.functional_validators import AfterValidator
 from typing_extensions import Annotated
 
+common_non_specific_dates = {
+    "tbd",
+    "tba",
+    "tbc",
+    "open until filled",
+    "open until contracted",
+    "to be confirmed",
+    "as soon as possible",
+    "subject to change",
+    "not specified",
+    "ongoing",
+    "continuous",
+    "rolling basis",
+    "pending approval",
+    "n/a",
+    "indefinite",
+    "immediate",
+    "unknown",
+}
+
 
 class ParserTypeDate:
     def __new__(cls) -> Any:
-        return Annotated[str, AfterValidator(cls.validate_type)]
+        return Annotated[Union[str, None], AfterValidator(cls.validate_type)]
 
     @staticmethod
-    def validate_type(date: str) -> str:
+    def validate_type(date: str) -> Union[str, None]:
         # Cast to string incase the date is a datetime float/number
         date = str(date)
 
@@ -23,6 +43,9 @@ class ParserTypeDate:
         if len(date) == 0:
             raise ValueError("Empty input")
 
+        check_date = True if date.lower() in common_non_specific_dates else False
+        if check_date:
+            return None
         # Attempt to parse date string using dateparser
         parsed_date = dateparser.parse(date)
 
