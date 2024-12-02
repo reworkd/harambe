@@ -3,6 +3,7 @@ from typing import cast
 
 import pytest
 from aiohttp import web
+from bs4 import BeautifulSoup
 from harambe.observer import InMemoryObserver
 from harambe.types import BrowserType
 from harambe_core.errors import GotoError
@@ -441,8 +442,10 @@ async def test_reset_local_storage(server, observer, harness):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_capture_html_with_and_without_exclusions(server, observer, harness):
+async def test_capture_html_with_different_options(server, observer, harness):
     url = f"{server}/table"
+
+    replaced_element = '<div id="reworkd">Replaced Text</div>'
 
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
@@ -452,6 +455,14 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
         table_html_metadata = await sdk.capture_html("table", ["thead"])
         await sdk.save_data(table_html_metadata)
 
+        table_head_with_replaced_text_html_metadata = await sdk.capture_html(
+            "table",
+            soup_transform=lambda soup: soup.find("thead").replace_with(
+                BeautifulSoup(replaced_element, "html.parser")
+            ),
+        )
+        await sdk.save_data(table_head_with_replaced_text_html_metadata)
+
     await SDK.run(
         scraper=scraper,
         url=url,
@@ -460,12 +471,13 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
         harness=harness,
     )
 
-    assert len(observer.data) == 2
+    assert len(observer.data) == 3
 
     # Verify full document capture
     doc_data = observer.data[0]
     assert "<table" in doc_data["html"]
     assert "<tbody" in doc_data["html"]
+    assert replaced_element not in doc_data["html"]
     assert "Apple" in doc_data["text"]
 
     # Verify download fields all available
@@ -478,7 +490,11 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
     assert "<thead" not in table_data["html"]
     assert "Price" not in table_data["text"]
     assert "Apple" in table_data["text"]
-    print(doc_data)
+
+    replaced_head_data = observer.data[2]
+    assert "<thead" not in replaced_head_data["html"]
+    assert replaced_element in replaced_head_data["html"]
+    assert "Replaced Text" in replaced_head_data["text"]
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])

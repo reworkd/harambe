@@ -263,6 +263,8 @@ class SDK:
         self,
         selector: str = "html",
         exclude_selectors: List[str] | None = None,
+        *,
+        soup_transform: Optional[Callable[[BeautifulSoup], None]] = None,
     ) -> HTMLMetadata:
         """
         Capture and download the html content of the document or a specific element. The returned HTML
@@ -270,10 +272,13 @@ class SDK:
 
         :param selector: CSS selector of element to capture. Defaults to "html" for the document element.
         :param exclude_selectors: List of CSS selectors for elements to exclude from capture.
+        :param soup_transform: A function to transform the BeautifulSoup html prior to saving.
         :return: HTMLMetadata containing download URL, HTML content and inner text.
         :raises ValueError: If the specified selector doesn't match any element.
         """
-        html, text = await self._get_html(selector, exclude_selectors or [])
+        html, text = await self._get_html(
+            selector, exclude_selectors or [], soup_transform or (lambda x: None)
+        )
 
         downloads = await self._notify_observers(
             method="on_download",
@@ -291,7 +296,10 @@ class SDK:
         }
 
     async def _get_html(
-        self, selector: str, exclude_selectors: List[str]
+        self,
+        selector: str,
+        exclude_selectors: List[str],
+        soup_transform: Callable[[BeautifulSoup], None],
     ) -> Tuple[str, str]:
         element = await self.page.query_selector(selector)
 
@@ -304,6 +312,9 @@ class SDK:
         for selector in exclude_selectors:
             for element_to_remove in soup.select(selector):
                 element_to_remove.decompose()
+
+        soup_transform(soup)
+
         text = soup.get_text(separator="\n", strip=True)
 
         return str(soup), text
