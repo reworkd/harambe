@@ -3,6 +3,7 @@ from typing import cast
 
 import pytest
 from aiohttp import web
+from bs4 import BeautifulSoup
 from harambe.observer import InMemoryObserver
 from harambe.types import BrowserType
 from harambe_core.errors import GotoError
@@ -444,6 +445,8 @@ async def test_reset_local_storage(server, observer, harness):
 async def test_capture_html_with_different_options(server, observer, harness):
     url = f"{server}/table"
 
+    replaced_element = "<div id=\"reworkd\">Replaced Text</div>"
+
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         full_html_metadata = await sdk.capture_html()
@@ -452,11 +455,10 @@ async def test_capture_html_with_different_options(server, observer, harness):
         table_html_metadata = await sdk.capture_html("table", ["thead"])
         await sdk.save_data(table_html_metadata)
 
-        # Find the head and replace the text inside of it with "Replaced Text" and put it in a reworkd tag
         table_head_with_replaced_text_html_metadata = await sdk.capture_html(
             "table",
             soup_transform=lambda soup: soup.find("thead").replace_with(
-                soup.new_tag("reworkd", text="Replaced Text")
+                BeautifulSoup(replaced_element, 'html.parser')
             ),
         )
         await sdk.save_data(table_head_with_replaced_text_html_metadata)
@@ -475,6 +477,7 @@ async def test_capture_html_with_different_options(server, observer, harness):
     doc_data = observer.data[0]
     assert "<table" in doc_data["html"]
     assert "<tbody" in doc_data["html"]
+    assert replaced_element not in doc_data["html"]
     assert "Apple" in doc_data["text"]
 
     # Verify download fields all available
@@ -490,8 +493,8 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     replaced_head_data = observer.data[2]
     assert "<thead" not in replaced_head_data["html"]
-    assert "<reworkd" in replaced_head_data["html"]
-    assert "Replaced Text" in replaced_head_data["html"]
+    assert replaced_element in replaced_head_data["html"]
+    assert "Replaced Text" in replaced_head_data["text"]
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
