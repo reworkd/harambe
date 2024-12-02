@@ -445,7 +445,7 @@ async def test_reset_local_storage(server, observer, harness):
 async def test_capture_html_with_different_options(server, observer, harness):
     url = f"{server}/table"
 
-    replaced_element = "<div id=\"reworkd\">Replaced Text</div>"
+    replaced_element = '<div id="reworkd">Replaced Text</div>'
 
     @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
@@ -458,7 +458,7 @@ async def test_capture_html_with_different_options(server, observer, harness):
         table_head_with_replaced_text_html_metadata = await sdk.capture_html(
             "table",
             soup_transform=lambda soup: soup.find("thead").replace_with(
-                BeautifulSoup(replaced_element, 'html.parser')
+                BeautifulSoup(replaced_element, "html.parser")
             ),
         )
         await sdk.save_data(table_head_with_replaced_text_html_metadata)
