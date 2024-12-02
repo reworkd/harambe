@@ -441,7 +441,7 @@ async def test_reset_local_storage(server, observer, harness):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_capture_html_with_and_without_exclusions(server, observer, harness):
+async def test_capture_html_with_different_options(server, observer, harness):
     url = f"{server}/table"
 
     @SDK.scraper("test", "detail", observer=observer)
@@ -452,6 +452,15 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
         table_html_metadata = await sdk.capture_html("table", ["thead"])
         await sdk.save_data(table_html_metadata)
 
+        # Find the head and replace the text inside of it with "Replaced Text" and put it in a reworkd tag
+        table_head_with_replaced_text_html_metadata = await sdk.capture_html(
+            "table",
+            soup_transform=lambda soup: soup.find("thead").replace_with(
+                soup.new_tag("reworkd", text="Replaced Text")
+            ),
+        )
+        await sdk.save_data(table_head_with_replaced_text_html_metadata)
+
     await SDK.run(
         scraper=scraper,
         url=url,
@@ -460,7 +469,7 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
         harness=harness,
     )
 
-    assert len(observer.data) == 2
+    assert len(observer.data) == 3
 
     # Verify full document capture
     doc_data = observer.data[0]
@@ -478,7 +487,11 @@ async def test_capture_html_with_and_without_exclusions(server, observer, harnes
     assert "<thead" not in table_data["html"]
     assert "Price" not in table_data["text"]
     assert "Apple" in table_data["text"]
-    print(doc_data)
+
+    replaced_head_data = observer.data[2]
+    assert "<thead" not in replaced_head_data["html"]
+    assert "<reworkd" in replaced_head_data["html"]
+    assert "Replaced Text" in replaced_head_data["html"]
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
