@@ -272,7 +272,7 @@ class SDK:
 
         :param selector: CSS selector of element to capture. Defaults to "html" for the document element.
         :param exclude_selectors: List of CSS selectors for elements to exclude from capture.
-        :param soup_transform: A function to transform the BeautifulSoup object before returning it.
+        :param soup_transform: A function to transform the BeautifulSoup html prior to saving.
         :return: HTMLMetadata containing download URL, HTML content and inner text.
         :raises ValueError: If the specified selector doesn't match any element.
         """
