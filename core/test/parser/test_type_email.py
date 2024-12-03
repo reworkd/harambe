@@ -21,6 +21,11 @@ class _TestModel(BaseModel):
         ("user@example.museum", "user@example.museum"),
         ("Jane.Doe@Example.COM", "jane.doe@example.com"),
         ("special+chars@123.com", "special+chars@123.com"),
+        ("jane@doe.com.", "jane@doe.com"),
+        ("user@example.museum..", "user@example.museum"),
+        ("Jane.Doe@Example.COM...", "jane.doe@example.com"),
+        ("mailto:test@example.com....", "test@example.com"),
+        ("test@example.com...  ", "test@example.com"),
     ],
 )
 def test_parser_success(email, expected):
