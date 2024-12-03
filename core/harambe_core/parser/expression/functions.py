@@ -1,6 +1,6 @@
 from typing import Any
 
-# from slugify import slugify as python_slugify
+from slugify import slugify as python_slugify
 
 from harambe_core.parser.expression.evaluator import ExpressionEvaluator
 
