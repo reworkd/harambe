@@ -130,7 +130,7 @@ To get started, clone the repository and install the dependencies using the foll
 git clone https://github.com/reworkd/harambe.git
 cd harambe/sdk
 uv sync
-uv run playwright install sd --with-deps
+uv run playwright install chromium --with-deps
 ```
 
 Finally, you can verify that everything is working correctly by running the following command in the
