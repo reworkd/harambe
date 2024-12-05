@@ -5,8 +5,12 @@ from bs4 import BeautifulSoup, Tag
 # noinspection PyProtectedMember
 from curl_cffi.requests import AsyncSession, HeaderTypes
 from harambe.contrib.soup.tracing import Tracer
-from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectable
-from harambe.contrib.types import ResponseWithStatus
+from harambe.contrib.types import (
+    AbstractElementHandle,
+    AbstractPage,
+    ResponseWithStatus,
+    Selectable,
+)
 
 
 class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
@@ -139,3 +143,11 @@ class SoupLocator:
 
     async def all(self) -> list[SoupElementHandle]:
         return await self._page.query_selector_all(self._selector)
+
+    async def text_content(self) -> str | None:
+        if el := await self._page.query_selector(self._selector):
+            return await el.text_content()
+
+        return None
+
+
