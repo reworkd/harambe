@@ -26,6 +26,7 @@ from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
+from harambe.html_to_text import HTMLConverterType, get_html_converter
 from harambe.observer import (
     DownloadMeta,
     HTMLMetadata,
@@ -265,6 +266,7 @@ class SDK:
         exclude_selectors: List[str] | None = None,
         *,
         soup_transform: Optional[Callable[[BeautifulSoup], None]] = None,
+        html_converter_type: HTMLConverterType = "markdown",
     ) -> HTMLMetadata:
         """
         Capture and download the html content of the document or a specific element. The returned HTML
@@ -273,11 +275,15 @@ class SDK:
         :param selector: CSS selector of element to capture. Defaults to "html" for the document element.
         :param exclude_selectors: List of CSS selectors for elements to exclude from capture.
         :param soup_transform: A function to transform the BeautifulSoup html prior to saving.
+        :param html_converter_type: Type of HTML converter to use for the inner text. Defaults to "markdown".
         :return: HTMLMetadata containing download URL, HTML content and inner text.
         :raises ValueError: If the specified selector doesn't match any element.
         """
         html, text = await self._get_html(
-            selector, exclude_selectors or [], soup_transform or (lambda x: None)
+            selector,
+            exclude_selectors or [],
+            soup_transform or (lambda x: None),
+            html_converter_type
         )
 
         downloads = await self._notify_observers(
@@ -300,6 +306,7 @@ class SDK:
         selector: str,
         exclude_selectors: List[str],
         soup_transform: Callable[[BeautifulSoup], None],
+        html_converter_type: HTMLConverterType,
     ) -> Tuple[str, str]:
         element = await self.page.query_selector(selector)
 
@@ -315,7 +322,7 @@ class SDK:
 
         soup_transform(soup)
 
-        text = soup.get_text(separator="\n", strip=True)
+        text = get_html_converter(html_converter_type).convert_soup(soup)
 
         return str(soup), text
 

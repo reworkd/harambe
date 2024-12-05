@@ -496,6 +496,32 @@ async def test_capture_html_with_different_options(server, observer, harness):
     assert replaced_element in replaced_head_data["html"]
     assert "Replaced Text" in replaced_head_data["text"]
 
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_capture_html_conversion_types(server, observer, harness):
+    url = f"{server}/heading"
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        markdown_html_metadata = await sdk.capture_html()
+        await sdk.save_data({"text": markdown_html_metadata["text"]})
+
+        text_html_metadata = await sdk.capture_html(html_converter_type="text")
+        await sdk.save_data({"text": text_html_metadata["text"]})
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+    )
+
+    assert len(observer.data) == 2
+    # Markdown syntax is used
+    assert observer.data[0]["text"].strip() == "### Heading"
+
+    # Text doesn't include markdown syntax
+    assert observer.data[1]["text"].strip() == "Heading"
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_capture_html_element_not_found(server, observer, harness):

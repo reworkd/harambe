@@ -4,6 +4,13 @@ class HarambeException(Exception):
     pass
 
 
+class UnknownHTMLConverter(HarambeException):
+    def __init__(self, converter_type: any) -> None:
+        super().__init__(
+            f"Unknown HTML converter type: {converter_type}"
+        )
+
+
 class GotoError(HarambeException):
     def __init__(self, url: str, status: int) -> None:
         super().__init__(
