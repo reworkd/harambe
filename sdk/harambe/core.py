@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import inspect
 import tempfile
 import uuid
@@ -22,10 +23,8 @@ from bs4 import BeautifulSoup
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
 from harambe.cookie_utils import fix_cookie
-from harambe.handlers import (
-    ResourceRequestHandler,
-    ResourceType,
-)
+from harambe.handlers import ResourceRequestHandler, ResourceType
+from harambe.llm import LLM_AGENTS, LLMManager
 from harambe.observer import (
     DownloadMeta,
     HTMLMetadata,
@@ -52,6 +51,7 @@ from harambe_core import SchemaParser, Schema
 from harambe_core.errors import GotoError
 from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
+from harambe_core.types import SchemaFieldType
 from playwright.async_api import (
     ElementHandle,
     Page,
@@ -607,6 +607,82 @@ class SDK:
             return wrapper
 
         return decorator
+
+    @staticmethod
+    async def llm(
+        to_evaluate: Optional[ElementHandle | str] = None,
+        is_Image: bool = False,
+        prompt: str = "You are a superintelligent artificial intelligence designed for helping software developers. Help evaluate the given text.",
+        data_type: SchemaFieldType = "string",
+        include_screenshot: bool = False,
+        agent: Optional[LLM_AGENTS] = None,
+        model: Optional[str] = None,
+        return_object_format: Optional[object] = {},
+    ) -> str:
+        """
+        Use a LLM agent to evaluate any prompt for a string or ElementHandle or image URL.
+
+        Parameters:
+            to_evaluate (Optional[ElementHandle | str]): The ElementHandle or string or image URL to evaluate.
+            is_Image (bool): Whether the to_evaluate is an image or not.
+            prompt (str): The prompt to use for the evaluation.
+            data_type (SchemaFieldType): The type of data to return.
+            include_screenshot (bool): Whether to include the screenshot of the element in the response (Playwright only)
+            agent (Optional[LLM_AGENTS]): The LLM agent to use.
+            model (Optional[str]): The model to use.
+            return_object_format (Optional[object]): The format to return the data in.
+        """
+
+        agent = LLMManager(agent=agent, model=model)
+
+        stringify = to_evaluate
+        if not is_Image:
+            if isinstance(to_evaluate, str):
+                stringify = to_evaluate.strip()
+
+            elif hasattr(to_evaluate, "text_content") and callable(
+                to_evaluate.text_content
+            ):
+                stringify = await to_evaluate.text_content()
+                stringify = stringify.strip()
+
+        # Add a check to return None if no information is found
+        prompt += '. Just return the requested data without any additional text. If no information is found, return "NONE"'
+
+        # Return the response in the requested format
+        if len(return_object_format):
+            prompt += f". Return response in the following format: {{{str(return_object_format)}}}"
+
+        prompts = [
+            {"type": "text", "content": prompt},
+            {"type": "image" if is_Image else "text", "content": stringify},
+        ]
+
+        # Add the screenshot to prompt
+        if include_screenshot and not is_Image:
+            screenshot = await to_evaluate.screenshot()
+            screenshot_b64 = base64.b64encode(screenshot).decode()
+
+            prompts.append(
+                {
+                    "type": "image",
+                    "content": f"data:image/jpeg;base64,{screenshot_b64}",
+                },
+            )
+
+        response = agent.query(prompts)
+
+        # Check if LLM failed in the response
+        if response == "NONE":
+            return None
+
+        if not len(return_object_format):
+            # Validate the response against data_type
+            schema = {"data": {"type": data_type}}
+            validator = SchemaParser(schema)
+            validator.validate({"data": response}, base_url="https://example.com")
+
+        return response
 
 
 PAGE_PDF_FILENAME = "reworkd_page_pdf.pdf"
