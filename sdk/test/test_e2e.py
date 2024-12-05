@@ -613,7 +613,7 @@ async def test_core_llm_method(server, observer, harness):
         <p> Here is a big lorem ipsum element Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc imperdiet,
         libero ac vestibulum tristique, massa orci viverra augue, eu congue elit urna a justo. Suspendisse ac nisi
         dolor. Sed turpis ante, tincidunt in nibh quis, pellentesque euismod dolor. Sed at mauris maximus, tempus
-        dolor eu, tristique sem. Fusce in dolor egestas, The product launch date was vulputate lacus eget, pharetra felis. Morbi ac lorem at
+        dolor eu, tristique sem. Fusce in dolor egestas, The product launch date was 12/04/2024 vulputate lacus eget, pharetra felis. Morbi ac lorem at
         lorem aliquam blandit. Quisque eget vulputate felis. Suspendisse bibendum mauris vel ex dignissim tincidunt.
         Integer porttitor libero ligula, ut convallis lorem rhoncus et. Ut ac nisl a mauris malesuada aliquet.
         In vitae pharetra tellus. Suspendisse vel varius tellus. Ut pellentesque sem at gravida volutpat. </p>
@@ -624,11 +624,27 @@ async def test_core_llm_method(server, observer, harness):
             data_type="datetime",
         )
 
+        large_text_none = """
+        <p> Here is a big lorem ipsum element Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc imperdiet,
+        libero ac vestibulum tristique, massa orci viverra augue, eu congue elit urna a justo. Suspendisse ac nisi
+        dolor. Sed turpis ante, tincidunt in nibh quis, pellentesque euismod dolor. Sed at mauris maximus, tempus
+        dolor eu, tristique sem. Fusce in dolor egestas, The product launch date was vulputate lacus eget, pharetra felis. Morbi ac lorem at
+        lorem aliquam blandit. Quisque eget vulputate felis. Suspendisse bibendum mauris vel ex dignissim tincidunt.
+        Integer porttitor libero ligula, ut convallis lorem rhoncus et. Ut ac nisl a mauris malesuada aliquet.
+        In vitae pharetra tellus. Suspendisse vel varius tellus. Ut pellentesque sem at gravida volutpat. </p>
+        """
+        product_launch_date_none = await sdk.llm(
+            to_evaluate=large_text_none,
+            prompt="Find the product launch date on page",
+            data_type="datetime",
+        )
+
         await sdk.save_data(
             {
                 "date_prepared": date_prepared,
                 "solicitation_id": solicitation_id,
                 "product_launch_date": product_launch_date,
+                "product_launch_date_none": product_launch_date_none,
             }
         )
 
@@ -643,4 +659,5 @@ async def test_core_llm_method(server, observer, harness):
     assert len(observer.data) == 1
     assert observer.data[0]["date_prepared"] == "10/31/24"
     assert observer.data[0]["solicitation_id"] == "6100062375"
-    assert observer.data[0]["product_launch_date"] is None
+    assert observer.data[0]["product_launch_date"] == "12/04/2024"
+    assert observer.data[0]["product_launch_date_none"] is None
