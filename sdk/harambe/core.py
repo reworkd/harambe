@@ -283,7 +283,7 @@ class SDK:
             selector,
             exclude_selectors or [],
             soup_transform or (lambda x: None),
-            html_converter_type
+            html_converter_type,
         )
 
         downloads = await self._notify_observers(
