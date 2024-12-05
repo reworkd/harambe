@@ -26,7 +26,7 @@ from harambe.handlers import (
     ResourceRequestHandler,
     ResourceType,
 )
-from harambe.html_to_text import HTMLConverterType, get_html_converter
+from harambe.html_converter import HTMLConverterType, get_html_converter
 from harambe.observer import (
     DownloadMeta,
     HTMLMetadata,
