@@ -4,12 +4,11 @@ from typing import cast
 import pytest
 from aiohttp import web
 from bs4 import BeautifulSoup
+from harambe import SDK
+from harambe.contrib import playwright_harness, soup_harness
 from harambe.observer import InMemoryObserver
 from harambe.types import BrowserType
 from harambe_core.errors import GotoError
-
-from harambe import SDK
-from harambe.contrib import playwright_harness, soup_harness
 
 
 @pytest.fixture(scope="module")
@@ -588,3 +587,61 @@ async def test_403_status_on_goto(server, observer, harness):
         )
 
     assert len(observer.data) == 0
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_core_llm_method(server, observer, harness):
+    url = f"{server}/solicitation"
+
+    async def scrape(sdk: SDK, url, context) -> None:
+
+        page = sdk.page
+        # body = await page.query_selector("body")
+        body = page.locator("body")
+
+        date_prepared = await sdk.llm(
+            to_evaluate=body,
+            prompt="Find the date prepared in the general information",
+            data_type="datetime",
+        )
+        solicitation_id = await sdk.llm(
+            to_evaluate=body,
+            prompt="Find the solicitation id in the general information",
+            data_type="int",
+        )
+
+        large_text = """
+        <p> Here is a big lorem ipsum element Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc imperdiet,
+        libero ac vestibulum tristique, massa orci viverra augue, eu congue elit urna a justo. Suspendisse ac nisi
+        dolor. Sed turpis ante, tincidunt in nibh quis, pellentesque euismod dolor. Sed at mauris maximus, tempus
+        dolor eu, tristique sem. Fusce in dolor egestas, The product launch date was vulputate lacus eget, pharetra felis. Morbi ac lorem at
+        lorem aliquam blandit. Quisque eget vulputate felis. Suspendisse bibendum mauris vel ex dignissim tincidunt.
+        Integer porttitor libero ligula, ut convallis lorem rhoncus et. Ut ac nisl a mauris malesuada aliquet.
+        In vitae pharetra tellus. Suspendisse vel varius tellus. Ut pellentesque sem at gravida volutpat. </p>
+        """
+        product_launch_date = await sdk.llm(
+            to_evaluate=large_text,
+            prompt="Find the product launch date on page",
+            data_type="datetime",
+        )
+
+        await sdk.save_data(
+            {
+                "date_prepared": date_prepared,
+                "solicitation_id": solicitation_id,
+                "product_launch_date": product_launch_date,
+            }
+        )
+
+    await SDK.run(
+        scrape,
+        url,
+        schema={},
+        harness=harness,
+        context={"status": "Open"},
+        observer=observer,
+    )
+    assert len(observer.data) == 1
+    assert observer.data[0]["date_prepared"] == "10/31/24"
+    assert observer.data[0]["solicitation_id"] == "6100062375"
+    assert observer.data[0]["product_launch_date"] is None
