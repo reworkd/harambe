@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 from openai import OpenAI
 
@@ -8,11 +8,11 @@ LLM_AGENTS = Literal["openai"]
 
 
 class LLMManager:
-    def __init__(self, agent: LLM_AGENTS = "openai", model: str = "gpt-4o-mini"):
-        self.agent_name = agent
-        self.model = model
+    def __init__(self, agent: Optional[LLM_AGENTS] = None, model: Optional[str] = None):
+        self.agent_name = "openai" if agent is None else agent
+        self.model = "gpt-4o-mini" if model is None else model
 
-        if agent == "openai":
+        if self.agent_name == "openai":
             self.agent = OpenAI(api_key=get_settings().openai_api_key)
 
     def query(self, prompts: List[Dict[str, str]]) -> str:
@@ -35,7 +35,10 @@ class LLMManager:
 
                 if prompt["type"] == "image":
                     content.append(
-                        {"type": "image", "image_url": {"url": f"{prompt['content']}"}}
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"{prompt['content']}"},
+                        }
                     )
 
             response = self.agent.chat.completions.create(

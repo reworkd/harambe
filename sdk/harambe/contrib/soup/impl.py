@@ -149,5 +149,3 @@ class SoupLocator:
             return await el.text_content()
 
         return None
-
-

@@ -594,7 +594,6 @@ async def test_core_llm_method(server, observer, harness):
     url = f"{server}/solicitation"
 
     async def scrape(sdk: SDK, url, context) -> None:
-
         page = sdk.page
         # body = await page.query_selector("body")
         body = page.locator("body")
