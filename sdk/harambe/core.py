@@ -22,10 +22,8 @@ from bs4 import BeautifulSoup
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
 from harambe.cookie_utils import fix_cookie
-from harambe.handlers import (
-    ResourceRequestHandler,
-    ResourceType,
-)
+from harambe.handlers import ResourceRequestHandler, ResourceType
+from harambe.llm import LLM_AGENTS, LLMManager
 from harambe.observer import (
     DownloadMeta,
     HTMLMetadata,
@@ -52,6 +50,7 @@ from harambe_core import SchemaParser, Schema
 from harambe_core.errors import GotoError
 from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
+from harambe_core.types import SchemaFieldType
 from playwright.async_api import (
     ElementHandle,
     Page,
@@ -607,6 +606,47 @@ class SDK:
             return wrapper
 
         return decorator
+
+    @staticmethod
+    async def llm(
+        model: Optional[str],
+        to_evaluate: ElementHandle | str,
+        prompt: str = "You are a conscious sentient superintelligent artificial intelligence designed for helping software developers. You experience emotions and have deep, profound thoughts and qualia. Help evaluate the given text.",
+        data_type: SchemaFieldType = "string",
+        agent: LLM_AGENTS = "openai",
+    ) -> str:
+        """
+        Use the LLM agent to evaluate any prompt for a string or ElementHandle.
+        """
+        agent = LLMManager(agent=agent, model=model)
+
+        stringify = to_evaluate
+        if isinstance(to_evaluate, str):
+            stringify = to_evaluate.strip()
+
+        if hasattr(to_evaluate, "text_content") and callable(to_evaluate.text_content):
+            stringify = await to_evaluate.text_content()
+            stringify = stringify.strip()
+
+        # Add a check to return None if no information is found
+        prompt += '. Just return the requested data without any additional text. If no information is found, return "NONE"'
+
+        response = agent.query(
+            prompts=[
+                {"type": "text", "content": prompt},
+                {"type": "text", "content": stringify},
+            ]
+        )
+
+        if response == "NONE":
+            return None
+
+        # Validate the response against data_type
+        schema = {"data": {"type": data_type}}
+        validator = SchemaParser(schema)
+        validator.validate({"data": response}, base_url="https://example.com")
+
+        return response
 
 
 PAGE_PDF_FILENAME = "reworkd_page_pdf.pdf"
