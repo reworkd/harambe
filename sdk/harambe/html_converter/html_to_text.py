@@ -23,6 +23,7 @@ class HTMLToTextConverter(MarkdownConverter):
             return f"[{text}]"
         return text
 
+    # Remove markdown headings
     def convert_h1(self, el: Tag, text: str, convert_as_inline: bool) -> str:
         return self.convert_p(el, text, convert_as_inline)
 
