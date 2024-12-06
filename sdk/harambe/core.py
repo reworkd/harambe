@@ -611,7 +611,7 @@ class SDK:
     @staticmethod
     async def llm(
         to_evaluate: Optional[ElementHandle | str] = None,
-        is_Image: bool = False,
+        is_image_url: bool = False,
         prompt: str = "You are a superintelligent artificial intelligence designed for helping software developers. Help evaluate the given text.",
         data_type: SchemaFieldType = "string",
         include_screenshot: bool = False,
@@ -624,7 +624,7 @@ class SDK:
 
         Parameters:
             to_evaluate (Optional[ElementHandle | str]): The ElementHandle or string or image URL to evaluate.
-            is_Image (bool): Whether the to_evaluate is an image or not.
+            is_image_url (bool): Whether the to_evaluate is an image or not.
             prompt (str): The prompt to use for the evaluation.
             data_type (SchemaFieldType): The type of data to return.
             include_screenshot (bool): Whether to include the screenshot of the element in the response (Playwright only)
@@ -636,7 +636,7 @@ class SDK:
         agent = LLMManager(agent=agent, model=model)
 
         stringify = to_evaluate
-        if not is_Image:
+        if not is_image_url:
             if isinstance(to_evaluate, str):
                 stringify = to_evaluate.strip()
 
@@ -655,11 +655,11 @@ class SDK:
 
         prompts = [
             {"type": "text", "content": prompt},
-            {"type": "image" if is_Image else "text", "content": stringify},
+            {"type": "image" if is_image_url else "text", "content": stringify},
         ]
 
         # Add the screenshot to prompt
-        if include_screenshot and not is_Image:
+        if include_screenshot and not is_image_url:
             screenshot = await to_evaluate.screenshot()
             screenshot_b64 = base64.b64encode(screenshot).decode()
 
