@@ -107,6 +107,9 @@ async def playwright_harness(
 
         ctx.set_default_timeout(default_timeout)
 
+        if headers:
+            await ctx.set_extra_http_headers(headers)
+
         if cookies:
             await ctx.add_cookies(cookies)
 
@@ -119,8 +122,6 @@ async def playwright_harness(
                 await on_new_page(page)
             if stealth:
                 await stealth_async(page)
-            if headers:
-                await page.set_extra_http_headers(headers)
             return page  # type: ignore
 
         try:
