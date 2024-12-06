@@ -118,6 +118,10 @@ def test_no_data(data) -> None:
             },
         ),
         (
+            load_schema("enums"),
+            {"season": "spring"},
+        ),
+        (
             load_schema("currency"),
             {
                 "product": {"name": "Product One", "price": None},
