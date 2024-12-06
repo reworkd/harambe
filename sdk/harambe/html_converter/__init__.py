@@ -1,10 +1,9 @@
 from typing import Literal
 
+from harambe.html_converter.html_to_markdown import HTMLToMarkdownConverter
+from harambe.html_converter.html_to_text import HTMLToTextConverter
 from harambe_core.errors import UnknownHTMLConverter
 from markdownify import MarkdownConverter
-
-from sdk.harambe.html_converter.html_to_markdown import HTMLToMarkdownConverter
-from sdk.harambe.html_converter.html_to_text import HTMLToTextConverter
 
 HTMLConverterType = Literal["markdown", "text"]
 

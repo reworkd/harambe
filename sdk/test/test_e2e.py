@@ -526,6 +526,36 @@ async def test_capture_html_conversion_types(server, observer, harness):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_capture_html_table(server, observer, harness):
+    url = f"{server}/table"
+
+    @SDK.scraper("test", "detail", observer=observer)
+    async def scraper(sdk: SDK, *args, **kwargs):
+        text_html_metadata = await sdk.capture_html(html_converter_type="text")
+        await sdk.save_data({"text": text_html_metadata["text"]})
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+    )
+
+    assert len(observer.data) == 1
+    assert observer.data[0]["text"].strip() == (
+        "Food Prices\n\n"
+        "Shown below are the prices of some fruits:\n\n"
+        "| Food | Price |\n"
+        "| --- | --- |\n"
+        "| Apple | 1.00 |\n"
+        "| Banana | 0.50 |\n"
+        "| Orange [10] | 1.25 |\n\n"
+        "Other Page"
+    )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_capture_html_element_not_found(server, observer, harness):
     url = f"{server}/table"
 
