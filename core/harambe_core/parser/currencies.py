@@ -1,70 +1,57 @@
-all_currencies = sorted(
-    [
-        ("$", "USD"),  # US Dollar
-        ("€", "EUR"),  # Euro
-        ("¥", "JPY"),  # Japanese Yen
-        ("£", "GBP"),  # British Pound
-        ("A$", "AUD"),  # Australian Dollar
-        ("C$", "CAD"),  # Canadian Dollar
-        ("CHF", "CHF"),  # Swiss Franc
-        ("¥", "CNY"),  # Chinese Yuan
-        ("kr.", "SEK"),  # Swedish Krona
-        ("NZ$", "NZD"),  # New Zealand Dollar
-        ("S$", "SGD"),  # Singapore Dollar
-        ("HK$", "HKD"),  # Hong Kong Dollar
-        ("kr", "NOK"),  # Norwegian Krone
-        ("₩", "KRW"),  # South Korean Won
-        ("₺", "TRY"),  # Turkish Lira
-        ("₹", "INR"),  # Indian Rupee
-        ("₽", "RUB"),  # Russian Ruble
-        ("R$", "BRL"),  # Brazilian Real
-        ("R", "ZAR"),  # South African Rand
-        ("RM", "MYR"),  # Malaysian Ringgit
-        ("฿", "THB"),  # Thai Baht
-        ("Rp", "IDR"),  # Indonesian Rupiah
-        ("zł", "PLN"),  # Polish Zloty
-        ("₱", "PHP"),  # Philippine Peso
-        ("Kč", "CZK"),  # Czech Koruna
-        ("د.إ", "AED"),  # UAE Dirham
-        ("Ft", "HUF"),  # Hungarian Forint
-        ("₪", "ILS"),  # Israeli Shekel
-        ("﷼", "SAR"),  # Saudi Riyal
-        ("₦", "NGN"),  # Nigerian Naira
-        ("د.ك", "KWD"),  # Kuwaiti Dinar
-        ("B/.", "PAB"),  # Panamanian Balboa
-        ("kr", "DKK"),  # Danish Krone
-        ("S/.", "PEN"),  # Peruvian Sol
-        ("₲", "PYG"),  # Paraguayan Guarani
-        ("$", "MXN"),  # Mexican Peso
-        ("Q", "GTQ"),  # Guatemalan Quetzal
-        ("Bs.", "VEF"),  # Venezuelan Bolivar
-        ("$", "ARS"),  # Argentine Peso
-        ("$", "CLP"),  # Chilean Peso
-        ("$", "COP"),  # Colombian Peso
-        ("₡", "CRC"),  # Costa Rican Colón
-        ("د.م.", "MAD"),  # Moroccan Dirham
-        ("DH", "DZD"),  # Algerian Dinar
-        ("T", "KZT"),  # Kazakhstani Tenge
-        ("лв", "BGN"),  # Bulgarian Lev
-        ("L", "RON"),  # Romanian Leu
-        ("$", "TTD"),  # Trinidad and Tobago Dollar
-        ("ƒ", "ANG"),  # Netherlands Antillean Guilder
-        ("₭", "LAK"),  # Lao Kip
-        ("₮", "MNT"),  # Mongolian Tugrik
-        ("VT", "VUV"),  # Vanuatu Vatu
-        ("K", "PGK"),  # Papua New Guinean Kina
-        ("៛", "KHR"),  # Cambodian Riel
-        ("MK", "MWK"),  # Malawian Kwacha
-        ("MT", "MZN"),  # Mozambican Metical
-        ("Z$", "ZWL"),  # Zimbabwean Dollar
-        ("₫", "VND"),  # Vietnamese Dong
-        ("৳", "BDT"),  # Bangladeshi Taka
-    ],
-    key=lambda x: len(x[0]),
-    reverse=True,
-)
+from typing import Final
 
-price_not_available_phrases = {
+ALL_CURRENCIES: Final[dict[str, str]] = {
+    "د.م.": "MAD",  # Moroccan Dirham
+    "د.إ": "AED",  # UAE Dirham
+    "د.ك": "KWD",  # Kuwaiti Dinar
+    "Bs.": "VEF",  # Venezuelan Bolivar
+    "S/.": "PEN",  # Peruvian Sol
+    "B/.": "PAB",  # Panamanian Balboa
+    "NZ$": "NZD",  # New Zealand Dollar
+    "HK$": "HKD",  # Hong Kong Dollar
+    "A$": "AUD",  # Australian Dollar
+    "C$": "CAD",  # Canadian Dollar
+    "S$": "SGD",  # Singapore Dollar
+    "R$": "BRL",  # Brazilian Real
+    "Z$": "ZWL",  # Zimbabwean Dollar
+    "kr.": "SEK",  # Swedish Krona
+    "₽": "RUB",  # Russian Ruble
+    "₺": "TRY",  # Turkish Lira
+    "₩": "KRW",  # South Korean Won
+    "₦": "NGN",  # Nigerian Naira
+    "₫": "VND",  # Vietnamese Dong
+    "₱": "PHP",  # Philippine Peso
+    "₡": "CRC",  # Costa Rican Colón
+    "₭": "LAK",  # Lao Kip
+    "₮": "MNT",  # Mongolian Tugrik
+    "₲": "PYG",  # Paraguayan Guarani
+    "฿": "THB",  # Thai Baht
+    "€": "EUR",  # Euro
+    "₪": "ILS",  # Israeli Shekel
+    "₹": "INR",  # Indian Rupee
+    "৳": "BDT",  # Bangladeshi Taka
+    "zł": "PLN",  # Polish Zloty
+    "៛": "KHR",  # Cambodian Riel
+    "kr": "NOK",  # Norwegian Krone
+    "Kč": "CZK",  # Czech Koruna
+    "RM": "MYR",  # Malaysian Ringgit
+    "DH": "DZD",  # Algerian Dinar
+    "Ft": "HUF",  # Hungarian Forint
+    "MK": "MWK",  # Malawian Kwacha
+    "MT": "MZN",  # Mozambican Metical
+    "L": "RON",  # Romanian Leu
+    "T": "KZT",  # Kazakhstani Tenge
+    "VT": "VUV",  # Vanuatu Vatu
+    "Q": "GTQ",  # Guatemalan Quetzal
+    "R": "ZAR",  # South African Rand
+    "£": "GBP",  # British Pound
+    "¥": "JPY",  # Japanese Yen
+    "ƒ": "ANG",  # Netherlands Antillean Guilder
+    "$": "USD",  # US Dollar
+    "CHF": "CHF",  # Swiss Franc
+}
+
+PRICE_NOT_AVAILABLE_PHRASES: Final[set[str]] = {
     "price not available",
     "unavailable price",
     "price upon request",

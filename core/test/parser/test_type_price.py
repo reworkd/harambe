@@ -38,7 +38,7 @@ class _TestModel(BaseModel):
         ("0.0004 $", 0.0004),
     ],
 )
-def test_flexible_price_success(input_value, expected_output):
+def test_type_price_success(input_value, expected_output):
     model = _TestModel(value=input_value)
     assert model.value == pytest.approx(expected_output)
 
@@ -65,6 +65,6 @@ def test_flexible_price_success(input_value, expected_output):
         [],
     ],
 )
-def test_flexible_float_failure(input_value):
+def test_type_price_failure(input_value):
     with pytest.raises(ValidationError):
         _TestModel(value=input_value)
