@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class HarambeException(Exception):
     """Base exception for all custom exceptions in Harambe."""
 
@@ -5,7 +8,7 @@ class HarambeException(Exception):
 
 
 class UnknownHTMLConverter(HarambeException):
-    def __init__(self, converter_type: any) -> None:
+    def __init__(self, converter_type: Any) -> None:
         super().__init__(f"Unknown HTML converter type: {converter_type}")
 
 
