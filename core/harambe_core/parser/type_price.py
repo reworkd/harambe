@@ -3,30 +3,6 @@ from typing import Any, Union
 import re
 from typing_extensions import Annotated
 
-price_not_available_phrases = {
-    "price not available",
-    "unavailable price",
-    "price upon request",
-    "contact for price",
-    "request a quote",
-    "call for price",
-    "check price in store",
-    "price tbd",
-    "price not disclosed",
-    "out of stock",
-    "sold out",
-    "pricing not provided",
-    "not priced",
-    "currently unavailable",
-    "n/a",
-    "ask for pricing",
-    "see details for price",
-    "price coming soon",
-    "temporarily unavailable",
-    "price hidden",
-    "tdb",
-}
-
 
 class ParserTypePrice:
     def __new__(cls) -> Any:
@@ -34,15 +10,7 @@ class ParserTypePrice:
 
     @staticmethod
     def validate_price(value: str) -> Union[float, None]:
-        if isinstance(value, (float, int)):
-            return float(value)
-
-        if value is None:
-            return None
-
         value = str(value).strip()
-        if value.lower() in price_not_available_phrases:
-            return None
 
         cleaned_value = re.sub(r"[^\d.,-]", "", value)
         cleaned_value = re.sub(r"^0+(?!$)", "", cleaned_value)
