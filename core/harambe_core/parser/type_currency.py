@@ -1,70 +1,44 @@
 from pydantic import BeforeValidator
-from typing import Any
-import re
+from typing import Union, Optional
 from typing_extensions import Annotated
-
-price_not_available_phrases = [
-    "price not available",
-    "unavailable price",
-    "price upon request",
-    "contact for price",
-    "request a quote",
-    "call for price",
-    "check price in store",
-    "price tbd (to be determined)",
-    "price not disclosed",
-    "out of stock",
-    "sold out",
-    "pricing not provided",
-    "not priced",
-    "currently unavailable",
-    "n/a (not available)",
-    "ask for pricing",
-    "see details for price",
-    "price coming soon",
-    "temporarily unavailable",
-    "price hidden",
-    "tdb",
-    "n/a",
-]
+from harambe_core.parser.type_price import ParserTypePrice
+from harambe_core.parser.currencies import ALL_CURRENCIES, PRICE_NOT_AVAILABLE_PHRASES
 
 
-class ParserTypeCurrency:
-    def __new__(cls) -> Any:
-        return Annotated[float | None, BeforeValidator(cls.validate_currency)]
-
-    @staticmethod
-    def validate_currency(value: str) -> float | None:
+class CurrencyParser:
+    def __call__(
+        self, value: Union[str, float, int, None]
+    ) -> Optional[dict[str, Optional[Union[str, float]]]]:
         if isinstance(value, (float, int)):
-            return float(value)
+            return {"currency": None, "currency_symbol": None, "amount": float(value)}
 
-        value = str(value).strip()
-
-        if value.lower() in price_not_available_phrases:
+        if value is None or self._is_price_not_available(value):
             return None
 
-        cleaned_value = re.sub(r"[^\d.,-]", "", value)
-        cleaned_value = re.sub(r"^0+(?!$)", "", cleaned_value)
+        value_str = str(value).strip()
+        symbol, currency_name = self._identify_currency(value_str)
+        amount = self._extract_amount(value_str, symbol)
 
-        if "." in cleaned_value:
-            decimal_parts = cleaned_value.split(".")
-            if len(decimal_parts[-1]) == 3:  # thousands separator issue
-                cleaned_value = cleaned_value.replace(".", "")
+        return {"currency": currency_name, "currency_symbol": symbol, "amount": amount}
 
-        if cleaned_value.startswith("."):
-            cleaned_value = "0" + cleaned_value
-            return float(cleaned_value)
+    @staticmethod
+    def _is_price_not_available(value: Union[str, float, int]) -> bool:
+        return str(value).strip().lower() in PRICE_NOT_AVAILABLE_PHRASES
 
-        if "," in cleaned_value and "." in cleaned_value:
-            if cleaned_value.index(",") < cleaned_value.index("."):
-                cleaned_value = cleaned_value.replace(",", "")
-            else:
-                cleaned_value = cleaned_value.replace(".", "").replace(",", ".")
-        elif "," in cleaned_value and "." not in cleaned_value:
-            if (
-                len(cleaned_value.split(",")[-1]) != 3
-            ):  # check Ambiguous values 123,45 and 123,456
-                raise ValueError("Invalid price")
-            cleaned_value = cleaned_value.replace(",", "")
+    @staticmethod
+    def _identify_currency(value: str) -> tuple[Optional[str], Optional[str]]:
+        for symbol, currency_name in ALL_CURRENCIES.items():
+            if symbol in value or currency_name.lower() in value.lower():
+                return symbol, currency_name
+        return None, None
 
-        return float(cleaned_value.strip())
+    @staticmethod
+    def _extract_amount(value: str, symbol: Optional[str]) -> Optional[float]:
+        if symbol:
+            value = value.replace(symbol, "").strip()
+        return ParserTypePrice.validate_price(value)
+
+
+ParserTypeCurrency = Annotated[
+    Optional[dict[str, Optional[Union[str, float]]]], BeforeValidator(CurrencyParser())
+]
