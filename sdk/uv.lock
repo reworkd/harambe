@@ -428,7 +428,7 @@ wheels = [
 
 [[package]]
 name = "harambe-core"
-version = "0.53.0"
+version = "0.54.0"
 source = { editable = "../core" }
 dependencies = [
     { name = "dateparser" },
@@ -459,7 +459,7 @@ dev = [
 
 [[package]]
 name = "harambe-sdk"
-version = "0.53.0"
+version = "0.54.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -470,6 +470,7 @@ dependencies = [
     { name = "playwright" },
     { name = "playwright-stealth" },
     { name = "requests" },
+    { name = "setuptools" },
     { name = "ua-generator" },
 ]
 
@@ -492,6 +493,7 @@ requires-dist = [
     { name = "playwright", specifier = "==1.47.0" },
     { name = "playwright-stealth", specifier = "==1.0.6" },
     { name = "requests", specifier = "==2.32.3" },
+    { name = "setuptools", specifier = ">=75.6.0" },
     { name = "ua-generator", specifier = "==1.0.5" },
 ]
 
@@ -981,6 +983,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0b/08/e8f519f61f1d624264bfd6b8829e4c5f31c3c61193bc3cff1f19dbe7626a/ruff-0.8.2-py3-none-win32.whl", hash = "sha256:ac42caaa0411d6a7d9594363294416e0e48fc1279e1b0e948391695db2b3d5b1", size = 8729396 },
     { url = "https://files.pythonhosted.org/packages/f8/d4/ba1c7ab72aba37a2b71fe48ab95b80546dbad7a7f35ea28cf66fc5cea5f6/ruff-0.8.2-py3-none-win_amd64.whl", hash = "sha256:2aae99ec70abf43372612a838d97bfe77d45146254568d94926e8ed5bbb409ea", size = 9594729 },
     { url = "https://files.pythonhosted.org/packages/23/34/db20e12d3db11b8a2a8874258f0f6d96a9a4d631659d54575840557164c8/ruff-0.8.2-py3-none-win_arm64.whl", hash = "sha256:fb88e2a506b70cfbc2de6fae6681c4f944f7dd5f2fe87233a7233d888bad73e8", size = 9035131 },
+]
+
+[[package]]
+name = "setuptools"
+version = "75.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/43/54/292f26c208734e9a7f067aea4a7e282c080750c4546559b58e2e45413ca0/setuptools-75.6.0.tar.gz", hash = "sha256:8199222558df7c86216af4f84c30e9b34a61d8ba19366cc914424cdbd28252f6", size = 1337429 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/21/47d163f615df1d30c094f6c8bbb353619274edccf0327b185cc2493c2c33/setuptools-75.6.0-py3-none-any.whl", hash = "sha256:ce74b49e8f7110f9bf04883b730f4765b774ef3ef28f722cce7c273d253aaf7d", size = 1224032 },
 ]
 
 [[package]]
