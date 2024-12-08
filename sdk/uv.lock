@@ -434,7 +434,6 @@ dependencies = [
     { name = "dateparser" },
     { name = "email-validator" },
     { name = "phonenumbers" },
-    { name = "playwright" },
     { name = "pydantic" },
     { name = "python-slugify" },
 ]
@@ -444,9 +443,8 @@ requires-dist = [
     { name = "dateparser", specifier = "==1.2.0" },
     { name = "email-validator", specifier = "==2.2.0" },
     { name = "phonenumbers", specifier = "==8.13.47" },
-    { name = "playwright", specifier = "==1.47.0" },
     { name = "pydantic", specifier = "==2.9.2" },
-    { name = "python-slugify", specifier = ">=8.0.4" },
+    { name = "python-slugify", specifier = "==8.0.4" },
 ]
 
 [package.metadata.requires-dev]
@@ -467,17 +465,11 @@ dependencies = [
     { name = "aiohttp" },
     { name = "beautifulsoup4" },
     { name = "curl-cffi" },
-    { name = "dateparser" },
-    { name = "email-validator" },
     { name = "harambe-core" },
     { name = "markdownify" },
-    { name = "phonenumbers" },
     { name = "playwright" },
     { name = "playwright-stealth" },
-    { name = "pydantic" },
-    { name = "python-slugify" },
     { name = "requests" },
-    { name = "setuptools" },
     { name = "ua-generator" },
 ]
 
@@ -488,7 +480,6 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "ruff" },
-    { name = "types-dateparser" },
 ]
 
 [package.metadata]
@@ -496,17 +487,11 @@ requires-dist = [
     { name = "aiohttp", specifier = "==3.10.10" },
     { name = "beautifulsoup4", specifier = "==4.12.3" },
     { name = "curl-cffi", specifier = "==0.7.3" },
-    { name = "dateparser", specifier = "==1.2.0" },
-    { name = "email-validator", specifier = "==2.2.0" },
     { name = "harambe-core", editable = "../core" },
     { name = "markdownify", specifier = "==0.14.1" },
-    { name = "phonenumbers", specifier = "==8.13.47" },
     { name = "playwright", specifier = "==1.47.0" },
     { name = "playwright-stealth", specifier = "==1.0.6" },
-    { name = "pydantic", specifier = "==2.9.2" },
-    { name = "python-slugify", specifier = ">=8.0.4" },
     { name = "requests", specifier = "==2.32.3" },
-    { name = "setuptools", specifier = "==73.0.0" },
     { name = "ua-generator", specifier = "==1.0.5" },
 ]
 
@@ -517,7 +502,6 @@ dev = [
     { name = "pytest-asyncio", specifier = "==0.21.2" },
     { name = "pytest-cov", specifier = "==4.1.0" },
     { name = "ruff", specifier = "==0.8.2" },
-    { name = "types-dateparser", specifier = "==1.2.0.20240420" },
 ]
 
 [[package]]
@@ -1000,15 +984,6 @@ wheels = [
 ]
 
 [[package]]
-name = "setuptools"
-version = "73.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/98/0b/56dabcf2b37d9152090bcd5d42e28ad312c9ba54fb1446b22dcc809dd84a/setuptools-73.0.0.tar.gz", hash = "sha256:3c08705fadfc8c7c445cf4d98078f0fafb9225775b2b4e8447e40348f82597c0", size = 2515991 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/e3/93b516fab8b8f420acc7bb75e29759d009df26c093d8de1c70993b13bf25/setuptools-73.0.0-py3-none-any.whl", hash = "sha256:f2bfcce7ae1784d90b04c57c2802e8649e1976530bb25dc72c2b078d3ecf4864", size = 2346506 },
-]
-
-[[package]]
 name = "six"
 version = "1.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1042,15 +1017,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/35/b9/de2a5c0144d7d75a57ff355c0c24054f965b2dc3036456ae03a51ea6264b/tomli-2.0.2.tar.gz", hash = "sha256:d46d457a85337051c36524bc5349dd91b1877838e2979ac5ced3e710ed8a60ed", size = 16096 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cf/db/ce8eda256fa131af12e0a76d481711abe4681b6923c27efb9a255c9e4594/tomli-2.0.2-py3-none-any.whl", hash = "sha256:2ebe24485c53d303f690b0ec092806a085f07af5a5aa1464f3931eec36caaa38", size = 13237 },
-]
-
-[[package]]
-name = "types-dateparser"
-version = "1.2.0.20240420"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e6/08/5fb24fed7bafeaaee66d5765c3be11e48e21742dd540f6c8a720353d872a/types-dateparser-1.2.0.20240420.tar.gz", hash = "sha256:8f813ddf5ef41b32cabe6167138ae833ada10c22811e42220a1e38a0be7adbdc", size = 10151 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/46/609e2692aa8e63303d743c9be56890f5b5b4db2474367f106a1a7065303b/types_dateparser-1.2.0.20240420-py3-none-any.whl", hash = "sha256:bf3695ddfbadfdfc875064895a51d926fd80b04da1a44364c6c1a9703db7b194", size = 16123 },
 ]
 
 [[package]]
