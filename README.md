@@ -13,6 +13,7 @@ for both manual and automatically created web extractors
 ---
 
 - [Setup and Installation](#setup-and-installation)
+- [SDK Methods](#sdk-methods)
 - [Example Scraper](#example-scrapers)
   - [Detail Only Scraper](#detail-only-scraper)
   - [Listing Scraper](#listing-scraper)
@@ -26,6 +27,46 @@ To install the SDK, run the following command using pip or a package manager of 
 ```shell
 pip install harambe-sdk
 ```
+
+## SDK Methods
+
+### sdk.capture_html()
+Captures the raw HTML of the `selector` passed and defaults to capturing the entire document.
+If any `exclude_selectors` are passed, they are excluded from the capture.
+The captured HTML is saved to the server and the URL is returned.
+
+Parameters:
+- `selector` (str): CSS selector of element to capture, defaults to "html" for the document element
+- `exclude_selectors` (Optional[List[str]]): List of CSS selectors for elements to exclude from capture
+- `soup_transform` (Optional[func]): Function to transform the BeautifulSoup HTML before saving it
+
+Returns:
+`HTMLMetadata` object which contains the following keys:
+- `html` - captured HTML as a string
+- `text` - inner text of the captured HTML as a string
+- `filename` - file name of the saved file
+- `url` - URL for the file when saved on the server
+
+### sdk.llm()
+Call an LLM agent to evaluate any prompt for a string or ElementHandle or image URL.
+If an image URL is passed to `to_evaluate` then `is_image_url` must be set to true.
+If passing an ElementHandle, `include_screenshot` can be set to true to include a screenshot.
+Agents supported currently ("openai").
+Any model supported by the agent sdk can be used.
+
+Parameters:
+- `to_evaluate` (Optional[ElementHandle | str]): The ElementHandle or string or image URL to evaluate.
+- `is_image_url` (bool): Whether the `to_evaluate` param is an image URL or not, defaults to False.
+- `prompt` (str): The prompt to use for the evaluation.
+- `data_type` (SchemaFieldType): The type of data to return.
+- `include_screenshot` (bool): Whether to include the screenshot of the element in the response (Playwright only)
+- `agent` (Optional[LLM_AGENTS]): The LLM agent to use, defaults to "openai".
+- `model` (Optional[str]): The model to use, defaults to "gpt-4o-mini" for openai agent.
+- `return_object_format` (Optional[object]): The dict format to return the data in.
+
+Returns:
+  string response received from the agent
+
 
 ## Example Scrapers
 
@@ -130,14 +171,12 @@ To get started, clone the repository and install the dependencies using the foll
 git clone https://github.com/reworkd/harambe.git
 cd harambe/sdk
 uv sync
-uv run playwright install sd --with-deps
+uv run playwright install chromium --with-deps
 ```
 
-Finally, you can verify that everything is working correctly by running the following command in the
-root of the repository directory of the repository:
+Finally, you can run tests to verify that everything is working correctly by running the
+following command in the root directory of the repository:
 ```shell
 ./check.sh
 ```
-
-
 
