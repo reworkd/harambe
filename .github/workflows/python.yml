@@ -21,7 +21,7 @@ jobs:
           LOCAL_CORE_VERSION=$(grep '^version =' core/pyproject.toml | head -1 | awk -F '"' '{print $2}')
           LOCAL_SDK_VERSION=$(grep '^version =' sdk/pyproject.toml | head -1 | awk -F '"' '{print $2}')
           LOCAL_SDK_DEP=$(grep 'harambe_core==' sdk/pyproject.toml | awk -F'==' '{print $2}' | sed 's/[",]//g')
-          REMOTE_VERSION=$(curl -s https://pypi.org/pypi/harambe/json | jq -r .info.version)
+          REMOTE_VERSION=$(curl -s https://pypi.org/pypi/harambe-sdk/json | jq -r .info.version)
 
           echo "Local core version: $LOCAL_CORE_VERSION"
           echo "Local SDK version: $LOCAL_SDK_VERSION"
@@ -39,7 +39,7 @@ jobs:
 
           if [ "$LOCAL_SDK_VERSION" != "$REMOTE_VERSION" ]; then
               echo "Version $LOCAL_VERSION is not published yet"
-              echo "::set-output name=should_publish::true"
+              echo "should_publish=true" >> $GITHUB_OUTPUT
           fi
 
   format:
