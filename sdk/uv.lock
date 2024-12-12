@@ -493,7 +493,7 @@ requires-dist = [
     { name = "playwright", specifier = "==1.47.0" },
     { name = "playwright-stealth", specifier = "==1.0.6" },
     { name = "requests", specifier = "==2.32.3" },
-    { name = "setuptools", specifier = ">=75.6.0" },
+    { name = "setuptools", specifier = ">=73.0.0" },
     { name = "ua-generator", specifier = "==1.0.5" },
 ]
 

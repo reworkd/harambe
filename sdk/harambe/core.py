@@ -18,7 +18,7 @@ from typing import (
 )
 
 import aiohttp
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Doctype
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
 from harambe.cookie_utils import fix_cookie
@@ -321,6 +321,11 @@ class SDK:
                 element_to_remove.decompose()
 
         soup_transform(soup)
+
+        # Ensure HTML doc type is present so the file can be correctly parsed
+        if not soup.contents or not isinstance(soup.contents[0], Doctype):
+            doctype = Doctype("html")
+            soup.insert(0, doctype)
 
         text = get_html_converter(html_converter_type).convert_soup(soup)
 

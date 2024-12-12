@@ -475,6 +475,8 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     # Verify full document capture
     doc_data = observer.data[0]
+    assert doc_data["html"].startswith("<!DOCTYPE html>")
+    assert doc_data["html"].count("<!DOCTYPE html>") == 1
     assert "<table" in doc_data["html"]
     assert "<tbody" in doc_data["html"]
     assert replaced_element not in doc_data["html"]
@@ -486,12 +488,16 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     # Verify table capture with exclusion
     table_data = observer.data[1]
+    assert table_data["html"].startswith("<!DOCTYPE html>")
+    assert table_data["html"].count("<!DOCTYPE html>") == 1
     assert "<tbody" in doc_data["html"]
     assert "<thead" not in table_data["html"]
     assert "Price" not in table_data["text"]
     assert "Apple" in table_data["text"]
 
     replaced_head_data = observer.data[2]
+    assert replaced_head_data["html"].count("<!DOCTYPE html>") == 1
+    assert replaced_head_data["html"].startswith("<!DOCTYPE html>")
     assert "<thead" not in replaced_head_data["html"]
     assert replaced_element in replaced_head_data["html"]
     assert "Replaced Text" in replaced_head_data["text"]
