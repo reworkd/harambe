@@ -112,6 +112,11 @@ from harambe_core.normalize_url import normalize_url, sanitize_scheme
             "//primoliquors.com/cdn/shop/files/oxcuimdzbczobdeo248f.png?v=1727810919&width=1946",
             "https://primoliquors.com/cdn/shop/files/oxcuimdzbczobdeo248f.png?v=1727810919&width=1946",
         ),
+        (
+            "https://www.example.com",
+            "s3://deworkd-local-files/5a9a3ac5-a572-494d-a888-8a065e6e3878/579c900dbfb97dae2fbf329cf6b3411a.pdf;https://example.com/",
+            "s3://deworkd-local-files/5a9a3ac5-a572-494d-a888-8a065e6e3878/579c900dbfb97dae2fbf329cf6b3411a.pdf;https://example.com/",
+        ),
     ],
 )
 def test_normalize_url(base_path, url, expected):

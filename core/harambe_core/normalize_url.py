@@ -11,7 +11,10 @@ def normalize_url(path: str, base_path: str | None) -> str:
     """
     path = sanitize_scheme(path)
     validate_allowed_scheme(path)
-    path = _normalize(path)
+    if not is_s3_url(path):
+        # We append actual URLs at the end of S3 urls occasionally
+        # Normalization will turn https:// into http:/
+        path = _normalize(path)
     escaped_path = path.replace(" ", "%20")
 
     if base_path is None:
@@ -45,7 +48,12 @@ def sanitize_scheme(url: str) -> str:
     return base + url[last_scheme_index + 1 :] if last_scheme_index > 0 else url
 
 
-allowed_url_schemes = ["http", "https", "s3", "file"]
+s3_scheme = "s3"
+allowed_url_schemes = ["http", "https", s3_scheme, "file"]
+
+
+def is_s3_url(url: str) -> bool:
+    return urlparse(url).scheme == s3_scheme
 
 
 def validate_allowed_scheme(url: str, scheme_required: bool = False) -> None:

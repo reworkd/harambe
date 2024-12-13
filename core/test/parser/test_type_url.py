@@ -61,6 +61,11 @@ from harambe_core.parser.type_url import ParserTypeUrl
             "https://example.com",
             "https://example.com/doc1",
         ),
+        (
+            "s3://deworkd-local-files/5a9a3ac5-a572-494d-a888-8a065e6e3878/579c900dbfb97dae2fbf329cf6b3411a.pdf;https://example.com/",
+            "https://www.example.com",
+            "s3://deworkd-local-files/5a9a3ac5-a572-494d-a888-8a065e6e3878/579c900dbfb97dae2fbf329cf6b3411a.pdf;https://example.com/",
+        ),
     ],
 )
 def test_pydantic_type_url_validate_type_success(url, base_url_, expected):
