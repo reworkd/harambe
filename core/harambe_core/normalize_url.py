@@ -14,6 +14,8 @@ def normalize_url(path: str, base_path: str | None) -> str:
     if not is_s3_url(path):
         # We append actual URLs at the end of S3 urls occasionally
         # Normalization will turn https:// into http:/
+        # TODO: When we handle dynamic downloads in our worker, we need to remove this logic
+        #  we should also remove s3 as an allowed scheme all together
         path = _normalize(path)
     escaped_path = path.replace(" ", "%20")
 
