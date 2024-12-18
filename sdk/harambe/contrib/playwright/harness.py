@@ -1,6 +1,7 @@
 import json
 import shutil
 import tempfile
+
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
@@ -51,7 +52,6 @@ async def playwright_harness(
     """
     async with async_playwright() as p:
         extension_args = []
-        user_data_dir = tempfile.mkdtemp()
         browser_type = browser_type or "chromium"
 
         if extensions and browser_type == "chromium":
@@ -152,4 +152,3 @@ async def playwright_harness(
             finally:
                 await ctx.close()
                 await browser.close()
-                shutil.rmtree(user_data_dir, ignore_errors=True)
