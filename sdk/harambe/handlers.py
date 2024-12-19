@@ -78,11 +78,14 @@ class UnnecessaryResourceHandler(AbstractHandler):
     async def handle(self, route: Route) -> None:
         resource_type = route.request.resource_type
         url = route.request.url
+        if "recaptcha" in url:
+            await route.fallback()
+            return
 
         if (
-            resource_type in ["image", "media", "font"]
+                (resource_type in ["image", "media", "font"]
             or re.match(r"^data:(image|audio|video)", url)
-            or re.match(r"social-widget|tracking-script|ads", url)
+            or re.match(r"social-widget|tracking-script|ads", url))
         ):
             await route.abort("blockedbyclient")
             return

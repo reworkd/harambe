@@ -5,7 +5,7 @@ from curl_cffi.requests import AsyncSession
 
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.soup.tracing import Tracer
-from harambe.types import SetCookieParam
+from harambe._types import SetCookieParam
 
 Callback = Callable[[Tracer], Awaitable[None]]
 PageFactory = Callable[..., Awaitable[SoupPage]]

@@ -4,7 +4,7 @@ from typing import Any, Optional, Iterable, List
 
 from pydantic import BaseModel
 
-from harambe.types import URL, Context, Options, Cookie, LocalStorage
+from harambe._types import URL, Context, Options, Cookie, LocalStorage
 
 
 class PageInfo(BaseModel):

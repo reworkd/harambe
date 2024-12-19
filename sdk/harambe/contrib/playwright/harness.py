@@ -9,7 +9,7 @@ from playwright_stealth import stealth_async
 from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
 from harambe.proxy import proxy_from_url
-from harambe.types import SetCookieParam, BrowserType, LocalStorage
+from harambe._types import SetCookieParam, BrowserType, LocalStorage
 from harambe.user_agent import random_user_agent, compute_user_agent, UserAgentFactory
 
 Callback = Callable[[BrowserContext], Awaitable[None]]
@@ -22,6 +22,7 @@ DEFAULT_VIEWPORT: ViewportSize = {"width": 1440, "height": 1024}
 @asynccontextmanager
 async def playwright_harness(
     *,
+    user_data_dir: str | None = None,
     headless: bool = True,
     cdp_endpoint: str | None = None,
     proxy: str | None = None,
@@ -60,16 +61,18 @@ async def playwright_harness(
                 ]
             )
 
+        print("LAUNCHING DAT SHIT AKI")
+
         browser = await (
             p.chromium.connect_over_cdp(endpoint_url=cdp_endpoint)
             if cdp_endpoint
-            else getattr(p, cast(str, browser_type)).launch(
+            else getattr(p, cast(str, browser_type)).launch_persistent_context(
+                user_data_dir=user_data_dir,
                 headless=headless,
                 args=[
                     *launch_args,
                     *extension_args,
                     *(
-                        # Disables navigator.webdriver showing up
                         ["--disable-blink-features=AutomationControlled"]
                         if browser_type == "chromium"
                         else []
@@ -79,6 +82,11 @@ async def playwright_harness(
                         ["--headless=new"] if headless else []
                     ),
                 ],
+                viewport=viewport or DEFAULT_VIEWPORT,
+                ignore_https_errors=True,
+                user_agent=await compute_user_agent(user_agent),
+                proxy=proxy_from_url(proxy) if proxy else None,
+                permissions=["clipboard-read", "clipboard-write"] if enable_clipboard else None,
             )
         )
 
@@ -108,17 +116,8 @@ async def playwright_harness(
             ]
         }
 
-        ctx = await browser.new_context(
-            viewport=viewport or DEFAULT_VIEWPORT,
-            ignore_https_errors=True,
-            user_agent=await compute_user_agent(user_agent),
-            proxy=proxy_from_url(proxy) if proxy else None,
-            permissions=["clipboard-read", "clipboard-write"]
-            if enable_clipboard
-            else None,
-            storage_state=storage_state,
-        )
 
+        ctx = browser
         ctx.set_default_timeout(default_timeout)
 
         if headers:
