@@ -64,6 +64,10 @@ from playwright.async_api import (
 from harambe.contrib import WebHarness, playwright_harness
 
 
+async def default_goto_error_cb(url: str, status: int):
+    raise GotoError(url, status)
+
+
 class AsyncScraper(Protocol):
     """
     Protocol that all classed based scrapers should implement.
@@ -449,7 +453,7 @@ class SDK:
         harness: WebHarness = playwright_harness,
         evaluator: Optional[ExpressionEvaluator] = None,
         observer: Optional[OutputObserver | List[OutputObserver]] = None,
-        goto_error_cb: Optional[Callable[..., Awaitable[None]]] = None,
+        goto_error_cb: Callable[..., Awaitable[None]] = default_goto_error_cb,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
