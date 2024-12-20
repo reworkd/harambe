@@ -1,4 +1,4 @@
-from harambe._types import Cookie
+from harambe.types import Cookie
 from datetime import datetime, timezone, timedelta
 
 

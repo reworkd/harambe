@@ -12,7 +12,7 @@ from typing import (
 from urllib.parse import quote
 
 from harambe.tracker import FileDataTracker
-from harambe._types import URL, Context, Options, Stage, Cookie, LocalStorage
+from harambe.types import URL, Context, Options, Stage, Cookie, LocalStorage
 from playwright.async_api import Page
 
 ObservationTrigger = Literal[

@@ -37,7 +37,7 @@ from harambe.observer import (
 )
 from harambe.pagination import DuplicateHandler
 from harambe.tracker import FileDataTracker
-from harambe._types import (
+from harambe.types import (
     URL,
     AsyncScraperType,
     Context,

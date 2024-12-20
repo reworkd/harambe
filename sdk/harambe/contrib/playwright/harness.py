@@ -3,16 +3,22 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, Optional, Sequence, cast
 
-from playwright.async_api import BrowserContext, ViewportSize, async_playwright, Page
+from playwright.async_api import (
+    BrowserContext,
+    Browser,
+    ViewportSize,
+    async_playwright,
+    Page,
+)
 from playwright_stealth import stealth_async
 
 from harambe.contrib.playwright.impl import PlaywrightPage
 from harambe.handlers import UnnecessaryResourceHandler
 from harambe.proxy import proxy_from_url
-from harambe._types import SetCookieParam, BrowserType, LocalStorage
+from harambe.types import SetCookieParam, BrowserType, LocalStorage
 from harambe.user_agent import random_user_agent, compute_user_agent, UserAgentFactory
 
-Callback = Callable[[BrowserContext], Awaitable[None]]
+Callback = Callable[[BrowserContext | Browser], Awaitable[None]]
 PageCallback = Callable[[Page], Awaitable[None]]
 PageFactory = Callable[..., Awaitable[PlaywrightPage]]
 
@@ -61,8 +67,6 @@ async def playwright_harness(
                 ]
             )
 
-        print("LAUNCHING DAT SHIT AKI")
-
         browser = await (
             p.chromium.connect_over_cdp(endpoint_url=cdp_endpoint)
             if cdp_endpoint
@@ -86,10 +90,13 @@ async def playwright_harness(
                 ignore_https_errors=True,
                 user_agent=await compute_user_agent(user_agent),
                 proxy=proxy_from_url(proxy) if proxy else None,
-                permissions=["clipboard-read", "clipboard-write"] if enable_clipboard else None,
+                permissions=["clipboard-read", "clipboard-write"]
+                if enable_clipboard
+                else None,
             )
         )
 
+        ctx = browser
         domain_storage = defaultdict(list)
         for item in local_storage:
             domain_storage[item["domain"]].append(item)
@@ -102,7 +109,6 @@ async def playwright_harness(
                     "localStorage": [
                         {
                             "name": item["key"],
-                            # Local storage only supports strings
                             "value": (
                                 json.dumps(item["value"])
                                 if isinstance(item["value"], (dict, list))
@@ -116,8 +122,6 @@ async def playwright_harness(
             ]
         }
 
-
-        ctx = browser
         ctx.set_default_timeout(default_timeout)
 
         if headers:

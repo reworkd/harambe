@@ -83,9 +83,9 @@ class UnnecessaryResourceHandler(AbstractHandler):
             return
 
         if (
-                (resource_type in ["image", "media", "font"]
+            resource_type in ["image", "media", "font"]
             or re.match(r"^data:(image|audio|video)", url)
-            or re.match(r"social-widget|tracking-script|ads", url))
+            or re.match(r"social-widget|tracking-script|ads", url)
         ):
             await route.abort("blockedbyclient")
             return
