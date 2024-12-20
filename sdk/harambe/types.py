@@ -72,3 +72,4 @@ class HarnessOptions(TypedDict, total=False):
     on_start: Optional[Callback]
     on_end: Optional[Callback]
     extensions: Sequence[str]
+    ignore_goto_error: bool

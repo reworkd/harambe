@@ -491,7 +491,10 @@ class SDK:
 
             if not harness_options.get("disable_go_to_url", False):
                 response = await page.goto(url)
-                if response.status >= 400:
+                if (
+                    not harness_options.get("ignore_goto_error", False)
+                    and response.status >= 400
+                ):
                     raise GotoError(url, response.status)
             elif isinstance(page, SoupPage):
                 page.url = url

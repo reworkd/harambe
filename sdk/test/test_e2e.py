@@ -633,15 +633,30 @@ async def test_with_locators(server, observer, harness):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_403_status_on_goto(server, observer, harness):
+@pytest.mark.parametrize("ignore_goto_error", [True, False, None])
+async def test_403_status_on_goto(server, observer, harness, ignore_goto_error):
     url = f"{server}/403"
 
     async def scrape(sdk: SDK, current_url, context) -> None:
-        await sdk.save_data(
-            {"key": "this should't be saved as we're throwing an exception"}
-        )
+        await sdk.save_data({"key": "this shouldn't be saved if GotoError is raised"})
 
-    with pytest.raises(GotoError):
+    harness_options = {}
+    if ignore_goto_error is not None:
+        harness_options["ignore_goto_error"] = ignore_goto_error
+
+    if not ignore_goto_error:
+        with pytest.raises(GotoError):
+            await SDK.run(
+                scrape,
+                url,
+                harness=harness,
+                schema={},
+                context={"status": "Open"},
+                observer=observer,
+                **harness_options,
+            )
+        assert len(observer.data) == 0
+    else:
         await SDK.run(
             scrape,
             url,
@@ -649,6 +664,10 @@ async def test_403_status_on_goto(server, observer, harness):
             schema={},
             context={"status": "Open"},
             observer=observer,
+            **harness_options,
         )
-
-    assert len(observer.data) == 0
+        assert len(observer.data) == 1
+        assert (
+            observer.data[0]["key"] == "this shouldn't be saved if GotoError is raised"
+        )
+        assert observer.data[0]["__url"] == url
