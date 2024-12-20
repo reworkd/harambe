@@ -661,7 +661,7 @@ async def test_403_status_on_goto_with_custom_callback(
     async def scrape(sdk: SDK, current_url, context) -> None:
         await sdk.save_data({"key": "this shouldn't be saved if GotoError is raised"})
 
-    async def custom_error_handler(status_code, url, **kwargs):
+    async def custom_error_handler(url, status_code):
         print(f"Handled {status_code} for {url} gracefully.")
 
     error_callback = custom_error_handler
@@ -672,7 +672,7 @@ async def test_403_status_on_goto_with_custom_callback(
         schema={},
         context={"status": "Open"},
         observer=observer,
-        goto_error_cb=error_callback,
+        callback=error_callback,
     )
 
     # Ensure data is saved when error is handled (either with custom or no callback)
