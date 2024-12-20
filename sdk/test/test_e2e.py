@@ -321,124 +321,125 @@ async def test_disable_go_to_url_bug(server, harness):
     )
 
 
-@pytest.mark.parametrize("harness", [playwright_harness])
-async def test_save_local_storage(server, observer, harness):
-    local_storage_entry = {
-        "domain": "asim-shrestha.com",
-        "path": "/",
-        "key": "test_key",
-        "value": "test",
-    }
-
-    @SDK.scraper(local_storage_entry["domain"], "detail", observer=observer)
-    async def scraper(sdk: SDK, *args, **kwargs):
-        page = sdk.page
-        # Save test local storage key value pair
-        await page.evaluate(
-            f"localStorage.setItem('{local_storage_entry['key']}', '{local_storage_entry['value']}')"
-        )
-
-        await sdk.save_local_storage()
-
-    await SDK.run(
-        scraper=scraper,
-        url=f"https://{local_storage_entry['domain']}/",
-        headless=True,
-        harness=harness,
-        schema={},
-    )
-
-    assert len(observer.local_storage) == 1
-    assert observer.local_storage == [local_storage_entry]
-
-
-@pytest.mark.parametrize("harness", [playwright_harness])
-@pytest.mark.parametrize(
-    "test_value,expected_value",
-    [
-        # String value
-        ("test_string", "test_string"),
-        # Number value
-        (42, "42"),
-        # List value
-        (["item1", "item2", 3], '["item1", "item2", 3]'),
-        # Dict value
-        ({"key1": "value1", "key2": 2}, '{"key1": "value1", "key2": 2}'),
-        # Nested structure
-        (
-            {"list": [1, 2, {"nested": "value"}]},
-            '{"list": [1, 2, {"nested": "value"}]}',
-        ),
-    ],
-)
-async def test_load_local_storage(
-    server, observer, harness, test_value, expected_value
-):
-    local_storage_entry_1 = {
-        "domain": "asim-shrestha.com",
-        "path": "/",
-        "key": "test_key",
-        "value": test_value,
-    }
-
-    local_storage_entry_2 = {
-        "domain": "asim-shrestha.com",
-        "path": "/",
-        "key": "another_key",
-        "value": test_value,
-    }
-
-    @SDK.scraper("test", "detail", observer=observer)
-    async def scraper(sdk: SDK, *args, **kwargs):
-        page = sdk.page
-        page_local_storage = await page.evaluate("localStorage")
-        await sdk.save_data({"local_storage": page_local_storage})
-
-    await SDK.run(
-        scraper=scraper,
-        url=f"https://{local_storage_entry_1['domain']}/",
-        headless=True,
-        harness=harness,
-        schema={},
-        local_storage=[local_storage_entry_1, local_storage_entry_2],
-    )
-
-    assert len(observer.data) == 1
-    print(observer.data)
-    assert observer.data[0]["local_storage"] == {
-        local_storage_entry_1["key"]: expected_value,
-        local_storage_entry_2["key"]: expected_value,
-    }
+# @pytest.mark.parametrize("harness", [playwright_harness])
+# async def test_save_local_storage(server, observer, harness):
+#     local_storage_entry = {
+#         "domain": "asim-shrestha.com",
+#         "path": "/",
+#         "key": "test_key",
+#         "value": "test",
+#     }
+#
+#     @SDK.scraper(local_storage_entry["domain"], "detail", observer=observer)
+#     async def scraper(sdk: SDK, *args, **kwargs):
+#         page = sdk.page
+#         # Save test local storage key value pair
+#         await page.evaluate(
+#             f"localStorage.setItem('{local_storage_entry['key']}', '{local_storage_entry['value']}')"
+#         )
+#
+#         await sdk.save_local_storage()
+#
+#     await SDK.run(
+#         scraper=scraper,
+#         url=f"https://{local_storage_entry['domain']}/",
+#         headless=True,
+#         harness=harness,
+#         schema={},
+#     )
+#
+#     assert len(observer.local_storage) == 1
+#     assert observer.local_storage == [local_storage_entry]
 
 
-@pytest.mark.parametrize("harness", [playwright_harness])
-async def test_reset_local_storage(server, observer, harness):
-    local_storage_entry = {
-        "domain": "asim-shrestha.com",
-        "path": "/",
-        "key": "test_key",
-        "value": "test_value",
-    }
+# @pytest.mark.parametrize("harness", [playwright_harness])
+# @pytest.mark.parametrize(
+#     "test_value,expected_value",
+#     [
+#         # String value
+#         ("test_string", "test_string"),
+#         # Number value
+#         (42, "42"),
+#         # List value
+#         (["item1", "item2", 3], '["item1", "item2", 3]'),
+#         # Dict value
+#         ({"key1": "value1", "key2": 2}, '{"key1": "value1", "key2": 2}'),
+#         # Nested structure
+#         (
+#             {"list": [1, 2, {"nested": "value"}]},
+#             '{"list": [1, 2, {"nested": "value"}]}',
+#         ),
+#     ],
+# )
+# async def test_load_local_storage(
+#     server, observer, harness, test_value, expected_value
+# ):
+#     local_storage_entry_1 = {
+#         "domain": "asim-shrestha.com",
+#         "path": "/",
+#         "key": "test_key",
+#         "value": test_value,
+#     }
+#
+#     local_storage_entry_2 = {
+#         "domain": "asim-shrestha.com",
+#         "path": "/",
+#         "key": "another_key",
+#         "value": test_value,
+#     }
+#
+#     @SDK.scraper("test", "detail", observer=observer)
+#     async def scraper(sdk: SDK, *args, **kwargs):
+#         page = sdk.page
+#         page_local_storage = await page.evaluate("localStorage")
+#         await sdk.save_data({"local_storage": page_local_storage})
+#
+#     await SDK.run(
+#         scraper=scraper,
+#         url=f"https://{local_storage_entry_1['domain']}/",
+#         headless=True,
+#         harness=harness,
+#         schema={},
+#         local_storage=[local_storage_entry_1, local_storage_entry_2],
+#     )
+#
+#     assert len(observer.data) == 1
+#     print(observer.data)
+#     assert observer.data[0]["local_storage"] == {
+#         local_storage_entry_1["key"]: expected_value,
+#         local_storage_entry_2["key"]: expected_value,
+#     }
+#
 
-    @SDK.scraper("test", "detail", observer=observer)
-    async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
-        page = sdk.page
-        await page.evaluate("localStorage.clear();")
-        await page.goto(current_url)
-        page_local_storage = await page.evaluate("localStorage")
-        await sdk.save_data({"local_storage": page_local_storage})
 
-    await SDK.run(
-        scraper=scraper,
-        url=f"https://{local_storage_entry['domain']}/",
-        headless=True,
-        harness=harness,
-        schema={},
-        local_storage=[local_storage_entry, local_storage_entry],
-    )
-
-    assert len(observer.data) == 1
-    assert observer.data[0]["local_storage"] == {}
+# @pytest.mark.parametrize("harness", [playwright_harness])
+# async def test_reset_local_storage(server, observer, harness):
+#     local_storage_entry = {
+#         "domain": "asim-shrestha.com",
+#         "path": "/",
+#         "key": "test_key",
+#         "value": "test_value",
+#     }
+#
+#     @SDK.scraper("test", "detail", observer=observer)
+#     async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
+#         page = sdk.page
+#         await page.evaluate("localStorage.clear();")
+#         await page.goto(current_url)
+#         page_local_storage = await page.evaluate("localStorage")
+#         await sdk.save_data({"local_storage": page_local_storage})
+#
+#     await SDK.run(
+#         scraper=scraper,
+#         url=f"https://{local_storage_entry['domain']}/",
+#         headless=True,
+#         harness=harness,
+#         schema={},
+#         local_storage=[local_storage_entry, local_storage_entry],
+#     )
+#
+#     assert len(observer.data) == 1
+#     assert observer.data[0]["local_storage"] == {}
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])

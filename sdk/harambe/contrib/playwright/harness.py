@@ -96,7 +96,11 @@ async def playwright_harness(
             )
         )
 
-        ctx = browser
+        if isinstance(browser, Browser):
+            ctx = await browser.new_context()
+        else:
+            ctx = browser
+
         domain_storage = defaultdict(list)
         for item in local_storage:
             domain_storage[item["domain"]].append(item)
