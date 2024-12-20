@@ -449,6 +449,7 @@ class SDK:
         harness: WebHarness = playwright_harness,
         evaluator: Optional[ExpressionEvaluator] = None,
         observer: Optional[OutputObserver | List[OutputObserver]] = None,
+        goto_error_cb: Optional[Callable[..., Awaitable[None]]] = None,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
@@ -474,6 +475,10 @@ class SDK:
         if isinstance(url, Path):
             url = f"file://{url.resolve()}"
 
+        async def default_goto_error_cb(url: str, status: int):
+            raise GotoError(url, status)
+
+        error_callback = goto_error_cb or default_goto_error_cb
         async with harness(**harness_options) as page_factory:
             page = await page_factory()
             sdk = SDK(
@@ -491,11 +496,8 @@ class SDK:
 
             if not harness_options.get("disable_go_to_url", False):
                 response = await page.goto(url)
-                if (
-                    not harness_options.get("ignore_goto_error", False)
-                    and response.status >= 400
-                ):
-                    raise GotoError(url, response.status)
+                if response.status >= 400:
+                    await error_callback(url, response.status)
             elif isinstance(page, SoupPage):
                 page.url = url
             await scraper(sdk, url, context)

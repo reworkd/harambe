@@ -633,41 +633,49 @@ async def test_with_locators(server, observer, harness):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-@pytest.mark.parametrize("ignore_goto_error", [True, False, None])
-async def test_403_status_on_goto(server, observer, harness, ignore_goto_error):
+async def test_403_status_on_goto_with_default_callback(server, observer, harness):
     url = f"{server}/403"
 
     async def scrape(sdk: SDK, current_url, context) -> None:
         await sdk.save_data({"key": "this shouldn't be saved if GotoError is raised"})
 
-    harness_options = {}
-    if ignore_goto_error is not None:
-        harness_options["ignore_goto_error"] = ignore_goto_error
-
-    if not ignore_goto_error:
-        with pytest.raises(GotoError):
-            await SDK.run(
-                scrape,
-                url,
-                harness=harness,
-                schema={},
-                context={"status": "Open"},
-                observer=observer,
-                **harness_options,
-            )
-        assert len(observer.data) == 0
-    else:
+    with pytest.raises(GotoError):
         await SDK.run(
-            scrape,
-            url,
+            scraper=scrape,
+            url=url,
             harness=harness,
             schema={},
             context={"status": "Open"},
             observer=observer,
-            **harness_options,
         )
-        assert len(observer.data) == 1
-        assert (
-            observer.data[0]["key"] == "this shouldn't be saved if GotoError is raised"
-        )
-        assert observer.data[0]["__url"] == url
+    assert len(observer.data) == 0
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+@pytest.mark.parametrize("goto_error_cb", ["custom"])
+async def test_403_status_on_goto_with_custom_callback(
+    server, observer, harness, goto_error_cb
+):
+    url = f"{server}/403"
+
+    async def scrape(sdk: SDK, current_url, context) -> None:
+        await sdk.save_data({"key": "this shouldn't be saved if GotoError is raised"})
+
+    async def custom_error_handler(status_code, url, **kwargs):
+        print(f"Handled {status_code} for {url} gracefully.")
+
+    error_callback = custom_error_handler
+    await SDK.run(
+        scraper=scrape,
+        url=url,
+        harness=harness,
+        schema={},
+        context={"status": "Open"},
+        observer=observer,
+        goto_error_cb=error_callback,
+    )
+
+    # Ensure data is saved when error is handled (either with custom or no callback)
+    assert len(observer.data) == 1
+    assert observer.data[0]["key"] == "this shouldn't be saved if GotoError is raised"
+    assert observer.data[0]["__url"] == url
