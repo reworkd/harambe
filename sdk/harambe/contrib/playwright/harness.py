@@ -39,6 +39,7 @@ async def playwright_harness(
     browser_type: Optional[BrowserType] = None,
     enable_clipboard: bool = False,
     launch_args: Sequence[str] = (),
+    extensions: Sequence[str] = (),
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -47,13 +48,26 @@ async def playwright_harness(
     creation of HAR file, and stealth.
     """
     async with async_playwright() as p:
+        extension_args = []
+        browser_type = browser_type or "chromium"
+
+        if extensions and browser_type == "chromium":
+            extension_paths = ",".join(extensions)
+            extension_args.extend(
+                [
+                    f"--disable-extensions-except={extension_paths}",
+                    f"--load-extension={extension_paths}",
+                ]
+            )
+
         browser = await (
             p.chromium.connect_over_cdp(endpoint_url=cdp_endpoint)
             if cdp_endpoint
-            else getattr(p, cast(str, browser_type or "chromium")).launch(
+            else getattr(p, cast(str, browser_type)).launch(
                 headless=headless,
                 args=[
                     *launch_args,
+                    *extension_args,
                     *(
                         # Disables navigator.webdriver showing up
                         ["--disable-blink-features=AutomationControlled"]
