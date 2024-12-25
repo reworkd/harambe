@@ -78,6 +78,9 @@ class UnnecessaryResourceHandler(AbstractHandler):
     async def handle(self, route: Route) -> None:
         resource_type = route.request.resource_type
         url = route.request.url
+        if "recaptcha" in url:
+            await route.fallback()
+            return
 
         if (
             resource_type in ["image", "media", "font"]
