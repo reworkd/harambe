@@ -1,4 +1,5 @@
 import re
+import base64
 from abc import ABC
 from typing import Any, Literal, Self
 
@@ -78,9 +79,14 @@ class UnnecessaryResourceHandler(AbstractHandler):
     async def handle(self, route: Route) -> None:
         resource_type = route.request.resource_type
         url = route.request.url
-
-        if (
-            resource_type in ["image", "media", "font"]
+        if resource_type in ["image", "media"]:
+            fake_img = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+            await route.fulfill(
+                body=base64.b64decode(fake_img), content_type="image/png"
+            )
+            return
+        elif (
+            resource_type == "font"
             or re.match(r"^data:(image|audio|video)", url)
             or re.match(r"social-widget|tracking-script|ads", url)
         ):
