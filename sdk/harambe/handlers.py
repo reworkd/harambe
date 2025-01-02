@@ -1,4 +1,5 @@
 import re
+import base64
 from abc import ABC
 from typing import Any, Literal, Self
 
@@ -20,6 +21,10 @@ ResourceType = Literal[
     "other",
     "*",
 ]
+
+FAKE_IMAGE_BYTES = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+)
 
 
 class AbstractHandler(ABC):
@@ -74,13 +79,15 @@ class ResourceRequestHandler(AbstractHandler):
         return self._new_pages[0] if self._new_pages else None
 
 
-class UnnecessaryResourceHandler(AbstractHandler):
+class UnnecessaryResourceHandler:
     async def handle(self, route: Route) -> None:
         resource_type = route.request.resource_type
         url = route.request.url
-
-        if (
-            resource_type in ["image", "media", "font"]
+        if resource_type in ["image", "media"]:
+            await route.fulfill(body=FAKE_IMAGE_BYTES, content_type="image/png")
+            return
+        elif (
+            resource_type == "font"
             or re.match(r"^data:(image|audio|video)", url)
             or re.match(r"social-widget|tracking-script|ads", url)
         ):
