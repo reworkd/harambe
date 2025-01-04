@@ -4,12 +4,12 @@ from typing import cast
 import pytest
 from aiohttp import web
 from bs4 import BeautifulSoup
-from harambe.observer import InMemoryObserver
-from harambe.types import BrowserType
-from harambe_core.errors import GotoError
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
+from harambe.observer import InMemoryObserver
+from harambe.types import BrowserType
+from harambe_core.errors import GotoError
 
 
 @pytest.fixture(scope="module")
@@ -53,7 +53,6 @@ def observer():
 async def test_save_data(server, observer, harness, browser_type):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
 
@@ -73,6 +72,7 @@ async def test_save_data(server, observer, harness, browser_type):
         headless=True,
         harness=harness,
         browser_type=browser_type,
+        observer=observer,
     )
 
     assert len(observer.data) == 3
@@ -86,12 +86,13 @@ async def test_save_data(server, observer, harness, browser_type):
 
 
 async def test_enqueue_data(server, observer):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("?page=1")
         await sdk.enqueue("/terms", "https://reworkd.ai")
 
-    await SDK.run(scraper=scraper, url=server, schema={}, headless=True)
+    await SDK.run(
+        scraper=scraper, url=server, schema={}, headless=True, observer=observer
+    )
 
     assert not observer.data
     assert len(observer.urls) == 3
@@ -106,16 +107,35 @@ async def test_enqueue_data(server, observer):
 
 
 async def test_enqueue_data_with_context(server, observer):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("/adam/?page=55", context={"last": "Watkins"})
 
-    await SDK.run(scraper=scraper, url=server, schema={}, headless=True)
+    await SDK.run(
+        scraper=scraper, url=server, schema={}, headless=True, observer=observer
+    )
 
     assert not observer.data
     assert len(observer.urls) == 1
     assert observer.urls[0][0] == f"{server}/adam/?page=55"
     assert observer.urls[0][1] == {"__url": f"{server}/", "last": "Watkins"}
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_enqueue_no_goto_url(observer, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.enqueue("https://reworkd.ai", context={"last": "Watkins"})
+
+    await SDK.run(
+        scraper=scraper,
+        url="https://example.com",
+        schema={},
+        headless=True,
+        disable_go_to_url=True,
+        harness=harness,
+        observer=observer,
+    )
+    assert len(observer.urls) == 1
+    assert observer.urls[0][0] == "https://reworkd.ai"
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
@@ -138,7 +158,6 @@ async def test_enqueue_coro(server, observer, harness):
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_paginate(server, observer, harness):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         await sdk.save_data({"content": await page.content()})
@@ -155,6 +174,7 @@ async def test_paginate(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 2
@@ -167,7 +187,6 @@ async def test_paginate(server, observer, harness):
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_narcotics(server, observer, harness):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs) -> None:
         page = sdk.page
         await page.wait_for_selector("div#ds-content")
@@ -193,6 +212,7 @@ async def test_narcotics(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 1
@@ -205,7 +225,6 @@ async def test_narcotics(server, observer, harness):
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_regulations(server, observer, harness):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs) -> None:
         page = sdk.page
         await page.wait_for_selector("table.table.mb-0.table-hover.table-striped")
@@ -223,6 +242,7 @@ async def test_regulations(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert not observer.data
@@ -239,7 +259,6 @@ async def test_regulations(server, observer, harness):
 async def test_text_content(server, observer, harness):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         content = await page.text_content("table")
@@ -248,7 +267,14 @@ async def test_text_content(server, observer, harness):
         table = await page.query_selector("table")
         await sdk.save_data({"table_content": await table.text_content()})
 
-    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
     assert len(observer.data) == 2
 
     assert observer.data[0]["page_content"] == observer.data[1]["table_content"]
@@ -330,7 +356,7 @@ async def test_save_local_storage(server, observer, harness):
         "value": "test",
     }
 
-    @SDK.scraper(local_storage_entry["domain"], "detail", observer=observer)
+    @SDK.scraper(local_storage_entry["domain"], "detail")
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         # Save test local storage key value pair
@@ -346,6 +372,7 @@ async def test_save_local_storage(server, observer, harness):
         headless=True,
         harness=harness,
         schema={},
+        observer=observer,
     )
 
     assert len(observer.local_storage) == 1
@@ -388,7 +415,6 @@ async def test_load_local_storage(
         "value": test_value,
     }
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         page_local_storage = await page.evaluate("localStorage")
@@ -401,10 +427,10 @@ async def test_load_local_storage(
         harness=harness,
         schema={},
         local_storage=[local_storage_entry_1, local_storage_entry_2],
+        observer=observer,
     )
 
     assert len(observer.data) == 1
-    print(observer.data)
     assert observer.data[0]["local_storage"] == {
         local_storage_entry_1["key"]: expected_value,
         local_storage_entry_2["key"]: expected_value,
@@ -420,7 +446,6 @@ async def test_reset_local_storage(server, observer, harness):
         "value": "test_value",
     }
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
         page = sdk.page
         await page.evaluate("localStorage.clear();")
@@ -435,6 +460,7 @@ async def test_reset_local_storage(server, observer, harness):
         harness=harness,
         schema={},
         local_storage=[local_storage_entry, local_storage_entry],
+        observer=observer,
     )
 
     assert len(observer.data) == 1
@@ -447,7 +473,6 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     replaced_element = '<div id="reworkd">Replaced Text</div>'
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         full_html_metadata = await sdk.capture_html()
         await sdk.save_data(full_html_metadata)
@@ -469,6 +494,7 @@ async def test_capture_html_with_different_options(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 3
@@ -507,7 +533,6 @@ async def test_capture_html_with_different_options(server, observer, harness):
 async def test_capture_html_conversion_types(server, observer, harness):
     url = f"{server}/heading"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         markdown_html_metadata = await sdk.capture_html()
         await sdk.save_data({"text": markdown_html_metadata["text"]})
@@ -521,6 +546,7 @@ async def test_capture_html_conversion_types(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 2
@@ -535,7 +561,6 @@ async def test_capture_html_conversion_types(server, observer, harness):
 async def test_capture_html_table(server, observer, harness):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         text_html_metadata = await sdk.capture_html(html_converter_type="text")
         await sdk.save_data({"text": text_html_metadata["text"]})
@@ -546,6 +571,7 @@ async def test_capture_html_table(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 1
@@ -565,7 +591,6 @@ async def test_capture_html_table(server, observer, harness):
 async def test_capture_html_element_not_found(server, observer, harness):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         with pytest.raises(ValueError):
             await sdk.capture_html("#missing .selector .lies .adam-watkins")
@@ -576,6 +601,7 @@ async def test_capture_html_element_not_found(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 0
