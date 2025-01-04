@@ -19,7 +19,7 @@ def normalize_url(path: str, base_path: str | None) -> str:
         path = _normalize(path)
     escaped_path = path.replace(" ", "%20")
 
-    if base_path is None:
+    if base_path is None or base_path == "about:blank":
         return escaped_path
 
     validate_allowed_scheme(base_path, scheme_required=True)

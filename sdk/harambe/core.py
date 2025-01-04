@@ -132,11 +132,11 @@ class SDK:
                 "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
             )
 
-        url = self.page.url
+        source_url = self.page.url
         for d in data:
             if self._validator is not None:
-                d = self._validator.validate(d, base_url=self.page.url)
-            d["__url"] = url
+                d = self._validator.validate(d, base_url=source_url)
+            d["__url"] = source_url
             await self._notify_observers("on_save_data", d)
 
     async def enqueue(

@@ -33,7 +33,6 @@ def test_sdk_init_assigns_correct_values():
     assert sdk._observers == [observer]
 
 
-@pytest.mark.asyncio
 async def test_sdk_save_data_calls_on_save_data_for_each_observer():
     page = AsyncMock(spec=Page)
     observer = AsyncMock(spec=OutputObserver)
@@ -44,7 +43,6 @@ async def test_sdk_save_data_calls_on_save_data_for_each_observer():
     assert observer.on_save_data.call_count == len(data)
 
 
-@pytest.mark.asyncio
 async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer():
     page = AsyncMock(spec=Page)
     page.url = "https://example.net"
@@ -82,7 +80,6 @@ def test_scraper_decorator_adds_observers_to_function(scraper):
     assert len(decorated_scraper.observer) == 2
 
 
-@pytest.mark.asyncio
 async def test_scraper_decorator_preserves_functionality_of_decorated_function(scraper):
     decorated_scraper = SDK.scraper("https://example.org", "listing")(scraper)
 
@@ -99,7 +96,6 @@ async def test_scraper_decorator_preserves_functionality_of_decorated_function(s
     sdk.save_data.assert_awaited_once_with({"baz": "qux"})
 
 
-@pytest.mark.asyncio
 async def test_sdk_save_data_saves_valid_data():
     page = AsyncMock(spec=Page)
     page.url = "https://example.net"
@@ -125,7 +121,6 @@ async def test_sdk_save_data_saves_valid_data():
     assert observer.on_save_data.call_count == 2
 
 
-@pytest.mark.asyncio
 async def test_sdk_save_data_does_not_save_invalid_data():
     page = AsyncMock(spec=Page)
     observer = AsyncMock(spec=OutputObserver)
