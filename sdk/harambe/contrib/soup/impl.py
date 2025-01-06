@@ -88,7 +88,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
     async def post(self, url: str, data: dict[str, Any], **kwargs: Any) -> Any:
         res = await self._session.post(
-            url, headers=self._extra_headers, data=data, **kwargs
+            url, headers=self._extra_headers, data=data, **kwargs, impersonate="chrome"
         )
         if self._tracer:
             self._tracer.log_request(res)
