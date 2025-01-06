@@ -85,7 +85,25 @@ class SoupPage(AbstractPage[SoupElementHandle]):
             status: int = res.status_code
 
         return SoupResponseWithStatus()
-
+        
+    async def post(self, url: str, data: dict[str, Any], **kwargs: Any) -> Any:
+        res = await self._session.post(
+            url, 
+            headers=self._extra_headers, 
+            data=data, 
+            **kwargs
+        )
+        if self._tracer:
+            self._tracer.log_request(res)
+        
+        self._url = res.url
+        self._soup = BeautifulSoup(await res.text, "html.parser")
+        
+        class SoupResponseWithStatus:
+            status: int = res.status
+            
+        return SoupResponseWithStatus()
+        
     async def query_selector_all(self, selector: str) -> list[SoupElementHandle]:
         return SoupElementHandle.from_tags(self._soup.select(selector))
 
