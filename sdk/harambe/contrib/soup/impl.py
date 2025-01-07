@@ -87,10 +87,16 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
         return SoupResponseWithStatus()
 
-    async def post(self, url: str, data: dict[str, Any], **kwargs: Any) -> Any:
+    async def post(
+        self,
+        url: str,
+        data: dict[str, Any],
+        headers: Optional[HeaderTypes] = None,
+        **kwargs: Any,
+    ) -> Any:
         res = await self._session.post(
             url,
-            headers=self._extra_headers,
+            headers=headers or self._extra_headers,
             data=json.dumps(data),
             **kwargs,
             impersonate="chrome",
