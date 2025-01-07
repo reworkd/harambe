@@ -98,20 +98,28 @@ class SoupPage(AbstractPage[SoupElementHandle]):
             url,
             headers=headers or self._extra_headers,
             data=json.dumps(data),
-            **kwargs,
             impersonate="chrome",
+            **kwargs,
         )
         if self._tracer:
             self._tracer.log_request(res)
 
         self._url = res.url
         content_type = res.headers.get("Content-Type", "")
+
         if "application/json" in content_type:
-            return res.json()
+
+            class SoupResponseWithStatus:
+                status: int = res.status_code
+                body: dict[str, Any] = res.json()
+
+            return SoupResponseWithStatus()
+
         self._soup = BeautifulSoup(res.text, "html.parser")
 
         class SoupResponseWithStatus:
             status: int = res.status_code
+            body: str = res.text
 
         return SoupResponseWithStatus()
 
