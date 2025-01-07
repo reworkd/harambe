@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 from bs4 import BeautifulSoup, Tag
+import json
 
 # noinspection PyProtectedMember
 from curl_cffi.requests import AsyncSession, HeaderTypes
@@ -88,16 +89,23 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
     async def post(self, url: str, data: dict[str, Any], **kwargs: Any) -> Any:
         res = await self._session.post(
-            url, headers=self._extra_headers, data=data, **kwargs, impersonate="chrome"
+            url,
+            headers=self._extra_headers,
+            data=json.dumps(data),
+            **kwargs,
+            impersonate="chrome",
         )
         if self._tracer:
             self._tracer.log_request(res)
 
         self._url = res.url
-        self._soup = BeautifulSoup(await res.text, "html.parser")
+        content_type = res.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            return res.json()
+        self._soup = BeautifulSoup(res.text, "html.parser")
 
         class SoupResponseWithStatus:
-            status: int = res.status
+            status: int = res.status_code
 
         return SoupResponseWithStatus()
 
