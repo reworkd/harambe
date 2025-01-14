@@ -1,5 +1,6 @@
 import re
 import base64
+import time
 from abc import ABC
 from typing import Any, Literal, Self
 
@@ -53,10 +54,25 @@ class ResourceRequestHandler(AbstractHandler):
     async def __aexit__(self, *_: Any, **__: Any) -> None:
         await self.page.context.unroute(self.url_pattern, self.handle)
         await self.page.bring_to_front()
-        for page in self.page.context.pages:
-            if page.url not in self._initial_pages:
-                self._new_pages.append(page.url)
-                await page.close()
+        try:
+            await self._wait_for_new_page()
+            for page in self.page.context.pages:
+                if page.url not in self._initial_pages:
+                    self._new_pages.append(page.url)
+                    await page.close()
+        except TimeoutError:
+            raise TimeoutError("No new page opened within the timeout.")
+
+    async def _wait_for_new_page(self, timeout: int = 10) -> Page | None:
+        start_time = time.monotonic()
+        while time.monotonic() - start_time < timeout:
+            current_pages = self.page.context.pages
+            for page in current_pages:
+                if page.url not in self._initial_pages:
+                    return page
+            await page.wait_for_timeout(100)
+
+        raise TimeoutError("Timed out waiting for a new page to open.")
 
     async def handle(self, route: Route) -> None:
         if (
