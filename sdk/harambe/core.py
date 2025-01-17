@@ -449,7 +449,9 @@ class SDK:
         harness: WebHarness = playwright_harness,
         evaluator: Optional[ExpressionEvaluator] = None,
         observer: Optional[OutputObserver | List[OutputObserver]] = None,
-        goto_error_handler: Callable[[str, int, dict[str, str]], Awaitable[None]] = default_error_callback,
+        goto_error_handler: Callable[
+            [str, int, dict[str, str]], Awaitable[None]
+        ] = default_error_callback,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
