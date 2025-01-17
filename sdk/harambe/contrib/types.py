@@ -46,6 +46,7 @@ class ResponseWithStatus(Protocol):
     """Protocol for goto responses across all harnesses. Use minimal attributes required for current use cases."""
 
     status: int
+    headers: dict[str, str]
 
 
 class AbstractPage(Selectable[T], abc.ABC):

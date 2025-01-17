@@ -279,12 +279,12 @@ async def test_text_content(server, observer, harness):
 
     assert observer.data[0]["page_content"] == observer.data[1]["table_content"]
     for text in ["Apple", "Orange", "Banana"]:
-        assert (
-            text in observer.data[0]["page_content"]
-        ), f"{text} not in {observer.data[0]['page_content']}"
-        assert (
-            text in observer.data[1]["table_content"]
-        ), f"{text} not in {observer.data[1]['table_content']}"
+        assert text in observer.data[0]["page_content"], (
+            f"{text} not in {observer.data[0]['page_content']}"
+        )
+        assert text in observer.data[1]["table_content"], (
+            f"{text} not in {observer.data[1]['table_content']}"
+        )
 
 
 @pytest.mark.parametrize("harness", [soup_harness])
@@ -687,7 +687,7 @@ async def test_403_status_on_goto_with_custom_callback(
     async def scrape(sdk: SDK, current_url, context) -> None:
         await sdk.save_data({"key": "this shouldn't be saved if GotoError is raised"})
 
-    async def custom_error_handler(url, status_code):
+    async def custom_error_handler(url, status_code, *args):
         print(f"Handled {status_code} for {url} gracefully.")
 
     error_callback = custom_error_handler
@@ -698,7 +698,7 @@ async def test_403_status_on_goto_with_custom_callback(
         schema={},
         context={"status": "Open"},
         observer=observer,
-        callback=error_callback,
+        goto_error_handler=error_callback,
     )
 
     # Ensure data is saved when error is handled (either with custom or no callback)
