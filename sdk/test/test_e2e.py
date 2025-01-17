@@ -698,7 +698,7 @@ async def test_403_status_on_goto_with_custom_callback(
         schema={},
         context={"status": "Open"},
         observer=observer,
-        callback=error_callback,
+        goto_err_handler=error_callback,
     )
 
     # Ensure data is saved when error is handled (either with custom or no callback)

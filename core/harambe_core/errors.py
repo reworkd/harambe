@@ -1,6 +1,10 @@
 from typing import Any
 
 
+async def default_error_callback(url: str, status: int, *args):
+    raise GotoError(url, status)
+
+
 class HarambeException(Exception):
     """Base exception for all custom exceptions in Harambe."""
 
