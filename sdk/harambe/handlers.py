@@ -38,12 +38,13 @@ class ResourceRequestHandler(AbstractHandler):
         self,
         page: Page,
         resource_type: ResourceType,
+        timeout: int,
         url_pattern: str = "**/*",
     ):
         self.page = page
         self.url_pattern = url_pattern
         self.resource_type = resource_type
-
+        self.timeout = timeout
         self._initial_pages = [p.url for p in page.context.pages]
         self._new_pages: list[str] = []
 
@@ -61,11 +62,13 @@ class ResourceRequestHandler(AbstractHandler):
                     self._new_pages.append(page.url)
                     await page.close()
         except TimeoutError:
-            raise TimeoutError("No new page opened within the timeout.")
+            raise TimeoutError(
+                f"No new page opened within the {self.timeout} seconds timeout."
+            )
 
-    async def _wait_for_new_page(self, timeout: int = 10) -> Page | None:
+    async def _wait_for_new_page(self) -> Page | None:
         start_time = time.monotonic()
-        while time.monotonic() - start_time < timeout:
+        while time.monotonic() - start_time < self.timeout:
             current_pages = self.page.context.pages
             for page in current_pages:
                 if page.url not in self._initial_pages:
