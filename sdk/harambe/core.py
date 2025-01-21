@@ -214,7 +214,7 @@ class SDK:
         self,
         clickable: ElementHandle,
         resource_type: ResourceType = "document",
-        timeout: Optional[int] = 10,
+        timeout: Optional[int] = 10000,
     ) -> URL | None:
         """
         Capture the url of a click event. This will click the element and return the url
