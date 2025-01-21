@@ -223,7 +223,7 @@ class SDK:
 
         :param clickable: the element to click
         :param resource_type: the type of resource to capture
-        :param timeout: the time to wait for the new page to open (in seconds)
+        :param timeout: the time to wait for the new page to open (in ms)
         :return url: the url of the captured resource or None if no match was found
         :raises ValueError: if more than one request matches
         """

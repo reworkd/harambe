@@ -61,12 +61,13 @@ class ResourceRequestHandler(AbstractHandler):
             await new_page.close()
         except TimeoutError:
             raise TimeoutError(
-                f"No new page opened within the {self.timeout} seconds timeout."
+                f"No new page opened within the {self.timeout} ms timeout."
             )
 
     async def _wait_for_new_page(self) -> Page:
         start_time = time.monotonic()
-        while time.monotonic() - start_time < self.timeout:
+        timeout_seconds = self.timeout / 1000
+        while time.monotonic() - start_time < timeout_seconds:
             for page in self.page.context.pages:
                 if page.url not in self._initial_pages:
                     return page
