@@ -235,13 +235,14 @@ class SDK:
         clickable: ElementHandle,
         override_filename: str | None = None,
         override_url: str | None = None,
+        timeout: float | None = None,
     ) -> DownloadMeta:
         """
         Capture the download of a click event. This will click the element, download the resulting file
         and apply some download handling logic from the observer to transform to a usable URL
         """
 
-        async with self.page.expect_download() as download_info:
+        async with self.page.expect_download(timeout=timeout) as download_info:
             await clickable.click()
         download = await download_info.value
 
