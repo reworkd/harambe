@@ -56,25 +56,21 @@ class ResourceRequestHandler(AbstractHandler):
         await self.page.context.unroute(self.url_pattern, self.handle)
         await self.page.bring_to_front()
         try:
-            await self._wait_for_new_page()
-            for page in self.page.context.pages:
-                if page.url not in self._initial_pages:
-                    self._new_pages.append(page.url)
-                    await page.close()
+            new_page = await self._wait_for_new_page()
+            self._new_pages.append(new_page.url)
+            await new_page.close()
         except TimeoutError:
             raise TimeoutError(
                 f"No new page opened within the {self.timeout} seconds timeout."
             )
 
-    async def _wait_for_new_page(self) -> Page | None:
+    async def _wait_for_new_page(self) -> Page:
         start_time = time.monotonic()
         while time.monotonic() - start_time < self.timeout:
-            current_pages = self.page.context.pages
-            for page in current_pages:
+            for page in self.page.context.pages:
                 if page.url not in self._initial_pages:
                     return page
-            await page.wait_for_timeout(100)
-
+            await self.page.wait_for_timeout(100)
         raise TimeoutError("Timed out waiting for a new page to open.")
 
     async def handle(self, route: Route) -> None:
