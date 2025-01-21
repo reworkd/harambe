@@ -50,7 +50,7 @@ from harambe.types import (
     LocalStorage,
 )
 from harambe_core import SchemaParser, Schema
-from harambe_core.errors import GotoError
+from harambe_core.errors import default_error_callback
 from harambe_core.normalize_url import normalize_url
 from harambe_core.parser.expression import ExpressionEvaluator
 from playwright.async_api import (
@@ -62,10 +62,6 @@ from playwright.async_api import (
 )
 
 from harambe.contrib import WebHarness, playwright_harness
-
-
-async def default_callback(url: str, status: int):
-    raise GotoError(url, status)
 
 
 class AsyncScraper(Protocol):
@@ -243,13 +239,14 @@ class SDK:
         clickable: ElementHandle,
         override_filename: str | None = None,
         override_url: str | None = None,
+        timeout: float | None = None,
     ) -> DownloadMeta:
         """
         Capture the download of a click event. This will click the element, download the resulting file
         and apply some download handling logic from the observer to transform to a usable URL
         """
 
-        async with self.page.expect_download() as download_info:
+        async with self.page.expect_download(timeout=timeout) as download_info:
             await clickable.click()
         download = await download_info.value
 
@@ -457,7 +454,9 @@ class SDK:
         harness: WebHarness = playwright_harness,
         evaluator: Optional[ExpressionEvaluator] = None,
         observer: Optional[OutputObserver | List[OutputObserver]] = None,
-        callback: Callable[[str, int], Awaitable[None]] = default_callback,
+        goto_error_handler: Callable[
+            [str, int, dict[str, str]], Awaitable[None]
+        ] = default_error_callback,
         **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
@@ -501,7 +500,7 @@ class SDK:
             if not harness_options.get("disable_go_to_url", False):
                 response = await page.goto(url)
                 if response.status >= 400:
-                    await callback(url, response.status)
+                    await goto_error_handler(url, response.status, response.headers)
             elif isinstance(page, SoupPage):
                 page.url = url
             await scraper(sdk, url, context)

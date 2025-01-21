@@ -84,6 +84,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
         class SoupResponseWithStatus:
             status: int = res.status_code
+            headers: dict[str, str] = res.headers
 
         return SoupResponseWithStatus()
 
