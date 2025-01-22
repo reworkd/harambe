@@ -211,7 +211,10 @@ class SDK:
             return
 
     async def capture_url(
-        self, clickable: ElementHandle, resource_type: ResourceType = "document"
+        self,
+        clickable: ElementHandle,
+        resource_type: ResourceType = "document",
+        timeout: Optional[int] = 10000,
     ) -> URL | None:
         """
         Capture the url of a click event. This will click the element and return the url
@@ -220,11 +223,12 @@ class SDK:
 
         :param clickable: the element to click
         :param resource_type: the type of resource to capture
+        :param timeout: the time to wait for the new page to open (in ms)
         :return url: the url of the captured resource or None if no match was found
         :raises ValueError: if more than one request matches
         """
         async with ResourceRequestHandler(
-            self.page, resource_type=resource_type
+            self.page, resource_type=resource_type, timeout=timeout
         ) as handler:
             await clickable.click()
 

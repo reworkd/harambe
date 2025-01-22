@@ -1,5 +1,6 @@
 import re
 import base64
+import time
 from abc import ABC
 from typing import Any, Literal, Self
 
@@ -37,12 +38,13 @@ class ResourceRequestHandler(AbstractHandler):
         self,
         page: Page,
         resource_type: ResourceType,
+        timeout: int,
         url_pattern: str = "**/*",
     ):
         self.page = page
         self.url_pattern = url_pattern
         self.resource_type = resource_type
-
+        self.timeout = timeout
         self._initial_pages = [p.url for p in page.context.pages]
         self._new_pages: list[str] = []
 
@@ -53,10 +55,24 @@ class ResourceRequestHandler(AbstractHandler):
     async def __aexit__(self, *_: Any, **__: Any) -> None:
         await self.page.context.unroute(self.url_pattern, self.handle)
         await self.page.bring_to_front()
-        for page in self.page.context.pages:
-            if page.url not in self._initial_pages:
-                self._new_pages.append(page.url)
-                await page.close()
+        try:
+            new_page = await self._wait_for_new_page()
+            self._new_pages.append(new_page.url)
+            await new_page.close()
+        except TimeoutError:
+            raise TimeoutError(
+                f"No new page opened within the {self.timeout} ms timeout."
+            )
+
+    async def _wait_for_new_page(self) -> Page:
+        start_time = time.monotonic()
+        timeout_seconds = self.timeout / 1000
+        while time.monotonic() - start_time < timeout_seconds:
+            for page in self.page.context.pages:
+                if page.url not in self._initial_pages:
+                    return page
+            await self.page.wait_for_timeout(100)
+        raise TimeoutError("Timed out waiting for a new page to open.")
 
     async def handle(self, route: Route) -> None:
         if (
