@@ -10,6 +10,12 @@ from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectabl
 from harambe.contrib.types import ResponseWithStatus
 
 
+class SoupResponseWithStatus:
+    def __init__(self, status: int, body: Any):
+        self.status = status
+        self.body = body
+
+
 class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
     def __init__(self, tag: Tag) -> None:
         self._tag = tag
@@ -92,13 +98,22 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         self,
         url: str,
         data: dict[str, Any],
+        params: Optional[dict[str, Any]] = None,
         headers: Optional[HeaderTypes] = None,
         **kwargs: Any,
     ) -> Any:
+        content_type = (
+            (headers or self._extra_headers or {}).get("Content-Type", "").lower()
+        )
+
+        processed_data = (
+            json.dumps(data) if "application/json" in content_type else data
+        )
         res = await self._session.post(
             url,
             headers=headers or self._extra_headers,
-            data=json.dumps(data),
+            data=processed_data,
+            params=params or {},
             impersonate="chrome",
             **kwargs,
         )
@@ -107,22 +122,12 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
         self._url = res.url
         content_type = res.headers.get("Content-Type", "")
-
         if "application/json" in content_type:
-
-            class SoupResponseWithStatus:
-                status: int = res.status_code
-                body: dict[str, Any] = res.json()
-
-            return SoupResponseWithStatus()
+            return SoupResponseWithStatus(res.status_code, res.text)
 
         self._soup = BeautifulSoup(res.text, "html.parser")
 
-        class SoupResponseWithStatus:
-            status: int = res.status_code
-            body: str = res.text
-
-        return SoupResponseWithStatus()
+        return SoupResponseWithStatus(res.status_code, res.text)
 
     async def query_selector_all(self, selector: str) -> list[SoupElementHandle]:
         return SoupElementHandle.from_tags(self._soup.select(selector))
