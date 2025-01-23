@@ -123,7 +123,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         self._url = res.url
         content_type = res.headers.get("Content-Type", "")
         if "application/json" in content_type:
-            return SoupResponseWithStatus(res.status_code, res.text)
+            return SoupResponseWithStatus(res.status_code, res.json())
 
         self._soup = BeautifulSoup(res.text, "html.parser")
 
