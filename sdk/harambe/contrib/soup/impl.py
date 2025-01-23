@@ -4,16 +4,10 @@ from bs4 import BeautifulSoup, Tag
 import json
 
 # noinspection PyProtectedMember
-from curl_cffi.requests import AsyncSession, HeaderTypes
+from curl_cffi.requests import AsyncSession, HeaderTypes, Response
 from harambe.contrib.soup.tracing import Tracer
 from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectable
 from harambe.contrib.types import ResponseWithStatus
-
-
-class SoupResponseWithStatus:
-    def __init__(self, status: int, body: Any):
-        self.status = status
-        self.body = body
 
 
 class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
@@ -101,7 +95,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         params: Optional[dict[str, Any]] = None,
         headers: Optional[HeaderTypes] = None,
         **kwargs: Any,
-    ) -> Any:
+    ) -> Response:
         content_type = (
             (headers or self._extra_headers or {}).get("Content-Type", "").lower()
         )
@@ -117,17 +111,19 @@ class SoupPage(AbstractPage[SoupElementHandle]):
             impersonate="chrome",
             **kwargs,
         )
+        res.raise_for_status()
+
         if self._tracer:
             self._tracer.log_request(res)
 
         self._url = res.url
         content_type = res.headers.get("Content-Type", "")
         if "application/json" in content_type:
-            return SoupResponseWithStatus(res.status_code, res.json())
+            return res
 
         self._soup = BeautifulSoup(res.text, "html.parser")
 
-        return SoupResponseWithStatus(res.status_code, res.text)
+        return res
 
     async def query_selector_all(self, selector: str) -> list[SoupElementHandle]:
         return SoupElementHandle.from_tags(self._soup.select(selector))
