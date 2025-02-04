@@ -11,8 +11,6 @@ def noop(*args: Any) -> Any:
 
 @ExpressionEvaluator.define_builtin("CONCAT")
 def concat(*args: Any, seperator: str = "") -> str:
-
-
     args = [a for a in flatten(args) if a is not None and a != ""]
     return seperator.join(str(arg) for arg in args)
 
