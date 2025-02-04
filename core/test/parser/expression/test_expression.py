@@ -62,6 +62,7 @@ def test_evaluate_from_array(evaluator):
         == "adameve"
     )
     assert evaluator.evaluate("names[-1]", {"names": ["adam", "eve"]}) == "eve"
+    assert evaluator.evaluate("CONCAT_WS('<3', names)", {"names": ["adam", "eve"]}) == 'adam<3eve'
 
 
 def test_evaluate_function_chain(evaluator):

@@ -18,12 +18,20 @@ def test_concat():
     assert concat("hello", "world") == "helloworld"
     assert concat("hello", None, "world") == "helloworld"
     assert concat(None, None) == ""
+    assert concat(['hello', 'world']) == "helloworld"
+    assert concat(['hello'], 'world') == "helloworld"
+    assert concat(['hello'], ['world']) == "helloworld"
 
 
 def test_concat_ws():
     assert concat_ws(" ", "hello", "world") == "hello world"
     assert concat_ws(",", "hello", "world") == "hello,world"
     assert concat_ws(":-:", "hello", None, "world") == "hello:-:world"
+    assert concat_ws(" ", ['hello', 'world']) == "hello world"
+    assert concat_ws(" ", ['hello'], 'world') == "hello world"
+    assert concat_ws(" ", [], 'hello', 'world') == "hello world"
+    assert concat_ws("-", ['hello'], ['world', '!'], ['']) == "hello-world-!"
+
 
 
 def test_coalesce():
