@@ -1,0 +1,1 @@
+Generate docs with `make markdown`
