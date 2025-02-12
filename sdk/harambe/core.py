@@ -75,11 +75,11 @@ class AsyncScraper(Protocol):
 
 class SDK:
     """
-    All Harambe scrapers should use this SDK to scrape data. It provides
-    a number of useful methods for saving data and enqueuing urls to be scraped later.
-
-    Harambe scrapers should be invoked using the SDK.run (for listing type scrapers) or
-    SDK.run_from_file (for detail type scrapers) methods.
+    A web scraping SDK with a number of useful methods and features for:
+    - Saving data and validating it following a specific schema
+    - Enqueuing (and automatically formatting) urls
+    - De-duplicating data, urls, etc
+    - Effectively handling classic web scraping problems like pagination, pdfs, downloads, etc
     """
 
     def __init__(
@@ -118,10 +118,12 @@ class SDK:
 
     async def save_data(self, *data: ScrapeResult) -> None:
         """
-        Save scraped data. This will be passed to the on_save_data callback.
-        Generally, this should only be called on the detail page.
+        Save scraped data and validate its type matches the current schema
 
-        :param data: one or more dicts of details to save
+        :param data: one or more dictionaries of data to save
+        :raises SchemaValidationError: If any of the saved data does not match the provided schema
+        :example:
+            >>> await sdk.save_data({ "title": "example", "description": "another_example" })
         """
         if len(data) == 1 and isinstance(data[0], list):
             raise TypeError(
@@ -142,13 +144,15 @@ class SDK:
         options: Optional[Options] = None,
     ) -> None:
         """
-        Enqueue url to be scraped. This will be passed to the on_enqueue callback.
-        This should be called on the listing page. It will save the url and context
-        so that the detail page can be scraped later.
+        Enqueue url(s) to be scraped later.
 
         :param urls: urls to enqueue
-        :param context: additional context to pass to the next run of the next stage/url
+        :param context: additional context to pass to the next run of the next stage/url. Typically just data that is only available on the current page but required in the schema.
         :param options: job level options to pass to the next stage/url
+
+        :example:
+            >>> await sdk.enqueue("https://www.test.com")
+            >>> await sdk.enqueue("/some-path") # This will automatically be converted into an absolute url
         """
         context = context or {}
         options = options or {}
@@ -171,10 +175,24 @@ class SDK:
         timeout: int = 2000,
     ) -> None:
         """
-        Navigate to the next page of a listing.
+        SDK method to automatically facilitate paginating a list of elements.
+        Simply define a function that should return any of:
+            - A direct link to the next page
+            - An element with hrefs to the next page
+            - An element to click on to get to the next page
+        And call `sdk.paginate` at the end of your scrape function. The element will automatically be used to paginate the site and run the scraping code against all pages
+        Pagination will conclude once all pages have been reached.
 
-        :param timeout: milliseconds to sleep for before continuing
+        This method should ALWAYS be used for pagination instead of manual for loops and if statements.
+
         :param get_next_page_element: the url or ElementHandle of the next page
+        :param timeout: milliseconds to sleep for before continuing. Only use if there is no other wait option
+
+        :example:
+            >>> async def pager():
+            ...     return await page.query_selector("div.pagination > .pager.next")
+            ...
+            ... await sdk.paginate(pager)
         """
         try:
             next_page = await get_next_page_element()
@@ -242,8 +260,15 @@ class SDK:
         timeout: float | None = None,
     ) -> DownloadMeta:
         """
-        Capture the download of a click event. This will click the element, download the resulting file
-        and apply some download handling logic from the observer to transform to a usable URL
+        Capture a download event that gets triggered by clicking an element. This method will:
+         - Handle clicking the element
+         - Download the resulting file
+         - Apply download handling logic and build a download URL
+         - Return a download metadata object
+
+        Use this method to manually download dynamic files or files that can only be downloaded in the current browser session.
+
+        :return DownloadMeta: A typed dict containing the download metadata such as the `url` and `filename`
         """
 
         async with self.page.expect_download(timeout=timeout) as download_info:
@@ -274,15 +299,18 @@ class SDK:
         html_converter_type: HTMLConverterType = "markdown",
     ) -> HTMLMetadata:
         """
-        Capture and download the html content of the document or a specific element. The returned HTML
-        will be cleaned of any excluded elements and will be wrapped in a proper HTML document structure.
+        Capture and download the html content of the document or a specific element.
+        The returned HTML will be cleaned of any excluded elements and will be wrapped in a proper HTML document structure.
 
         :param selector: CSS selector of element to capture. Defaults to "html" for the document element.
         :param exclude_selectors: List of CSS selectors for elements to exclude from capture.
-        :param soup_transform: A function to transform the BeautifulSoup html prior to saving.
+        :param soup_transform: A function to transform the BeautifulSoup html prior to saving. Use this to remove aspects of the returned content
         :param html_converter_type: Type of HTML converter to use for the inner text. Defaults to "markdown".
-        :return: HTMLMetadata containing download URL, HTML content and inner text.
+        :return: HTMLMetadata containing the `html` of the element, the formatted `text` of the element, along with the `url` and `filename` of the document
         :raises ValueError: If the specified selector doesn't match any element.
+        :example:
+            >>> meta = await sdk.capture_html(selector="div.content")
+            ... await sdk.save_data({"name": meta["filename"], "text": meta["text"], "download_url": meta["url"]})
         """
         html, text = await self._get_html(
             selector,
@@ -342,6 +370,11 @@ class SDK:
         """
         Capture the current page as a pdf and then apply some download handling logic
         from the observer to transform to a usable URL
+
+        :return DownloadMeta: A typed dict containing the download metadata such as the `url` and `filename`
+        :example:
+            >>> meta = await sdk.capture_pdf()
+            ... await sdk.save_data({"file_name": meta["filename"], "download_url": meta["url"]})
         """
         await self.page.wait_for_timeout(
             1000
@@ -381,7 +414,7 @@ class SDK:
         override_path: str | None = None,
     ) -> None:
         """
-        Save the local storage from the current browser context or use the provided local storage data.
+        Save the local storage from the current browser context or provided local storage.
 
         This function retrieves all the local storage data from the current page context if none is provided,
         updates the SDK instance with new or updated values, and notifies all observers about the action performed.
@@ -431,6 +464,7 @@ class SDK:
         Notify all observers of an event. This will call the method on each observer that is subscribed. Note that
         the first observer is the stop pagination observer, so it will always be called separately so that we can stop
         pagination if needed.
+
         :param method: observation trigger
         :param args: arguments to pass to the method
         :param kwargs: keyword arguments to pass to the method

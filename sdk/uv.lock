@@ -428,7 +428,7 @@ wheels = [
 
 [[package]]
 name = "harambe-core"
-version = "0.59.6"
+version = "0.60.2"
 source = { editable = "../core" }
 dependencies = [
     { name = "dateparser" },
@@ -459,7 +459,7 @@ dev = [
 
 [[package]]
 name = "harambe-sdk"
-version = "0.59.6"
+version = "0.60.2"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -1053,7 +1053,7 @@ name = "tzlocal"
 version = "5.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "tzdata", marker = "platform_system == 'Windows'" },
+    { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/04/d3/c19d65ae67636fe63953b20c2e4a8ced4497ea232c43ff8d01db16de8dc0/tzlocal-5.2.tar.gz", hash = "sha256:8d399205578f1a9342816409cc1e46a93ebd5755e39ea2d85334bea911bf0e6e", size = 30201 }
 wheels = [
