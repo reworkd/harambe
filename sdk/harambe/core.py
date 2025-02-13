@@ -232,7 +232,7 @@ class SDK:
         self,
         clickable: ElementHandle,
         resource_type: ResourceType = "document",
-        timeout: Optional[int] = 10000,
+        timeout: int = 10000,
     ) -> URL | None:
         """
         Capture the url of a click event. This will click the element and return the url
@@ -533,7 +533,11 @@ class SDK:
 
             if not harness_options.get("disable_go_to_url", False):
                 response = await page.goto(url)
-                if response.status >= 400:
+
+                if (
+                    not harness_options.get("allow_forbidden_requests", False)
+                    and response.status >= 400
+                ):
                     await goto_error_handler(url, response.status, response.headers)
             elif isinstance(page, SoupPage):
                 page.url = url

@@ -69,6 +69,7 @@ class HarnessOptions(TypedDict, total=False):
     viewport: Optional[ViewportSize]
     abort_unnecessary_requests: bool
     disable_go_to_url: bool
+    allow_forbidden_requests: bool
     on_start: Optional[Callback]
     on_end: Optional[Callback]
     extensions: Sequence[str]
