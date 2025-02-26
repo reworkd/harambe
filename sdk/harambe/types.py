@@ -71,4 +71,5 @@ class HarnessOptions(TypedDict, total=False):
     disable_go_to_url: bool
     on_start: Optional[Callback]
     on_end: Optional[Callback]
+    launch_args: Sequence[str]
     extensions: Sequence[str]
