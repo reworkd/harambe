@@ -31,9 +31,9 @@ def assert_is_iso_format(date_string):
 )
 def test_pydantic_type_date_validate_type_success(date_string):
     parsed_date = ParserTypeDate.validate_type(date_string)
-    assert isinstance(parsed_date, str), (
-        f"Expected string for '{date_string}', got {parsed_date}"
-    )
+    assert isinstance(
+        parsed_date, str
+    ), f"Expected string for '{date_string}', got {parsed_date}"
     assert_is_iso_format(parsed_date)
 
 

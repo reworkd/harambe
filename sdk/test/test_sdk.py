@@ -4,7 +4,7 @@ import pytest
 from playwright.async_api import Page
 
 from harambe.core import SDK, URL, AsyncScraperType, Context
-from harambe.observer import OutputObserver
+from harambe_core.observer import OutputObserver
 from harambe_core.errors import SchemaValidationError
 from harambe_core import Schema
 

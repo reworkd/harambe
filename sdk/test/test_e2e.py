@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
-from harambe.observer import InMemoryObserver
+from harambe_core.observer import InMemoryObserver
 from harambe.types import BrowserType
 from harambe_core.errors import GotoError
 
