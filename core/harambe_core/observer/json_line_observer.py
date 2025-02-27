@@ -4,5 +4,5 @@ from harambe_core.observer.serialization_observer import SerializationObserver
 
 
 class JsonLineObserver(SerializationObserver):
-    def __int__(self):
+    def __init__(self):
         super().__init__(sink=print, serializer=json.dumps)
