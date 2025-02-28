@@ -40,6 +40,7 @@ async def playwright_harness(
     enable_clipboard: bool = False,
     launch_args: Sequence[str] = (),
     extensions: Sequence[str] = (),
+    disable_service_workers: bool = False,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -117,6 +118,7 @@ async def playwright_harness(
             if enable_clipboard
             else None,
             storage_state=storage_state,
+            servie_workers=disable_service_workers,
         )
 
         ctx.set_default_timeout(default_timeout)
