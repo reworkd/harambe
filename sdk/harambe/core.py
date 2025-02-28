@@ -64,7 +64,7 @@ from harambe_core.parser.expression import ExpressionEvaluator
 
 class AsyncScraper(Protocol):
     """
-    Protocol that all classed based scrapers should implement.
+    Protocol that all class based scrapers should implement.
     Note that scrapers in harambe should be functions, not classes.
     """
 
