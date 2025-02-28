@@ -36,9 +36,9 @@ async def test_navigator_webdriver(async_page):
 @pytest.mark.asyncio
 async def test_user_agent(async_page):
     user_agent = await async_page.evaluate("navigator.userAgent")
-    assert (
-        "headless" not in user_agent.lower()
-    ), "User agent should not contain 'headless'"
+    assert "headless" not in user_agent.lower(), (
+        "User agent should not contain 'headless'"
+    )
 
 
 @pytest.mark.asyncio
@@ -56,9 +56,9 @@ async def test_plugins(async_page):
 @pytest.mark.asyncio
 async def test_app_version(async_page):
     app_version = await async_page.evaluate("navigator.appVersion")
-    assert (
-        "headless" not in app_version.lower()
-    ), "App version should not contain 'headless'"
+    assert "headless" not in app_version.lower(), (
+        "App version should not contain 'headless'"
+    )
 
 
 @pytest.mark.asyncio
@@ -88,6 +88,6 @@ async def test_connection_rtt(async_page):
     }
     """)
 
-    assert (
-        connection_rtt is not None and connection_rtt != 0
-    ), "Connection RTT should exist and not be zero in non-headless browsers"
+    assert connection_rtt is not None and connection_rtt != 0, (
+        "Connection RTT should exist and not be zero in non-headless browsers"
+    )
