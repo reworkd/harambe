@@ -1,5 +1,5 @@
-import re
 import base64
+import re
 import time
 from abc import ABC
 from typing import Any, Literal, Self
@@ -58,7 +58,12 @@ class ResourceRequestHandler(AbstractHandler):
         try:
             new_page = await self._wait_for_new_page()
             self._new_pages.append(new_page.url)
-            await new_page.close()
+
+            current_page_count = len(self.page.context.pages)
+            if current_page_count == len(self._initial_pages):
+                await self.page.go_back()
+            else:
+                await new_page.close()
         except TimeoutError:
             raise TimeoutError(
                 f"No new page opened within the {self.timeout} ms timeout."
