@@ -1,7 +1,5 @@
-import json
-from abc import ABC
-from pipes import quote
 from typing import Any, Callable, TypeVar, TypedDict
+from urllib.parse import quote
 
 from harambe_core.observer import OutputObserver
 from harambe_core.types import LocalStorage, Cookie, URL, Context, Options
