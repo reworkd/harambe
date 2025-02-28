@@ -19,7 +19,7 @@ Serializer = Callable[[Payload], T]
 Sink = Callable[[T], None]
 
 
-class SerializationObserver(OutputObserver, ABC):
+class SerializationObserver(OutputObserver):
     def __init__(self, sink: Sink, serializer: Serializer) -> None:
         self._publish: Callable[[Payload], None] = lambda x: sink(serializer(x))
 
@@ -44,7 +44,7 @@ class SerializationObserver(OutputObserver, ABC):
             "data": {
                 "download_url": download_url,
                 "filename": filename,
-                "content": content,
+                "content": content.decode("utf-8"),
             },
         }
 

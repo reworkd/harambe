@@ -2,7 +2,6 @@ from typing import NotRequired, TypedDict, Required, Sequence, Literal, Any
 
 from pydantic import ConfigDict
 
-from harambe import ScrapeResult
 
 URL = str
 Context = dict[str, Any]

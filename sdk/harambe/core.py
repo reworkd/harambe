@@ -19,7 +19,11 @@ from typing import (
 
 import aiohttp
 from bs4 import BeautifulSoup, Doctype
-from playwright.async_api import ElementHandle, Page, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import (
+    ElementHandle,
+    Page,
+    TimeoutError as PlaywrightTimeoutError,
+)
 
 from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.soup.impl import SoupPage
@@ -47,8 +51,14 @@ from harambe.types import (
 from harambe_core import SchemaParser, Schema
 from harambe_core.errors import default_error_callback
 from harambe_core.normalize_url import normalize_url
-from harambe_core.observer import ObservationTrigger, DownloadMeta, HTMLMetadata, OutputObserver, LoggingObserver, \
-    LocalStorageObserver
+from harambe_core.observer import (
+    ObservationTrigger,
+    DownloadMeta,
+    HTMLMetadata,
+    OutputObserver,
+    LoggingObserver,
+    LocalStorageObserver,
+)
 from harambe_core.parser.expression import ExpressionEvaluator
 
 
@@ -71,17 +81,17 @@ class SDK:
     """
 
     def __init__(
-            self,
-            page: AbstractPage[Any],
-            run_id: Optional[str] = None,
-            domain: Optional[str] = None,
-            stage: Optional[Stage] = None,
-            observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
-            scraper: Optional[AsyncScraperType] = None,
-            context: Optional[Context] = None,
-            schema: Optional[Schema] = None,
-            deduper: Optional[DuplicateHandler] = None,
-            evaluator: Optional[ExpressionEvaluator] = None,
+        self,
+        page: AbstractPage[Any],
+        run_id: Optional[str] = None,
+        domain: Optional[str] = None,
+        stage: Optional[Stage] = None,
+        observer: Optional[Union[OutputObserver, List[OutputObserver]]] = None,
+        scraper: Optional[AsyncScraperType] = None,
+        context: Optional[Context] = None,
+        schema: Optional[Schema] = None,
+        deduper: Optional[DuplicateHandler] = None,
+        evaluator: Optional[ExpressionEvaluator] = None,
     ):
         self.page: Page = page  # type: ignore
         self._id = run_id or uuid.uuid4()
@@ -126,10 +136,10 @@ class SDK:
             await self._notify_observers("on_save_data", d)
 
     async def enqueue(
-            self,
-            *urls: URL | Awaitable[URL],
-            context: Optional[Context] = None,
-            options: Optional[Options] = None,
+        self,
+        *urls: URL | Awaitable[URL],
+        context: Optional[Context] = None,
+        options: Optional[Options] = None,
     ) -> None:
         """
         Enqueue url(s) to be scraped later.
@@ -158,9 +168,9 @@ class SDK:
             )
 
     async def paginate(
-            self,
-            get_next_page_element: Callable[..., Awaitable[URL | ElementHandle | None]],
-            timeout: int = 2000,
+        self,
+        get_next_page_element: Callable[..., Awaitable[URL | ElementHandle | None]],
+        timeout: int = 2000,
     ) -> None:
         """
         SDK method to automatically facilitate paginating a list of elements.
@@ -217,10 +227,10 @@ class SDK:
             return
 
     async def capture_url(
-            self,
-            clickable: ElementHandle,
-            resource_type: ResourceType = "document",
-            timeout: Optional[int] = 10000,
+        self,
+        clickable: ElementHandle,
+        resource_type: ResourceType = "document",
+        timeout: Optional[int] = 10000,
     ) -> URL | None:
         """
         Capture the url of a click event. This will click the element and return the url
@@ -234,18 +244,18 @@ class SDK:
         :raises ValueError: if more than one request matches
         """
         async with ResourceRequestHandler(
-                self.page, resource_type=resource_type, timeout=timeout
+            self.page, resource_type=resource_type, timeout=timeout
         ) as handler:
             await clickable.click()
 
         return handler.captured_url()
 
     async def capture_download(
-            self,
-            clickable: ElementHandle,
-            override_filename: str | None = None,
-            override_url: str | None = None,
-            timeout: float | None = None,
+        self,
+        clickable: ElementHandle,
+        override_filename: str | None = None,
+        override_url: str | None = None,
+        timeout: float | None = None,
     ) -> DownloadMeta:
         """
         Capture a download event that gets triggered by clicking an element. This method will:
@@ -279,12 +289,12 @@ class SDK:
         return res[0]
 
     async def capture_html(
-            self,
-            selector: str = "html",
-            exclude_selectors: List[str] | None = None,
-            *,
-            soup_transform: Optional[Callable[[BeautifulSoup], None]] = None,
-            html_converter_type: HTMLConverterType = "markdown",
+        self,
+        selector: str = "html",
+        exclude_selectors: List[str] | None = None,
+        *,
+        soup_transform: Optional[Callable[[BeautifulSoup], None]] = None,
+        html_converter_type: HTMLConverterType = "markdown",
     ) -> HTMLMetadata:
         """
         Capture and download the html content of the document or a specific element.
@@ -323,11 +333,11 @@ class SDK:
         }
 
     async def _get_html(
-            self,
-            selector: str,
-            exclude_selectors: List[str],
-            soup_transform: Callable[[BeautifulSoup], None],
-            html_converter_type: HTMLConverterType,
+        self,
+        selector: str,
+        exclude_selectors: List[str],
+        soup_transform: Callable[[BeautifulSoup], None],
+        html_converter_type: HTMLConverterType,
     ) -> Tuple[str, str]:
         element = await self.page.query_selector(selector)
 
@@ -353,7 +363,7 @@ class SDK:
         return str(soup), text
 
     async def capture_pdf(
-            self,
+        self,
     ) -> DownloadMeta:
         """
         Capture the current page as a pdf and then apply some download handling logic
@@ -375,8 +385,8 @@ class SDK:
         return res[0]
 
     async def save_cookies(
-            self,
-            override_cookies: Optional[List[Cookie]] = None,
+        self,
+        override_cookies: Optional[List[Cookie]] = None,
     ) -> None:
         """
         Save the cookies from the current browser context or use the provided cookies.
@@ -396,10 +406,10 @@ class SDK:
         await self._notify_observers("on_save_cookies", new_cookies)
 
     async def save_local_storage(
-            self,
-            override_local_storage: Optional[dict[str, str]] = None,
-            override_domain: str | None = None,
-            override_path: str | None = None,
+        self,
+        override_local_storage: Optional[dict[str, str]] = None,
+        override_domain: str | None = None,
+        override_path: str | None = None,
     ) -> None:
         """
         Save the local storage from the current browser context or provided local storage.
@@ -442,11 +452,11 @@ class SDK:
         )
 
     async def _notify_observers(
-            self,
-            method: ObservationTrigger,
-            *args: Any,
-            check_duplication: bool = True,
-            **kwargs: Any,
+        self,
+        method: ObservationTrigger,
+        *args: Any,
+        check_duplication: bool = True,
+        **kwargs: Any,
     ) -> Any:
         """
         Notify all observers of an event. This will call the method on each observer that is subscribed. Note that
@@ -468,18 +478,18 @@ class SDK:
 
     @staticmethod
     async def run(
-            scraper: AsyncScraperType,
-            url: str | Path,
-            schema: Schema | None = None,
-            context: Optional[Context] = None,
-            setup: Optional[SetupType] = None,
-            harness: WebHarness = playwright_harness,
-            evaluator: Optional[ExpressionEvaluator] = None,
-            observer: Optional[OutputObserver | List[OutputObserver]] = None,
-            goto_error_handler: Callable[
-                [str, int, dict[str, str]], Awaitable[None]
-            ] = default_error_callback,
-            **harness_options: Unpack[HarnessOptions],
+        scraper: AsyncScraperType,
+        url: str | Path,
+        schema: Schema | None = None,
+        context: Optional[Context] = None,
+        setup: Optional[SetupType] = None,
+        harness: WebHarness = playwright_harness,
+        evaluator: Optional[ExpressionEvaluator] = None,
+        observer: Optional[OutputObserver | List[OutputObserver]] = None,
+        goto_error_handler: Callable[
+            [str, int, dict[str, str]], Awaitable[None]
+        ] = default_error_callback,
+        **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
         Convenience method for running a scraper. This will launch a browser and
@@ -536,10 +546,10 @@ class SDK:
 
     @staticmethod
     async def run_from_file(
-            scraper: AsyncScraperType,
-            schema: Schema,
-            setup: Optional[SetupType] = None,
-            **harness_options: Unpack[HarnessOptions],
+        scraper: AsyncScraperType,
+        schema: Schema,
+        setup: Optional[SetupType] = None,
+        **harness_options: Unpack[HarnessOptions],
     ) -> "SDK":
         """
         Convenience method for running a detail scraper from file. This will load
@@ -600,9 +610,9 @@ class SDK:
 
     @staticmethod
     def scraper(
-            domain: str,
-            stage: Stage,
-            observer: Optional[OutputObserver | List[OutputObserver]] = None,
+        domain: str,
+        stage: Stage,
+        observer: Optional[OutputObserver | List[OutputObserver]] = None,
     ) -> Callable[[AsyncScraperType], AsyncScraperType]:
         """
         Decorator for scrapers. This will add the domain and stage to the function.
@@ -613,7 +623,10 @@ class SDK:
         :return: the decorated function
         """
         if not observer:
-            observer = [LocalStorageObserver(domain, stage), LoggingObserver()]
+            observer = [
+                LocalStorageObserver(FileDataTracker(domain=domain, stage=stage)),
+                LoggingObserver(),
+            ]
         if not isinstance(observer, list):
             observer = [observer]
 
@@ -631,7 +644,7 @@ class SDK:
 
     @staticmethod
     def with_headers(
-            headers: dict[str, str],
+        headers: dict[str, str],
     ) -> Callable[[AsyncScraperType], AsyncScraperType]:
         """
         Decorator for scrapers. This will add the headers to the function.

@@ -2,8 +2,6 @@ from pprint import pprint
 from typing import List
 from urllib.parse import quote
 
-from playwright.async_api import Page
-
 from harambe_core.types import Cookie, LocalStorage, URL, Context, Options, ScrapeResult
 from .base import OutputObserver
 from .types import DownloadMeta
@@ -34,5 +32,5 @@ class LoggingObserver(OutputObserver):
     async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
         print(f"Local Storage saved : {local_storage}")
 
-    async def on_check_and_solve_captchas(self, page: Page) -> None:
+    async def on_check_and_solve_captchas(self, page: "Page") -> None:
         pass

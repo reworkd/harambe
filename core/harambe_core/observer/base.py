@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import runtime_checkable, Protocol, Any
 
-from harambe.types import URL, Context, Options, Cookie, LocalStorage
+from harambe_core.types import URL, Context, Options, Cookie, LocalStorage
 
 
 @runtime_checkable

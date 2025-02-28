@@ -1,8 +1,6 @@
 from typing import Any, List, Tuple
 from urllib.parse import quote
 
-from playwright.async_api import Page
-
 from harambe_core.types import URL, Context, Options, Cookie, LocalStorage
 from .base import OutputObserver
 from .types import DownloadMeta
@@ -37,7 +35,7 @@ class InMemoryObserver(OutputObserver):
     async def on_save_cookies(self, cookies: list[Cookie]) -> None:
         self._cookies.extend(cookies)
 
-    async def on_check_and_solve_captchas(self, page: Page) -> None:
+    async def on_check_and_solve_captchas(self, page: "Page") -> None:
         pass
 
     async def on_save_local_storage(self, local_storage: list[LocalStorage]) -> None:

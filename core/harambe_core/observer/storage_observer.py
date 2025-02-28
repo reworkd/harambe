@@ -1,17 +1,37 @@
+from abc import ABC, abstractmethod
 from typing import Any, List
 from urllib.parse import quote
 
-from playwright.async_api import Page
-
-from harambe.tracker import FileDataTracker
 from harambe_core.types import URL, Context, Options, Cookie, LocalStorage
 from .base import OutputObserver
 from .types import DownloadMeta
 
 
+class DataTracker(ABC):
+    @abstractmethod
+    def save_data(self, new_data: List[dict[str, Any]]) -> None:
+        """Append data for a domain and stage to a JSON file"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def load_data(self, url: str, stage: str) -> List[dict[str, Any]]:
+        """Load data for a domain and stage from a JSON file"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def visit(self, url: str) -> None:
+        """Mark the url as visited and save to the domain file"""
+        raise NotImplementedError()
+
+    @abstractmethod
+    def has_been_visited(self, url: str) -> bool:
+        """Check if the url has been visited"""
+        raise NotImplementedError()
+
+
 class LocalStorageObserver(OutputObserver):
-    def __init__(self, domain: str, stage: str):
-        self._tracker = FileDataTracker(domain, stage)
+    def __init__(self, tracker: DataTracker):
+        self._tracker = tracker
 
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._tracker.save_data(data)
@@ -38,5 +58,5 @@ class LocalStorageObserver(OutputObserver):
     async def on_save_local_storage(self, local_storage: List[LocalStorage]) -> None:
         self._tracker.save_data({"local_storage": local_storage})
 
-    async def on_check_and_solve_captchas(self, page: Page) -> None:
+    async def on_check_and_solve_captchas(self, page: "Page") -> None:
         pass
