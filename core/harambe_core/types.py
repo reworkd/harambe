@@ -1,6 +1,12 @@
-from typing import NotRequired, TypedDict, Required, Sequence, Literal
+from typing import NotRequired, TypedDict, Required, Sequence, Literal, Any
 
 from pydantic import ConfigDict
+
+
+URL = str
+Context = dict[str, Any]
+Options = dict[str, Any]
+ScrapeResult = dict[str, Any]
 
 SchemaFieldType = Literal[
     "string",
@@ -35,3 +41,23 @@ class Schema(TypedDict, total=False):
 
 
 Schema.__annotations__["__extra_fields__"] = dict[str, "Schema"]
+
+
+class Cookie(TypedDict):
+    name: str
+    value: str
+    domain: str
+    path: str
+    expires: int | float
+    size: int
+    httpOnly: bool
+    secure: bool
+    session: bool
+    sameSite: str
+
+
+class LocalStorage(TypedDict):
+    domain: str
+    path: str | None
+    key: str
+    value: str

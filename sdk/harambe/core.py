@@ -19,6 +19,13 @@ from typing import (
 
 import aiohttp
 from bs4 import BeautifulSoup, Doctype
+from playwright.async_api import (
+    ElementHandle,
+    Page,
+    TimeoutError as PlaywrightTimeoutError,
+)
+
+from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
 from harambe.cookie_utils import fix_cookie
@@ -27,14 +34,6 @@ from harambe.handlers import (
     ResourceType,
 )
 from harambe.html_converter import HTMLConverterType, get_html_converter
-from harambe.observer import (
-    DownloadMeta,
-    HTMLMetadata,
-    LocalStorageObserver,
-    LoggingObserver,
-    ObservationTrigger,
-    OutputObserver,
-)
 from harambe.pagination import DuplicateHandler
 from harambe.tracker import FileDataTracker
 from harambe.types import (
@@ -52,16 +51,15 @@ from harambe.types import (
 from harambe_core import SchemaParser, Schema
 from harambe_core.errors import default_error_callback
 from harambe_core.normalize_url import normalize_url
+from harambe_core.observer import (
+    ObservationTrigger,
+    DownloadMeta,
+    HTMLMetadata,
+    OutputObserver,
+    LoggingObserver,
+    LocalStorageObserver,
+)
 from harambe_core.parser.expression import ExpressionEvaluator
-from playwright.async_api import (
-    ElementHandle,
-    Page,
-)
-from playwright.async_api import (
-    TimeoutError as PlaywrightTimeoutError,
-)
-
-from harambe.contrib import WebHarness, playwright_harness
 
 
 class AsyncScraper(Protocol):
@@ -625,7 +623,10 @@ class SDK:
         :return: the decorated function
         """
         if not observer:
-            observer = [LocalStorageObserver(domain, stage), LoggingObserver()]
+            observer = [
+                LocalStorageObserver(FileDataTracker(domain=domain, stage=stage)),
+                LoggingObserver(),
+            ]
         if not isinstance(observer, list):
             observer = [observer]
 
