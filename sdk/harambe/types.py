@@ -51,3 +51,5 @@ class HarnessOptions(TypedDict, total=False):
     on_end: Optional[Callback]
     launch_args: Sequence[str]
     extensions: Sequence[str]
+    attach_to_existing_context: bool
+    attach_to_existing_page: bool
