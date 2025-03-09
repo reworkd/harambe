@@ -245,7 +245,7 @@ class SDK:
         :param resource_type: the type of resource to capture
         :param timeout: the time to wait for the new page to open (in ms)
         :return url: the url of the captured resource or None if no match was found
-        :raises ValueError: if more than page is created by the click event
+        :raises ValueError: if more than one page is created by the click event
         """
         async with ResourceRequestHandler(
             self.page, resource_type=resource_type, timeout=timeout
