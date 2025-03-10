@@ -73,11 +73,14 @@ class AsyncScraper(Protocol):
 
 class SDK:
     """
-    A web scraping SDK with a number of useful methods and features for:
-    - Saving data and validating it following a specific schema
+    As part of code generation, Reworkd generates code in its own custom SDK called [Harambe](https://github.com/reworkd/harambe).
+    Harambe is web scraping SDK with a number of useful methods and features for:
+    - Saving data and validating that the data follows a specific schema
     - Enqueuing (and automatically formatting) urls
-    - De-duplicating data, urls, etc
+    - De-duplicating saved data, urls, etc
     - Effectively handling classic web scraping problems like pagination, pdfs, downloads, etc
+
+    These methods, what they do, how they work, and some examples of how to use them will be highlighted below.
     """
 
     def __init__(
@@ -118,7 +121,7 @@ class SDK:
         """
         Save scraped data and validate its type matches the current schema
 
-        :param data: one or more dictionaries of data to save
+        :param data: Rows of data (as dictionaries) to save
         :raises SchemaValidationError: If any of the saved data does not match the provided schema
         :example:
             >>> await sdk.save_data({ "title": "example", "description": "another_example" })
@@ -145,7 +148,7 @@ class SDK:
         Enqueue url(s) to be scraped later.
 
         :param urls: urls to enqueue
-        :param context: additional context to pass to the next run of the next stage/url. Typically just data that is only available on the current page but required in the schema.
+        :param context: additional context to pass to the next run of the next stage/url. Typically just data that is only available on the current page but required in the schema. Only use this when some data is available on this page, but not on the page that is enqueued.
         :param options: job level options to pass to the next stage/url
 
         :example:
@@ -178,8 +181,9 @@ class SDK:
             - A direct link to the next page
             - An element with hrefs to the next page
             - An element to click on to get to the next page
+
         And call `sdk.paginate` at the end of your scrape function. The element will automatically be used to paginate the site and run the scraping code against all pages
-        Pagination will conclude once all pages have been reached.
+        Pagination will conclude once all pages are reached no next page element is found.
 
         This method should ALWAYS be used for pagination instead of manual for loops and if statements.
 
@@ -188,9 +192,9 @@ class SDK:
 
         :example:
             >>> async def pager():
-            ...     return await page.query_selector("div.pagination > .pager.next")
-            ...
-            ... await sdk.paginate(pager)
+            >>>     return await page.query_selector("div.pagination > .pager.next")
+            >>>
+            >>> await sdk.paginate(pager)
         """
         try:
             next_page = await get_next_page_element()
@@ -241,7 +245,7 @@ class SDK:
         :param resource_type: the type of resource to capture
         :param timeout: the time to wait for the new page to open (in ms)
         :return url: the url of the captured resource or None if no match was found
-        :raises ValueError: if more than one request matches
+        :raises ValueError: if more than one page is created by the click event
         """
         async with ResourceRequestHandler(
             self.page, resource_type=resource_type, timeout=timeout
@@ -308,7 +312,7 @@ class SDK:
         :raises ValueError: If the specified selector doesn't match any element.
         :example:
             >>> meta = await sdk.capture_html(selector="div.content")
-            ... await sdk.save_data({"name": meta["filename"], "text": meta["text"], "download_url": meta["url"]})
+            >>> await sdk.save_data({"name": meta["filename"], "text": meta["text"], "download_url": meta["url"]})
         """
         html, text = await self._get_html(
             selector,
@@ -372,7 +376,7 @@ class SDK:
         :return DownloadMeta: A typed dict containing the download metadata such as the `url` and `filename`
         :example:
             >>> meta = await sdk.capture_pdf()
-            ... await sdk.save_data({"file_name": meta["filename"], "download_url": meta["url"]})
+            >>> await sdk.save_data({"file_name": meta["filename"], "download_url": meta["url"]})
         """
         await self.page.wait_for_timeout(
             1000
