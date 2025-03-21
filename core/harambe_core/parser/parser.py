@@ -10,6 +10,7 @@ from pydantic import (
 )
 
 from harambe_core.errors import SchemaValidationError
+from harambe_core.parser.constants import RESERVED_PREFIX
 from harambe_core.parser.expression import ExpressionEvaluator
 from harambe_core.parser.type_currency import ParserTypeCurrency
 from harambe_core.parser.type_date import ParserTypeDate
@@ -51,7 +52,7 @@ class SchemaParser:
         model = self._schema_to_pydantic_model(self.schema)
 
         try:
-            res = model(**data).model_dump()
+            res = model(**data).model_dump(by_alias=True)
             if self._pk_expression:
                 res["$primary_key"] = self.evaluator.evaluate(self._pk_expression, res)
             return res
@@ -124,9 +125,19 @@ class SchemaParser:
             if field_name == "__config__":
                 continue
 
+            field_serialization_alias = None
+            if field_name.startswith("model_"):
+                field_serialization_alias = field_name
+                field_name = RESERVED_PREFIX + field_name
+
             field_description = field_info.get("description", None)
             field_type = field_info.get("type")
-            field = Field(..., description=field_description)
+            field = Field(
+                ...,
+                description=field_description,
+                alias=field_serialization_alias,
+                serialization_alias=field_serialization_alias,
+            )
 
             if field_type == "object":
                 python_type = self._schema_to_pydantic_model(
@@ -147,7 +158,11 @@ class SchemaParser:
                 )
             elif expression := field_info.get("expression"):
                 python_type = self._get_type(field_type, required=False)
-                field = Field(default=None, description=field_description)
+                field = Field(
+                    default=None,
+                    description=field_description,
+                    serialization_alias=field_serialization_alias,
+                )
                 computed_fields[field_name] = expression
             else:
                 python_type = self._get_type(

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/reworkd/harambe/refs/heads/main/schema.json",
+  "import": {
+    "type": "string",
+    "expression": "CONCAT_WS('_', 'example_import', def, class)"
+  },
+  "def": {
+    "type": "string"
+  },
+  "class": {
+    "type": "string"
+  },
+  "return": {
+    "type": "string"
+  },
+  "lambda": {
+    "type": "string"
+  },
+  "add": {
+    "type": "integer"
+  },
+  "del": {
+    "type": "integer"
+  },
+  "from": {
+    "type": "integer"
+  }
+}
