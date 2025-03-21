@@ -1,4 +1,8 @@
+import pytest
+
 from harambe_core import SchemaParser
+from harambe_core.errors import SchemaValidationError
+from harambe_core.parser.constants import RESERVED_PREFIX
 from test.parser.mock_schemas.load_schema import load_schema
 
 
@@ -56,3 +60,18 @@ def test_python_reserved_fields():
     assert res.get("del") == 3
     assert res.get("from") == 1
     assert res.get("import") == "example_import_example_def_example_class"
+
+
+def test_reserved_prefix_not_shown_in_error_message():
+    validator = SchemaParser(load_schema("reserved_pydantic_fields"))
+
+    with pytest.raises(SchemaValidationError) as excinfo:
+        validator.validate(
+            {
+                "model_config": 1,
+            },
+            base_url="http://example.com",
+        )
+
+    assert RESERVED_PREFIX not in str(excinfo.value)
+    assert "model_config" in str(excinfo.value)
