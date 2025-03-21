@@ -17,7 +17,7 @@ dependencies = [
 
 [tool.uv]
 dev-dependencies = [
-    "ruff==0.8.4",
+    "ruff==0.11.2",
     "mypy==1.11.1",
     "types-dateparser==1.2.0.20240420",
     "pytest==7.4.4",
