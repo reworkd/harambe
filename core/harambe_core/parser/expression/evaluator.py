@@ -1,6 +1,8 @@
 from functools import wraps
 from typing import Any, Callable
 
+from harambe_core.parser.constants import RESERVED_PREFIX
+
 Func = Callable[..., Any]
 
 
@@ -102,6 +104,9 @@ class ExpressionEvaluator:
         current = obj
 
         for part in parts:
+            if part.startswith("model_"):
+                part = RESERVED_PREFIX + part
+
             if "[" in part and "]" in part:
                 split = part.split("[")
                 part = split[0]
@@ -111,8 +116,8 @@ class ExpressionEvaluator:
 
                 idx = split[1].rstrip("]")
                 current = current[part][int(idx)]
-            elif hasattr(current, part):
-                current = getattr(current, part)
+            elif attr := getattr(current, part, None):
+                current = attr
             elif isinstance(current, dict):
                 current = current.get(part)
             else:

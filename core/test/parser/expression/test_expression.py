@@ -128,3 +128,22 @@ def test_register_custom_function():
 
     with pytest.raises(ValueError, match="Unknown function: CUSTOM"):
         evaluator2.evaluate("CUSTOM(a, b)", {"a": 10, "b": 20})
+
+
+def test_evaluate_reserved__pydantic_keyword():
+    evaluator = ExpressionEvaluator()
+
+    assert (
+        evaluator.evaluate("CONCAT('model_config', ' ', 'model_dump')", {})
+        == "model_config model_dump"
+    )
+    assert (
+        evaluator.evaluate(
+            "CONCAT(model_config, ' ', model_dump)",
+            {
+                "harambe_reserved_model_config": "hello",
+                "harambe_reserved_model_dump": "world",
+            },
+        )
+        == "hello world"
+    )
