@@ -726,10 +726,10 @@ async def test_substring_after(server, observer, harness):
                 "type": "string",
             },
             "substring": {
-              "type": "string",
-              "description": "",
-              "expression": f'SUBSTRING_AFTER(data, "{delimiter}")'
-            }
+                "type": "string",
+                "description": "",
+                "expression": f'SUBSTRING_AFTER(data, "{delimiter}")',
+            },
         },
         observer=observer,
     )
