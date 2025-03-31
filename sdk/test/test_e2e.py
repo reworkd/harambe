@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
-from harambe_core.observer import InMemoryObserver
 from harambe.types import BrowserType
 from harambe_core.errors import GotoError
+from harambe_core.observer import InMemoryObserver
 
 
 @pytest.fixture(scope="module")
@@ -705,3 +705,35 @@ async def test_403_status_on_goto_with_custom_callback(
     assert len(observer.data) == 1
     assert observer.data[0]["key"] == "this shouldn't be saved if GotoError is raised"
     assert observer.data[0]["__url"] == url
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_substring_after(server, observer, harness):
+    string = "123"
+    delimiter = "1"
+    expected = "23"
+
+    async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
+        await sdk.save_data({"data": string})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/solicitation",
+        headless=True,
+        harness=harness,
+        schema={
+            "data": {
+                "type": "string",
+            },
+            "substring": {
+                "type": "string",
+                "description": "",
+                "expression": f'SUBSTRING_AFTER(data, "{delimiter}")',
+            },
+        },
+        observer=observer,
+    )
+
+    assert len(observer.data) == 1
+    assert observer.data[0]["data"] == string
+    assert observer.data[0]["substring"] == expected

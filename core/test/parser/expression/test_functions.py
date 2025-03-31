@@ -1,3 +1,5 @@
+import pytest
+
 from harambe_core.parser.expression.functions import (
     lower,
     upper,
@@ -6,6 +8,7 @@ from harambe_core.parser.expression.functions import (
     concat,
     noop,
     concat_ws,
+    substring_after,
 )
 
 
@@ -56,3 +59,38 @@ def test_upper():
 def test_lower():
     assert lower("HELLO") == "hello"
     assert lower("Hello World") == "hello world"
+
+
+@pytest.mark.parametrize(
+    "input_string,delimiter,expected",
+    [
+        # Single character delimiters
+        ("", ",", ""),
+        ("a", "a", ""),
+        ("hello", "1", "hello"),
+        ("hello", "h", "ello"),
+        ("hello", "l", "lo"),
+        ("hello", "o", ""),
+        ("hello,world", ",", "world"),
+        ("a:b:c", ":", "b:c"),
+        ("first.second.third", ".", "second.third"),
+        ("email@example.com", "@", "example.com"),
+        ("path/to/file", "/", "to/file"),
+        # Word delimiters
+        ("hello world", "hello ", "world"),
+        ("hello world", "xyz", "hello world"),
+        ("hello hello world", "hello ", "hello world"),
+        ("", "a", ""),
+        ("hello world", "world", ""),
+        ("name: John Doe", "name: ", "John Doe"),
+        ("Hello World", "hello ", "Hello World"),
+    ],
+)
+def test_substring_after(input_string, delimiter, expected):
+    result = substring_after(input_string, delimiter)
+    assert result == expected
+
+
+def test_substring_after_empty_delimiter():
+    with pytest.raises(ValueError):
+        substring_after("hello world", "")
