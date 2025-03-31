@@ -279,12 +279,12 @@ async def test_text_content(server, observer, harness):
 
     assert observer.data[0]["page_content"] == observer.data[1]["table_content"]
     for text in ["Apple", "Orange", "Banana"]:
-        assert (
-            text in observer.data[0]["page_content"]
-        ), f"{text} not in {observer.data[0]['page_content']}"
-        assert (
-            text in observer.data[1]["table_content"]
-        ), f"{text} not in {observer.data[1]['table_content']}"
+        assert text in observer.data[0]["page_content"], (
+            f"{text} not in {observer.data[0]['page_content']}"
+        )
+        assert text in observer.data[1]["table_content"], (
+            f"{text} not in {observer.data[1]['table_content']}"
+        )
 
 
 @pytest.mark.parametrize("harness", [soup_harness])
