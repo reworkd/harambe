@@ -147,3 +147,34 @@ def test_evaluate_reserved__pydantic_keyword():
         )
         == "hello world"
     )
+
+
+@pytest.mark.parametrize(
+    "expression,context,expected",
+    [
+        ("SUBSTRING_AFTER('hello-world', '-')", {}, "world"),  # Basic usage
+        (
+            "SUBSTRING_AFTER('hello-world', '/')",  # When delimiter is not found
+            {},
+            "hello-world",
+        ),
+        (
+            "SUBSTRING_AFTER(CONCAT('hello-', 'world'), '-')",  # With sub evaluations
+            {},
+            "world",
+        ),
+        (
+            "SUBSTRING_AFTER('path/to/file.txt', '/')",  # Multiple delimiters, should only take first occurrence
+            {},
+            "to/file.txt",
+        ),
+        ("SUBSTRING_AFTER('hello-', '-')", {}, ""),  # Empty result
+    ],
+)
+def test_substring_after(evaluator, expression, context, expected):
+    assert evaluator.evaluate(expression, context) == expected
+
+
+def test_substring_after_empty_delimiter(evaluator):
+    with pytest.raises(ValueError, match="requires a non-empty delimiter"):
+        evaluator.evaluate("SUBSTRING_AFTER('hello-world', '')", {})
