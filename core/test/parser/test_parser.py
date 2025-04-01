@@ -1,10 +1,10 @@
 from typing import Any
 
 import pytest
-
 from harambe_core.errors import SchemaValidationError
 from harambe_core.parser.parser import SchemaParser
 from harambe_core.types import Schema
+
 from test.parser.mock_schemas.load_schema import load_schema
 
 
@@ -121,6 +121,18 @@ def test_no_data(data) -> None:
             load_schema("enums"),
             {"season": "spring"},
         ),
+        (
+            load_schema("object_with_list_of_objects"),
+            {"list": [{"a": None, "b": ["Some imp data"], "c": {"d": "", "e": ""}}]},
+        ),
+        (
+            load_schema("object_with_list_of_objects"),
+            {"list": [{"a": "Some imp data", "b": [], "c": {"d": "", "e": ""}}]},
+        ),
+        (
+            load_schema("object_with_list_of_objects"),
+            {"list": [{"a": None, "b": [], "c": {"d": "", "e": "Some imp data"}}]},
+        ),
     ],
 )
 def test_pydantic_schema_validator_success(
@@ -217,9 +229,7 @@ def test_pydantic_schema_data_update(
             {
                 "title": "Document One",
                 "document_url": "http://example.com/doc1",
-                "items": {  # ❌ Extra complex field
-                    "title": "Extra field"
-                },
+                "items": {"title": "Extra field"},  # ❌ Extra complex field
             },
         ),
         (
@@ -271,9 +281,7 @@ def test_pydantic_schema_data_update(
         ),
         (
             load_schema("documents"),
-            {
-                "documents": None  # ❌ Null list
-            },
+            {"documents": None},  # ❌ Null list
         ),
         (
             load_schema("documents"),
@@ -301,11 +309,7 @@ def test_pydantic_schema_data_update(
         ),
         (
             load_schema("documents"),
-            {
-                "documents": [
-                    None  # ❌ Null item in list
-                ]
-            },
+            {"documents": [None]},  # ❌ Null item in list
         ),
         (
             load_schema("list_of_strings"),
@@ -380,9 +384,7 @@ def test_pydantic_schema_data_update(
         ),
         (
             load_schema("documents"),
-            {
-                "documents": []  # ❌ Do not allow objects with all null arrays
-            },
+            {"documents": []},  # ❌ Do not allow objects with all null arrays
         ),
         (
             load_schema("document"),
@@ -409,6 +411,10 @@ def test_pydantic_schema_data_update(
         (
             load_schema("object_with_list_of_objects"),
             {"list": [{"members": {"a": None, "b": [], "c": {"d": "", "e": ""}}}]},
+        ),
+        (
+            load_schema("object_with_list_of_objects"),
+            {"list": [{"a": None, "b": [], "c": {"d": "", "e": ""}}]},
         ),
     ],
 )
