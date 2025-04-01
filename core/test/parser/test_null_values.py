@@ -1,9 +1,9 @@
 from typing import Any, Dict
 
 import pytest
-
 from harambe_core.errors import SchemaValidationError
 from harambe_core.parser.parser import SchemaParser
+
 from test.parser.mock_schemas.load_schema import load_schema
 
 government_contracts = load_schema("government_contracts")
@@ -134,6 +134,41 @@ def test_pydantic_schema_validation_success(data: Dict[str, Any]):
     [
         {"group": "Team", "members": [{}]},
         {
+            "group": "",
+            "members": [
+                {
+                    "name": "",
+                    "age": None,
+                },
+            ],
+        },
+    ],
+)
+def test_with_empty_objects(data):
+    schema = {
+        "group": {"type": "string"},
+        "members": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "age": {"type": "integer"},
+                },
+            },
+        },
+    }
+
+    with pytest.raises(SchemaValidationError):
+        validator = SchemaParser(schema)
+        validator.validate(data, base_url="http://example.com")
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"group": "Team", "members": [{"name": None, "age": None}]},
+        {
             "group": "Team",
             "members": [
                 {
@@ -157,7 +192,7 @@ def test_pydantic_schema_validation_success(data: Dict[str, Any]):
         },
     ],
 )
-def test_with_emtpy_objects(data):
+def test_with_objects(data):
     schema = {
         "group": {"type": "string"},
         "members": {
@@ -172,9 +207,9 @@ def test_with_emtpy_objects(data):
         },
     }
 
-    with pytest.raises(SchemaValidationError):
-        validator = SchemaParser(schema)
-        validator.validate(data, base_url="http://example.com")
+    validator = SchemaParser(schema)
+    res = validator.validate(data, base_url="http://example.com")
+    assert res["group"] == "Team"
 
 
 @pytest.mark.parametrize(
