@@ -122,15 +122,21 @@ def test_no_data(data) -> None:
             {"season": "spring"},
         ),
         (
-            load_schema("object_with_list_of_objects"),
+            load_schema(
+                "object_with_list_of_objects"
+            ),  # ✅ parse object because list of strings has valid data
             {"list": [{"a": None, "b": ["Some imp data"], "c": {"d": "", "e": ""}}]},
         ),
         (
-            load_schema("object_with_list_of_objects"),
+            load_schema(
+                "object_with_list_of_objects"
+            ),  # ✅ parse object because string has valid data
             {"list": [{"a": "Some imp data", "b": [], "c": {"d": "", "e": ""}}]},
         ),
         (
-            load_schema("object_with_list_of_objects"),
+            load_schema(
+                "object_with_list_of_objects"
+            ),  # ✅ parse object because child object has valid data
             {"list": [{"a": None, "b": [], "c": {"d": "", "e": "Some imp data"}}]},
         ),
     ],
