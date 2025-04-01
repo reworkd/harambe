@@ -1,11 +1,11 @@
-from typing import Any, List, Optional, Type, Self
+from typing import Any, List, Optional, Self, Type
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     ValidationError,
     create_model,
-    ConfigDict,
     model_validator,
 )
 
@@ -20,8 +20,7 @@ from harambe_core.parser.type_number import ParserTypeNumber
 from harambe_core.parser.type_phone_number import ParserTypePhoneNumber
 from harambe_core.parser.type_string import ParserTypeString
 from harambe_core.parser.type_url import ParserTypeUrl
-from harambe_core.types import Schema
-from harambe_core.types import SchemaFieldType
+from harambe_core.types import Schema, SchemaFieldType
 
 
 class SchemaParser:
@@ -49,7 +48,7 @@ class SchemaParser:
     def validate(self, data: dict[str, Any], base_url: str) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
-        model = self._schema_to_pydantic_model(self.schema)
+        model = self._schema_to_pydantic_model(self.schema, is_root=True)
 
         try:
             res = model(**data).model_dump(by_alias=True)
@@ -96,6 +95,7 @@ class SchemaParser:
             return self._schema_to_pydantic_model(
                 items_info.get("properties", {}),
                 model_name=f"{model_name}Object",
+                is_root=False,
             )
 
         if item_type == "array":
@@ -113,7 +113,11 @@ class SchemaParser:
         return self._get_type(item_type, required=True)
 
     def _schema_to_pydantic_model(
-        self, schema: Schema, model_name: str = "DynamicModel", required: bool = True
+        self,
+        schema: Schema,
+        model_name: str = "DynamicModel",
+        required: bool = True,
+        is_root: bool = True,
     ) -> Type[BaseModel]:
         """
         Convert a JSON schema to a Pydantic model dynamically. All fields are optional
@@ -144,6 +148,7 @@ class SchemaParser:
                     field_info.get("properties", {}) or {},
                     model_name=f"{model_name}{field_name.capitalize()}",
                     required=field_info.get("required", False),
+                    is_root=False,
                 )
             elif field_type == "array":
                 python_type = List[  # type: ignore
@@ -173,7 +178,9 @@ class SchemaParser:
 
         config: ConfigDict = {"extra": "forbid", "str_strip_whitespace": True}
         config.update(schema.get("__config__", {}))
-        base_model = base_model_factory(config, computed_fields, self.evaluator)
+        base_model = base_model_factory(
+            config, computed_fields, self.evaluator, is_root
+        )
         new_model = create_model(model_name, __base__=base_model, **fields)
 
         if not required:
@@ -191,7 +198,10 @@ class SchemaParser:
 
 
 def base_model_factory(
-    config: ConfigDict, computed_fields: dict[str, str], evaluator: ExpressionEvaluator
+    config: ConfigDict,
+    computed_fields: dict[str, str],
+    evaluator: ExpressionEvaluator,
+    is_root: bool = True,
 ) -> Type[BaseModel]:
     class PreValidatedBaseModel(BaseModel):
         model_config: ConfigDict = config
@@ -219,7 +229,8 @@ def base_model_factory(
                 res = evaluator.evaluate(expression, self)
                 setattr(self, field, res)
 
-            if _all_fields_empty(self.model_dump()):
+            # Only check for empty fields at the root level
+            if is_root and _all_fields_empty(self.model_dump()):
                 raise SchemaValidationError(
                     message="All fields are null or empty.",
                 )
@@ -231,8 +242,8 @@ def base_model_factory(
 
 def _all_fields_empty(data: dict[str, Any]) -> bool:
     """
-    Recursively check if all fields in the data are either None or empty.
-    This includes handling nested dictionaries and lists.
+    Check if all fields in the base object are either None or empty recursively.
+    This does not get called for individual fields in the base object.
     """
 
     def is_empty(value: Any) -> bool:
