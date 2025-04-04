@@ -1,6 +1,7 @@
-from pydantic import BeforeValidator
-from typing import Any
 import re
+from typing import Any
+
+from pydantic import BeforeValidator
 from typing_extensions import Annotated
 
 price_not_available_phrases = [
@@ -61,7 +62,10 @@ class ParserTypeCurrency:
             else:
                 cleaned_value = cleaned_value.replace(".", "").replace(",", ".")
         elif "," in cleaned_value and "." not in cleaned_value:
-            if (
+            if len(cleaned_value.split(",")[-1]) == 2:
+                cleaned_value = cleaned_value.replace(",", ".")
+
+            elif (
                 len(cleaned_value.split(",")[-1]) != 3
             ):  # check Ambiguous values 123,45 and 123,456
                 raise ValueError("Invalid price")
