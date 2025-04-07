@@ -216,10 +216,10 @@ def test_with_objects(data):
     "strings",
     [
         (
-                ["", None, None],
-                [None, None],
-                ["a", "  "],
-                ["a", "b", "c", ""],
+            ["", None, None],
+            [None, None],
+            ["a", "  "],
+            ["a", "b", "c", ""],
         )
     ],
 )
@@ -231,6 +231,7 @@ def test_with_empty_literals(strings):
     with pytest.raises(SchemaValidationError):
         validator = SchemaParser(schema)
         validator.validate({"strings": strings}, base_url="http://example.com")
+
 
 @pytest.mark.parametrize("url", ["", None])
 def test_nullable_object(url):
