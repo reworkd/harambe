@@ -1,9 +1,9 @@
 from typing import Any, Dict
 
 import pytest
+
 from harambe_core.errors import SchemaValidationError
 from harambe_core.parser.parser import SchemaParser
-
 from test.parser.mock_schemas.load_schema import load_schema
 
 government_contracts = load_schema("government_contracts")
@@ -216,10 +216,10 @@ def test_with_objects(data):
     "strings",
     [
         (
-            ["", None, None],
-            [None, None],
-            ["a", "  "],
-            ["a", "b", "c", ""],
+                ["", None, None],
+                [None, None],
+                ["a", "  "],
+                ["a", "b", "c", ""],
         )
     ],
 )
@@ -232,22 +232,25 @@ def test_with_empty_literals(strings):
         validator = SchemaParser(schema)
         validator.validate({"strings": strings}, base_url="http://example.com")
 
-
-def test_nullable_object():
+@pytest.mark.parametrize("url", ["", None])
+def test_nullable_object(url):
     schema = {
         "name": {"type": "string"},
         "age": {"type": "integer"},
         "address": {"type": "object", "properties": {"street": {"type": "string"}}},
+        "profile_url": {"type": "url"},
     }
     data = {
         "name": "Adam",
         "age": 29,
         "address": None,
+        "profile_url": url,
     }
 
     validator = SchemaParser(schema)
     res = validator.validate(data, base_url="http://example.com")
     assert res["address"] is None
+    assert res["profile_url"] is None
 
 
 def test_nullable_object_sub_schema():
