@@ -116,7 +116,7 @@ wheels = [
 
 [[package]]
 name = "harambe-core"
-version = "0.66.0"
+version = "0.76.0"
 source = { virtual = "." }
 dependencies = [
     { name = "dateparser" },

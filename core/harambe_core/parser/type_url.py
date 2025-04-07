@@ -13,7 +13,7 @@ class ParserTypeUrl:
     @staticmethod
     def validate_type(base_url: Optional[str]) -> Callable[[str], str]:
         def _validate_type(url: str) -> str:
-            url =  normalize_url(url, base_url)
+            url = normalize_url(url, base_url)
             ParserTypeUrl._validate_tld(url)
             return url
 
