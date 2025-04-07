@@ -232,7 +232,7 @@ def base_model_factory(
             # Only check for empty fields at the root level
             if is_root and _all_fields_empty(self.model_dump()):
                 raise SchemaValidationError(
-                    message="All fields are null or empty.",
+                    message=f"All fields are null or empty. data={self.model_dump()}",
                 )
 
             return self
