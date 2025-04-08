@@ -19,5 +19,7 @@ def single_value_cache(cache_attr: str):
             setattr(self, cache_attr, (key, result))
 
             return result
+
         return wrapper
+
     return decorator

@@ -1,4 +1,3 @@
-
 from harambe.cache import single_value_cache
 
 

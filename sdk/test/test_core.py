@@ -12,10 +12,7 @@ async def test_enqueue(mocker):
 
     observer = mocker.AsyncMock()
 
-    sdk = SDK(
-        page=page,
-        observer=observer
-    )
+    sdk = SDK(page=page, observer=observer)
 
     await sdk.enqueue("https://example.com")
     await sdk.enqueue("https://example.ca")
@@ -23,7 +20,9 @@ async def test_enqueue(mocker):
     query_selector.assert_awaited_once_with("base")
 
     assert observer.on_queue_url.await_count == 2
-    observer.on_queue_url.assert_has_awaits([
-        call('https://example.com', {'__url': 'https://example.com'}, {}),
-        call('https://example.ca', {'__url': 'https://example.com'}, {}),
-    ])
+    observer.on_queue_url.assert_has_awaits(
+        [
+            call("https://example.com", {"__url": "https://example.com"}, {}),
+            call("https://example.ca", {"__url": "https://example.com"}, {}),
+        ]
+    )
