@@ -63,7 +63,7 @@ def test_no_data(data) -> None:
         ),
         (
             load_schema("list_of_strings"),
-            {"tags": ["python", "pydantic", "typing"]},
+            {"tags": ["python", "pydantic", "typing"], "other_field": ""},
         ),
         (
             load_schema("list_of_objects"),
@@ -71,7 +71,8 @@ def test_no_data(data) -> None:
                 "users": [
                     {"name": "Alice", "email": "alice@example.com"},
                     {"name": "Bob", "email": "bob@example.com"},
-                ]
+                ],
+                "other_field": "",
             },
         ),
         (
