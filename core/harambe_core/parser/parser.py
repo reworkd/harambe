@@ -136,18 +136,20 @@ class SchemaParser:
 
             field_description = field_info.get("description", None)
             field_type = field_info.get("type")
+            field_required = field_info.get("required", False)
             field = Field(
                 ...,
                 description=field_description,
                 alias=field_serialization_alias,
                 serialization_alias=field_serialization_alias,
+                min_length=1 if field_type == "array" and field_required else None,
             )
 
             if field_type == "object":
                 python_type = self._schema_to_pydantic_model(
                     field_info.get("properties", {}) or {},
                     model_name=f"{model_name}{field_name.capitalize()}",
-                    required=field_info.get("required", False),
+                    required=field_required,
                     is_root=False,
                 )
             elif field_type == "array":
@@ -170,9 +172,7 @@ class SchemaParser:
                 )
                 computed_fields[field_name] = expression
             else:
-                python_type = self._get_type(
-                    field_type, required=field_info.get("required")
-                )
+                python_type = self._get_type(field_type, required=field_required)
 
             fields[field_name] = (python_type, field)
 
