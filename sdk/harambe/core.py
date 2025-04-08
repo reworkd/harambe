@@ -180,8 +180,7 @@ class SDK:
         if not base_url:
             return current_url
 
-        base_url = normalize_url(base_url, current_url)
-        return base_url
+        return normalize_url(base_url, current_url)
 
     async def paginate(
         self,
