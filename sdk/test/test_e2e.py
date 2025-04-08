@@ -121,6 +121,28 @@ async def test_enqueue_data_with_context(server, observer):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_enqueue_with_base_url_in_metadata(server, observer, harness):
+    url = f"{server}/meta"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.enqueue("tags/tag_base.asp")
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
+
+    assert not observer.data
+    assert len(observer.urls) == 1
+    assert observer.urls[0][0] == f"https://www.w3schools.com/tags/tag_base.asp"
+    assert observer.urls[0][1] == {"__url": url}
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_enqueue_no_goto_url(observer, harness):
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("https://reworkd.ai", context={"last": "Watkins"})
@@ -247,9 +269,9 @@ async def test_regulations(server, observer, harness):
 
     assert not observer.data
     assert len(observer.urls) == 3
-    assert observer.urls[0][0] == f"{server}/regulations/act/"
-    assert observer.urls[1][0] == f"{server}/regulations/regulations/"
-    assert observer.urls[2][0] == f"{server}/regulations/guidelines/"
+    assert observer.urls[0][0] == f"https://npra.gov.gh/regulations/act/"
+    assert observer.urls[1][0] == f"https://npra.gov.gh/regulations/regulations/"
+    assert observer.urls[2][0] == f"https://npra.gov.gh/regulations/guidelines/"
     assert observer.urls[0][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[1][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[2][1] == {"__url": f"{server}/regulations"}

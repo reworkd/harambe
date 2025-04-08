@@ -43,9 +43,11 @@ async def test_sdk_save_data_calls_on_save_data_for_each_observer():
     assert observer.on_save_data.call_count == len(data)
 
 
-async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer():
+async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer(mocker):
     page = AsyncMock(spec=Page)
     page.url = "https://example.net"
+    query_selector = mocker.AsyncMock(return_value=None)
+    page.query_selector = query_selector
     observer = AsyncMock(spec=OutputObserver)
     sdk = SDK(page, observer=observer)
     urls = ["https://example.org", "https://example.com"]
@@ -54,14 +56,14 @@ async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer():
 
     await sdk.enqueue(*urls, context=context, options=options)
 
-    assert observer.on_queue_url.call_count == len(urls)
+    assert observer.on_queue_url.await_count == len(urls)
     observer.on_queue_url.assert_has_awaits(
         [call(urls[0], context, options), call(urls[1], context, options)],
         any_order=False,
     )
 
-    assert observer.on_queue_url.call_count == len(urls)
     observer.on_save_data.assert_not_awaited()
+    query_selector.assert_awaited_once_with("base")
 
 
 # noinspection PyUnresolvedReferences

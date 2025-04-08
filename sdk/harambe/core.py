@@ -25,6 +25,7 @@ from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
+from harambe.cache import single_value_cache
 from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
@@ -158,17 +159,28 @@ class SDK:
         context = context or {}
         options = options or {}
         context["__url"] = self.page.url
+        base_url = await self._compute_base_url(self.page.url)
 
         for url in urls:
             if inspect.isawaitable(url):
                 url = await url
 
-            normalized_url = (
-                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
-            )
+            normalized_url = normalize_url(url, base_url) if base_url else url
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options
             )
+
+    @single_value_cache("__base_url_cache")
+    async def _compute_base_url(self, current_url: str) -> URL:
+        maybe_base_url = await self.page.query_selector("base")
+        if not maybe_base_url:
+            return current_url
+
+        base_url = await maybe_base_url.get_attribute("href")
+        if not base_url:
+            return current_url
+
+        return normalize_url(base_url, current_url)
 
     async def paginate(
         self,
