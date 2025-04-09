@@ -13,5 +13,8 @@
         }
       }
     }
+  },
+  "other_field": {
+    "type": "string"
   }
 }
