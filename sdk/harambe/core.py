@@ -173,7 +173,7 @@ class SDK:
             )
 
     @single_value_cache("__base_url_cache")
-    async def _compute_base_url(self, current_url) -> URL:
+    async def _compute_base_url(self, current_url: str) -> URL:
         maybe_base_url = await self.page.query_selector("base")
         if not maybe_base_url:
             return current_url
@@ -182,8 +182,7 @@ class SDK:
         if not base_url:
             return current_url
 
-        base_url = normalize_url(base_url, current_url)
-        return base_url
+        return normalize_url(base_url, current_url)
 
     async def paginate(
         self,
