@@ -121,25 +121,29 @@ async def test_enqueue_data_with_context(server, observer):
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_enqueue_with_base_url_in_metadata(server, observer, harness):
+async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
     url = f"{server}/meta"
 
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("tags/tag_base.asp")
+        await sdk.save_data({"url": "tags/tag_base.asp"})
 
     await SDK.run(
         scraper=scraper,
         url=url,
-        schema={},
+        schema={"url": {"type": "url"}},
         headless=True,
         harness=harness,
         observer=observer,
     )
 
-    assert not observer.data
     assert len(observer.urls) == 1
     assert observer.urls[0][0] == f"https://www.w3schools.com/tags/tag_base.asp"
     assert observer.urls[0][1] == {"__url": url}
+
+    assert len(observer.data) == 1
+    assert observer.data[0]["url"] == "https://www.w3schools.com/tags/tag_base.asp"
+    assert observer.data[0]["__url"] == url
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
