@@ -133,9 +133,11 @@ class SDK:
             )
 
         source_url = self.page.url
+        base_url = await self._compute_base_url(source_url)
+
         for d in data:
             if self._validator is not None:
-                d = self._validator.validate(d, base_url=source_url)
+                d = self._validator.validate(d, base_url=base_url)
             d["__url"] = source_url
             await self._notify_observers("on_save_data", d)
 

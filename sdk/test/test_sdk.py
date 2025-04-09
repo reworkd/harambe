@@ -4,9 +4,9 @@ import pytest
 from playwright.async_api import Page
 
 from harambe.core import SDK, URL, AsyncScraperType, Context
-from harambe_core.observer import OutputObserver
-from harambe_core.errors import SchemaValidationError
 from harambe_core import Schema
+from harambe_core.errors import SchemaValidationError
+from harambe_core.observer import OutputObserver
 
 
 @pytest.fixture
@@ -19,8 +19,15 @@ def scraper() -> AsyncScraperType:
     return dummy_scraper
 
 
-def test_sdk_init_assigns_correct_values():
-    page = AsyncMock(spec=Page)
+@pytest.fixture
+def page(mocker):
+    mock_page = mocker.AsyncMock(spec=Page)
+    mock_page.url = "https://example.com"
+    mock_page.query_selector = mocker.AsyncMock(return_value=None)
+    return mock_page
+
+
+def test_sdk_init_assigns_correct_values(page):
     run_id = "test_run_id"
     observer = AsyncMock(spec=OutputObserver)
 
@@ -33,8 +40,7 @@ def test_sdk_init_assigns_correct_values():
     assert sdk._observers == [observer]
 
 
-async def test_sdk_save_data_calls_on_save_data_for_each_observer():
-    page = AsyncMock(spec=Page)
+async def test_sdk_save_data_calls_on_save_data_for_each_observer(page):
     observer = AsyncMock(spec=OutputObserver)
     sdk = SDK(page, observer=observer)
     data = [{"foo": "bar"}, {"baz": "qux"}]
@@ -43,11 +49,7 @@ async def test_sdk_save_data_calls_on_save_data_for_each_observer():
     assert observer.on_save_data.call_count == len(data)
 
 
-async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer(mocker):
-    page = AsyncMock(spec=Page)
-    page.url = "https://example.net"
-    query_selector = mocker.AsyncMock(return_value=None)
-    page.query_selector = query_selector
+async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer(page):
     observer = AsyncMock(spec=OutputObserver)
     sdk = SDK(page, observer=observer)
     urls = ["https://example.org", "https://example.com"]
@@ -63,7 +65,7 @@ async def test_sdk_enqueue_calls_on_enqueue_url_for_each_observer(mocker):
     )
 
     observer.on_save_data.assert_not_awaited()
-    query_selector.assert_awaited_once_with("base")
+    page.query_selector.assert_awaited_once_with("base")
 
 
 # noinspection PyUnresolvedReferences
@@ -98,8 +100,7 @@ async def test_scraper_decorator_preserves_functionality_of_decorated_function(s
     sdk.save_data.assert_awaited_once_with({"baz": "qux"})
 
 
-async def test_sdk_save_data_saves_valid_data():
-    page = AsyncMock(spec=Page)
+async def test_sdk_save_data_saves_valid_data(page):
     page.url = "https://example.net"
     observer = AsyncMock(spec=OutputObserver)
     schema: Schema = {
@@ -123,8 +124,7 @@ async def test_sdk_save_data_saves_valid_data():
     assert observer.on_save_data.call_count == 2
 
 
-async def test_sdk_save_data_does_not_save_invalid_data():
-    page = AsyncMock(spec=Page)
+async def test_sdk_save_data_does_not_save_invalid_data(page):
     observer = AsyncMock(spec=OutputObserver)
     schema: Schema = {"foo": {"type": "string", "description": "Something something"}}
     sdk = SDK(page, observer=observer, schema=schema)
