@@ -38,8 +38,10 @@ jobs:
           fi
 
           if [ "$LOCAL_SDK_VERSION" != "$REMOTE_VERSION" ]; then
-              echo "Version $LOCAL_VERSION is not published yet"
+              echo "Version $LOCAL_CORE_VERSION is not published yet"
               echo "should_publish=true" >> $GITHUB_OUTPUT
+          else
+              echo "Version $LOCAL_CORE_VERSION is already published"
           fi
 
   format:
