@@ -161,7 +161,7 @@ class SchemaParser:
                 ]
             elif field_type == "enum":
                 python_type = self._get_type(field_type, required=True)(
-                    field_info["variants"]
+                    *field_info["variants"]
                 )
             elif expression := field_info.get("expression"):
                 python_type = self._get_type(field_type, required=False)

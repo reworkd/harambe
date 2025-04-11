@@ -123,6 +123,10 @@ def test_no_data(data) -> None:
             {"season": "spring"},
         ),
         (
+                load_schema("enums"),
+                {"season": "FALL \n"},
+        ),
+        (
             load_schema(
                 "object_with_list_of_objects"
             ),  # ✅ parse object because list of strings has valid data
