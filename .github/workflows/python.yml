@@ -51,7 +51,7 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ env.PYTHON_VERSION }}
       - name: Run ruff check
-        run: uvx ruff format --check .
+        run: uv ruff format --check .
 
   pytest-core:
     runs-on: ubuntu-latest
