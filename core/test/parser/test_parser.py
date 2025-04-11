@@ -123,8 +123,8 @@ def test_no_data(data) -> None:
             {"season": "spring"},
         ),
         (
-                load_schema("enums"),
-                {"season": "FALL \n"},
+            load_schema("enums"),
+            {"season": "FALL \n"},
         ),
         (
             load_schema(
