@@ -48,7 +48,7 @@ def test_multiple_fields(input_, expected):
 @pytest.mark.parametrize("invalid_value", ["invalid", "123", None, "MALEEE"])
 def test_invalid_parser_values(invalid_value):
     class Model(BaseModel):
-        gender: ParserTypeEnum("male", "female", "other")
+        gender: ParserTypeEnum("male", "female", "other", required=True)
 
     with pytest.raises(ValidationError):
         Model(gender=invalid_value)
@@ -56,7 +56,7 @@ def test_invalid_parser_values(invalid_value):
 
 def test_optional_model():
     class Model(BaseModel):
-        gender: ParserTypeEnum("male", "female", "other") | None
+        gender: ParserTypeEnum("male", "female", "other", required=False)
 
     model = Model(gender=None)
     assert model.gender is None
