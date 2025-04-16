@@ -76,7 +76,6 @@ def test_enum_in_list(value, schema) -> None:
     assert output_data["status"] == [value.lower(), value.lower()]
 
 
-
 def test_null_enum_in_array(schema) -> None:
     schema["status"]["type"] = "array"
     schema["status"]["items"] = {
@@ -86,7 +85,7 @@ def test_null_enum_in_array(schema) -> None:
 
     data = {
         "name": "Test Name",
-        "status": ['active', None],
+        "status": ["active", None],
     }
 
     validator = SchemaParser(schema)
