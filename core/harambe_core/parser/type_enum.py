@@ -6,16 +6,16 @@ from typing_extensions import Annotated, Literal
 
 class ParserTypeEnum:
     def __new__(cls, *variants: str, required: bool = True) -> Any:
-        validator = BeforeValidator(cls.validate_type(*variants, required=required))
+        validator = BeforeValidator(cls.validate_type(*variants))
         base = Literal[*variants] if required else Literal[*variants] | None
 
         return Annotated[base, validator]
 
     @staticmethod
-    def validate_type(*variants: str, required: bool) -> Callable[[str], str]:
+    def validate_type(*variants: str) -> Callable[[Any], str]:
         variant_map = {v.strip().lower(): v for v in variants}
 
-        def _validate_type(value: str | None) -> str | None:
+        def _validate_type(value: Any) -> Any:
             if not isinstance(value, str):
                 return value
 
