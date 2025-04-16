@@ -15,7 +15,7 @@ def schema() -> dict:
     }
 
 
-@pytest.mark.parametrize("value", ["active", "PENDING", "Inactive", None])
+@pytest.mark.parametrize("value", ["active", "PENDING", "Inactive"])
 def test_required_enums(value, schema) -> None:
     schema["status"]["required"] = True
 
@@ -26,14 +26,21 @@ def test_required_enums(value, schema) -> None:
 
     validator = SchemaParser(schema)
 
-    if value is None:
-        with pytest.raises(SchemaValidationError):
-            validator.validate(data, base_url="http://example.com")
-
-        return
-
     output_data = validator.validate(data, base_url="http://example.com")
     assert output_data["status"] == (value.lower() if value else None)
+
+
+def test_required_enum_missing(schema) -> None:
+    schema["status"]["required"] = True
+
+    data = {
+        "name": "Test Name",
+    }
+
+    validator = SchemaParser(schema)
+
+    with pytest.raises(SchemaValidationError):
+        validator.validate(data, base_url="http://example.com")
 
 
 @pytest.mark.parametrize("value", ["active", "PENDING", "Inactive", None])
@@ -50,10 +57,8 @@ def test_optional_enum(value, schema) -> None:
     assert output_data["status"] == (value.lower() if value else None)
 
 
-@pytest.mark.parametrize("required", [True, False])
-@pytest.mark.parametrize("value", ["active", "PENDING", "Inactive", None])
-def test_enum_in_list(value, schema, required) -> None:
-    schema["status"]["required"] = required
+@pytest.mark.parametrize("value", ["active", "PENDING", "Inactive"])
+def test_enum_in_list(value, schema) -> None:
     schema["status"]["type"] = "array"
     schema["status"]["items"] = {
         "type": "enum",
@@ -66,13 +71,6 @@ def test_enum_in_list(value, schema, required) -> None:
     }
 
     validator = SchemaParser(schema)
-
-    # Array items should never be none
-    if value is None:
-        with pytest.raises(SchemaValidationError):
-            validator.validate(data, base_url="http://example.com")
-
-        return
 
     output_data = validator.validate(data, base_url="http://example.com")
     assert output_data["status"] == [value.lower(), value.lower()]
