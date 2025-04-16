@@ -74,3 +74,22 @@ def test_enum_in_list(value, schema) -> None:
 
     output_data = validator.validate(data, base_url="http://example.com")
     assert output_data["status"] == [value.lower(), value.lower()]
+
+
+
+def test_null_enum_in_array(schema) -> None:
+    schema["status"]["type"] = "array"
+    schema["status"]["items"] = {
+        "type": "enum",
+        "variants": ["active", "inactive", "pending"],
+    }
+
+    data = {
+        "name": "Test Name",
+        "status": ['active', None],
+    }
+
+    validator = SchemaParser(schema)
+
+    with pytest.raises(SchemaValidationError):
+        validator.validate(data, base_url="http://example.com")
