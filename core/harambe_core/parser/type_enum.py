@@ -1,22 +1,26 @@
-from typing import Any, List, Callable
+from typing import Any, Callable
 
-from pydantic.functional_validators import AfterValidator
-from typing_extensions import Annotated
+from pydantic import BeforeValidator
+from typing_extensions import Annotated, Literal
 
 
 class ParserTypeEnum:
-    def __new__(cls, *variants: str) -> Any:
-        return Annotated[str, AfterValidator(cls.validate_type(*variants))]
+    def __new__(cls, *variants: str, required: bool = True) -> Any:
+        validator = BeforeValidator(cls.validate_type(*variants, required=required))
+        base = Literal[*variants] if required else Literal[*variants] | None
+
+        return Annotated[base, validator]
 
     @staticmethod
-    def validate_type(*variants: str) -> Callable[[str], str]:
+    def validate_type(*variants: str, required: bool) -> Callable[[str], str]:
         variant_map = {v.strip().lower(): v for v in variants}
 
-        def _validate_type(value: str) -> str:
+        def _validate_type(value: str | None) -> str | None:
+            if not isinstance(value, str):
+                return value
+
             if (value := value.strip().lower()) not in variant_map:
-                raise ValueError(
-                    f'Value "{value}" doesn\'t match any of the variants ({variants})'
-                )
+                return value
 
             return variant_map[value]
 

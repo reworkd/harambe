@@ -108,7 +108,9 @@ class SchemaParser:
 
         # Every enum has its own unique variants
         if item_type == "enum":
-            return self._get_type(item_type, required=True)(items_info["variants"])
+            return self._get_type(item_type, required=True)(
+                *items_info["variants"], required=True
+            )
 
         return self._get_type(item_type, required=True)
 
@@ -161,7 +163,7 @@ class SchemaParser:
                 ]
             elif field_type == "enum":
                 python_type = self._get_type(field_type, required=True)(
-                    *field_info["variants"]
+                    *field_info["variants"], required=field_required
                 )
             elif expression := field_info.get("expression"):
                 python_type = self._get_type(field_type, required=False)
