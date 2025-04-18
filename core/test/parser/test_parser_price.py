@@ -209,7 +209,7 @@ def test_price_in_list_required(price, schema) -> None:
     validator = SchemaParser(schema)
 
     with pytest.raises(SchemaValidationError):
-        validator.validate(data, base_url="http:~//example.com")
+        validator.validate(data, base_url="http://example.com")
 
 
 @pytest.mark.parametrize("price, expected_price", test_case_success)
