@@ -1,7 +1,6 @@
-from typing import NotRequired, TypedDict, Required, Sequence, Literal, Any
+from typing import Any, Literal, NotRequired, Required, Sequence, TypedDict
 
 from pydantic import ConfigDict
-
 
 URL = str
 Context = dict[str, Any]
@@ -19,6 +18,7 @@ SchemaFieldType = Literal[
     "float",
     "double",
     "currency",
+    "price",
     "email",
     "enum",
     "array",
