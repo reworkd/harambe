@@ -16,6 +16,15 @@ wheels = [
 ]
 
 [[package]]
+name = "attrs"
+version = "25.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/b0/1367933a8532ee6ff8d63537de4f1177af4bff9f3e829baf7331f595bb24/attrs-25.3.0.tar.gz", hash = "sha256:75d7cefc7fb576747b2c81b4442d4d4a1ce0900973527c011d1030fd3bf4af1b", size = 812032 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/77/06/bb80f5f86020c4551da315d78b3ab75e8228f89f0162f2c3a819e407941a/attrs-25.3.0-py3-none-any.whl", hash = "sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3", size = 63815 },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -116,12 +125,13 @@ wheels = [
 
 [[package]]
 name = "harambe-core"
-version = "0.73.0"
+version = "0.74.0"
 source = { virtual = "." }
 dependencies = [
     { name = "dateparser" },
     { name = "email-validator" },
     { name = "phonenumbers" },
+    { name = "price-parser" },
     { name = "pydantic" },
     { name = "python-slugify" },
 ]
@@ -141,6 +151,7 @@ requires-dist = [
     { name = "dateparser", specifier = "==1.2.0" },
     { name = "email-validator", specifier = "==2.2.0" },
     { name = "phonenumbers", specifier = "==8.13.47" },
+    { name = "price-parser", specifier = ">=0.4.0" },
     { name = "pydantic", specifier = "==2.9.2" },
     { name = "python-slugify", specifier = "==8.0.4" },
 ]
@@ -230,6 +241,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1", size = 67955 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5f/e351af9a41f866ac3f1fac4ca0613908d9a41741cfcf2228f4ad853b697d/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669", size = 20556 },
+]
+
+[[package]]
+name = "price-parser"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/2a/4dd6dd16cfbbcb8ebafeccf247dd4151b20ef5ab10fd607bdf70199d933d/price_parser-0.4.0.tar.gz", hash = "sha256:c11a88b64cc0a42b3f8f384adb4cadd1106df214c3a47c3fa314899cf3a609f7", size = 36055 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1c/c1/5f763d923dd0615783f3f06b51eee68c2fb70f0ca76f650605cc7443a357/price_parser-0.4.0-py3-none-any.whl", hash = "sha256:940b5844dc96ce6aeccb29d0607bee30759f1a04e45d7886dd3c93f32b7cac70", size = 15551 },
 ]
 
 [[package]]

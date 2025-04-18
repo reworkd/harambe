@@ -18,6 +18,7 @@ from harambe_core.parser.type_email import ParserTypeEmail
 from harambe_core.parser.type_enum import ParserTypeEnum
 from harambe_core.parser.type_number import ParserTypeNumber
 from harambe_core.parser.type_phone_number import ParserTypePhoneNumber
+from harambe_core.parser.type_price import ParserTypePrice
 from harambe_core.parser.type_string import ParserTypeString
 from harambe_core.parser.type_url import ParserTypeUrl
 from harambe_core.types import Schema, SchemaFieldType
@@ -72,6 +73,7 @@ class SchemaParser:
             "float": ParserTypeNumber,
             "double": ParserTypeNumber,
             "currency": ParserTypeCurrency(),
+            "price": ParserTypePrice,
             "email": ParserTypeEmail,
             "enum": ParserTypeEnum,
             "array": list,
@@ -111,6 +113,9 @@ class SchemaParser:
             return self._get_type(item_type, required=True)(
                 *items_info["variants"], required=True
             )
+
+        if item_type == "price":
+            return self._get_type(item_type, required=True)(required=True)
 
         return self._get_type(item_type, required=True)
 
@@ -165,6 +170,10 @@ class SchemaParser:
                 python_type = self._get_type(field_type, required=True)(
                     *field_info["variants"], required=field_required
                 )
+            elif field_type == "price":
+                python_type = self._get_type(field_type, required=True)(
+                    required=field_required
+                )
             elif expression := field_info.get("expression"):
                 python_type = self._get_type(field_type, required=False)
                 field = Field(
@@ -213,6 +222,9 @@ def base_model_factory(
         @classmethod
         def pre_validate(cls, values: Any) -> Any:
             def trim_and_nullify(value: Any) -> Any:
+                """
+                Trims whitespace from strings and converts empty strings to None
+                """
                 if isinstance(value, str):
                     value = value.strip()
                     if not value:
