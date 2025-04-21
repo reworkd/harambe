@@ -14,7 +14,7 @@ class _TestModel(BaseModel):
             "$1,000.00",
             {
                 "currency": "USD",
-                "currency_raw": "$",
+                "raw_currency": "$",
                 "amount": 1000.00,
                 "raw_price": "$1,000.00",
             },
@@ -23,7 +23,7 @@ class _TestModel(BaseModel):
             "€1.00",
             {
                 "currency": "EUR",
-                "currency_raw": "€",
+                "raw_currency": "€",
                 "amount": 1.00,
                 "raw_price": "€1.00",
             },
@@ -32,7 +32,7 @@ class _TestModel(BaseModel):
             "£1,000,000.00",
             {
                 "currency": "GBP",
-                "currency_raw": "£",
+                "raw_currency": "£",
                 "amount": 1000000.00,
                 "raw_price": "£1,000,000.00",
             },
@@ -41,7 +41,7 @@ class _TestModel(BaseModel):
             "-¥1000.00",
             {
                 "currency": "JPY",
-                "currency_raw": "¥",
+                "raw_currency": "¥",
                 "amount": -1000.00,
                 "raw_price": "-¥1000.00",
             },
@@ -50,7 +50,7 @@ class _TestModel(BaseModel):
             "₹1000",
             {
                 "currency": "INR",
-                "currency_raw": "₹",
+                "raw_currency": "₹",
                 "amount": 1000.00,
                 "raw_price": "₹1000",
             },
@@ -59,7 +59,7 @@ class _TestModel(BaseModel):
             1000,
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 1000.00,
                 "raw_price": "1000",
             },
@@ -68,7 +68,7 @@ class _TestModel(BaseModel):
             1000.0,
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 1000.0,
                 "raw_price": "1000.0",
             },
@@ -77,7 +77,7 @@ class _TestModel(BaseModel):
             "¥-1,234.56",
             {
                 "currency": "JPY",
-                "currency_raw": "¥",
+                "raw_currency": "¥",
                 "amount": -1234.56,
                 "raw_price": "¥-1,234.56",
             },
@@ -86,20 +86,20 @@ class _TestModel(BaseModel):
             "$0.1",
             {
                 "currency": "USD",
-                "currency_raw": "$",
+                "raw_currency": "$",
                 "amount": 0.1,
                 "raw_price": "$0.1",
             },
         ),
         (
             "€.1",
-            {"currency": "EUR", "currency_raw": "€", "amount": 0.1, "raw_price": "€.1"},
+            {"currency": "EUR", "raw_currency": "€", "amount": 0.1, "raw_price": "€.1"},
         ),
         (
             "1000",
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 1000.00,
                 "raw_price": "1000",
             },
@@ -108,7 +108,7 @@ class _TestModel(BaseModel):
             "$1,234.5678",
             {
                 "currency": "USD",
-                "currency_raw": "$",
+                "raw_currency": "$",
                 "amount": 1234.5678,
                 "raw_price": "$1,234.5678",
             },
@@ -117,7 +117,7 @@ class _TestModel(BaseModel):
             "   $1,234  ",
             {
                 "currency": "USD",
-                "currency_raw": "$",
+                "raw_currency": "$",
                 "amount": 1234.0,
                 "raw_price": "$1,234",
             },
@@ -126,7 +126,7 @@ class _TestModel(BaseModel):
             "   USD -1,234.56  ",
             {
                 "currency": "USD",
-                "currency_raw": "USD",
+                "raw_currency": "USD",
                 "amount": -1234.56,
                 "raw_price": "USD -1,234.56",
             },
@@ -135,7 +135,7 @@ class _TestModel(BaseModel):
             "1.234 €",
             {
                 "currency": "EUR",
-                "currency_raw": "€",
+                "raw_currency": "€",
                 "amount": 1234.0,
                 "raw_price": "1.234 €",
             },
@@ -144,7 +144,7 @@ class _TestModel(BaseModel):
             "1.234 EUR",
             {
                 "currency": "EUR",
-                "currency_raw": "EUR",
+                "raw_currency": "EUR",
                 "amount": 1234.0,
                 "raw_price": "1.234 EUR",
             },
@@ -153,7 +153,7 @@ class _TestModel(BaseModel):
             "-€1.234",
             {
                 "currency": "EUR",
-                "currency_raw": "€",
+                "raw_currency": "€",
                 "amount": -1234.0,
                 "raw_price": "-€1.234",
             },
@@ -162,7 +162,7 @@ class _TestModel(BaseModel):
             "1,234$",
             {
                 "currency": "USD",
-                "currency_raw": "$",
+                "raw_currency": "$",
                 "amount": 1234.0,
                 "raw_price": "1,234$",
             },
@@ -171,7 +171,7 @@ class _TestModel(BaseModel):
             " $\xa01,234 ",
             {
                 "currency": "USD",
-                "currency_raw": "$",
+                "raw_currency": "$",
                 "amount": 1234.0,
                 "raw_price": "$\xa01,234",
             },
@@ -180,7 +180,7 @@ class _TestModel(BaseModel):
             "1.234,45",
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 1234.45,
                 "raw_price": "1.234,45",
             },
@@ -189,7 +189,7 @@ class _TestModel(BaseModel):
             "1.234.456,00",
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 1234456.00,
                 "raw_price": "1.234.456,00",
             },
@@ -198,7 +198,7 @@ class _TestModel(BaseModel):
             "1.000.000",
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 1000000.00,
                 "raw_price": "1.000.000",
             },
@@ -207,7 +207,7 @@ class _TestModel(BaseModel):
             "Starting At 12.99",
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 12.99,
                 "raw_price": "Starting At 12.99",
             },
@@ -216,7 +216,7 @@ class _TestModel(BaseModel):
             "From 399.99",
             {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": 399.99,
                 "raw_price": "From 399.99",
             },
@@ -225,7 +225,7 @@ class _TestModel(BaseModel):
             "0.0004 $",
             {
                 "currency": "USD",
-                "currency_raw": "$",
+                "raw_currency": "$",
                 "amount": 0.0004,
                 "raw_price": "0.0004 $",
             },
@@ -234,7 +234,7 @@ class _TestModel(BaseModel):
             "-€23,19",
             {
                 "currency": "EUR",
-                "currency_raw": "€",
+                "raw_currency": "€",
                 "amount": -23.19,
                 "raw_price": "-€23,19",
             },
@@ -243,7 +243,7 @@ class _TestModel(BaseModel):
             "48,99   €",
             {
                 "currency": "EUR",
-                "currency_raw": "€",
+                "raw_currency": "€",
                 "amount": 48.99,
                 "raw_price": "48,99   €",
             },
@@ -252,7 +252,7 @@ class _TestModel(BaseModel):
             "€\xa026,49",
             {
                 "currency": "EUR",
-                "currency_raw": "€",
+                "raw_currency": "€",
                 "amount": 26.49,
                 "raw_price": "€\xa026,49",
             },

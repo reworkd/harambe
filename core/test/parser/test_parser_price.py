@@ -18,7 +18,7 @@ test_case_success = [
         {
             "amount": 100.01,
             "currency": "USD",
-            "currency_raw": "$",
+            "raw_currency": "$",
             "raw_price": "$100.01",
         },
     ),
@@ -27,7 +27,7 @@ test_case_success = [
         {
             "amount": -10100.01,
             "currency": "USD",
-            "currency_raw": "$",
+            "raw_currency": "$",
             "raw_price": "-$10,100.01",
         },
     ),
@@ -36,7 +36,7 @@ test_case_success = [
         {
             "amount": 100.0,
             "currency": "EUR",
-            "currency_raw": "€",
+            "raw_currency": "€",
             "raw_price": "100 €",
         },
     ),
@@ -45,7 +45,7 @@ test_case_success = [
         {
             "amount": 100.0,
             "currency": None,
-            "currency_raw": None,
+            "raw_currency": None,
             "raw_price": "100.00",
         },
     ),
@@ -53,7 +53,7 @@ test_case_success = [
         "100.00 USD",
         {
             "currency": "USD",
-            "currency_raw": "USD",
+            "raw_currency": "USD",
             "amount": 100.0,
             "raw_price": "100.00 USD",
         },
@@ -153,7 +153,7 @@ def test_price_nones(price, schema) -> None:
     assert output_data["price"] == {
         "amount": 1.0,
         "currency": "USD",
-        "currency_raw": "$",
+        "raw_currency": "$",
         "raw_price": "$1",
     }
 

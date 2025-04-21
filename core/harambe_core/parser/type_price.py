@@ -16,7 +16,7 @@ class ParserTypePrice:
     def __new__(cls, required: bool = True) -> Any:
         validator = BeforeValidator(cls.validate_price)
         base = dict[
-            Literal["currency", "currency_raw", "amount", "raw_price"],
+            Literal["currency", "raw_currency", "amount", "raw_price"],
             Optional[Union[str, float]],
         ]
 
@@ -30,14 +30,14 @@ class ParserTypePrice:
         value: Union[str, float, int, None],
     ) -> Optional[
         dict[
-            Literal["currency", "currency_raw", "amount", "raw_price"],
+            Literal["currency", "raw_currency", "amount", "raw_price"],
             Optional[Union[str, float]],
         ]
     ]:
         if isinstance(value, (float, int)):
             return {
                 "currency": None,
-                "currency_raw": None,
+                "raw_currency": None,
                 "amount": float(value),
                 "raw_price": str(value),
             }
@@ -54,7 +54,7 @@ class ParserTypePrice:
         currency_code = ParserTypePrice._identify_currency(price.currency)
         return {
             "currency": currency_code,
-            "currency_raw": price.currency,
+            "raw_currency": price.currency,
             "amount": amount,
             "raw_price": value_str,
         }
