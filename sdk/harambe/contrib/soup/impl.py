@@ -4,8 +4,7 @@ from typing import Any, Optional
 from bs4 import BeautifulSoup, Tag
 
 # noinspection PyProtectedMember
-from curl_cffi.requests import AsyncSession, HeaderTypes
-
+from curl_cffi.requests import AsyncSession, HeaderTypes, Response
 from harambe.contrib.soup.tracing import Tracer
 from harambe.contrib.types import (
     AbstractElementHandle,
@@ -95,37 +94,38 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         self,
         url: str,
         data: dict[str, Any],
+        params: Optional[dict[str, Any]] = None,
         headers: Optional[HeaderTypes] = None,
         **kwargs: Any,
-    ) -> Any:
+    ) -> Response:
+        content_type = (
+            (headers or self._extra_headers or {}).get("Content-Type", "").lower()
+        )
+
+        processed_data = (
+            json.dumps(data) if "application/json" in content_type else data
+        )
         res = await self._session.post(
             url,
             headers=headers or self._extra_headers,
-            data=json.dumps(data),
+            data=processed_data,
+            params=params or {},
             impersonate="chrome",
             **kwargs,
         )
+        res.raise_for_status()
+
         if self._tracer:
             self._tracer.log_request(res)
 
         self._url = res.url
         content_type = res.headers.get("Content-Type", "")
-
         if "application/json" in content_type:
-
-            class SoupResponseWithStatus:
-                status: int = res.status_code
-                body: dict[str, Any] = res.json()
-
-            return SoupResponseWithStatus()
+            return res
 
         self._soup = BeautifulSoup(res.text, "html.parser")
 
-        class SoupResponseWithStatus:
-            status: int = res.status_code
-            body: str = res.text
-
-        return SoupResponseWithStatus()
+        return res
 
     async def query_selector_all(self, selector: str) -> list[SoupElementHandle]:
         return SoupElementHandle.from_tags(self._soup.select(selector))
