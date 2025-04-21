@@ -2,11 +2,8 @@ from functools import partial
 from typing import Any, Dict
 
 import pytest
+from harambe_core.parser.parser import SchemaParser, SchemaValidationError
 
-from harambe_core.parser.parser import (
-    SchemaParser,
-    SchemaValidationError,
-)
 from test.parser.mock_schemas.load_schema import load_schema
 
 load_schema = partial(load_schema, make_all_required=True)
@@ -54,13 +51,21 @@ load_schema = partial(load_schema, make_all_required=True)
             },
         ),
         (
-            load_schema("list_of_strings"),
+            load_schema("list_of_strings", exclude="other_field"),
             {
                 "tags": [],  # required
+                "other_field": "test",
             },
         ),
         (
-            load_schema("list_of_objects"),
+            load_schema("list_of_objects", exclude="other_field"),
+            {
+                "users": [],
+                "other_field": "test",
+            },
+        ),
+        (
+            load_schema("list_of_objects", exclude="other_field"),
             {
                 "users": [
                     {
@@ -68,6 +73,7 @@ load_schema = partial(load_schema, make_all_required=True)
                         "email": "test@test.com",
                     }
                 ],
+                "other_field": "test",
             },
         ),
         (
@@ -219,13 +225,14 @@ def test_pydantic_schema_validation_error_fail(
             },
         ),
         (
-            load_schema("list_of_strings"),
+            load_schema("list_of_strings", exclude="other_field"),
             {
                 "tags": ["tag1", "tag2"],  # required
+                "other_field": "",
             },
         ),
         (
-            load_schema("list_of_objects", exclude="email"),
+            load_schema("list_of_objects", exclude="email,other_field"),
             {
                 "users": [
                     {
@@ -233,6 +240,7 @@ def test_pydantic_schema_validation_error_fail(
                         "email": None,
                     }
                 ],
+                "other_field": "",
             },
         ),
         (

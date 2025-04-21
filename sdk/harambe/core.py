@@ -19,6 +19,14 @@ from typing import (
 
 import aiohttp
 from bs4 import BeautifulSoup, Doctype
+from playwright.async_api import (
+    ElementHandle,
+    Page,
+    TimeoutError as PlaywrightTimeoutError,
+)
+
+from harambe.cache import single_value_cache
+from harambe.contrib import WebHarness, playwright_harness
 from harambe.contrib.soup.impl import SoupPage
 from harambe.contrib.types import AbstractPage
 from harambe.cookie_utils import fix_cookie
@@ -27,14 +35,6 @@ from harambe.handlers import (
     ResourceType,
 )
 from harambe.html_converter import HTMLConverterType, get_html_converter
-from harambe.observer import (
-    DownloadMeta,
-    HTMLMetadata,
-    LocalStorageObserver,
-    LoggingObserver,
-    ObservationTrigger,
-    OutputObserver,
-)
 from harambe.pagination import DuplicateHandler
 from harambe.tracker import FileDataTracker
 from harambe.types import (
@@ -52,21 +52,20 @@ from harambe.types import (
 from harambe_core import SchemaParser, Schema
 from harambe_core.errors import default_error_callback
 from harambe_core.normalize_url import normalize_url
+from harambe_core.observer import (
+    ObservationTrigger,
+    DownloadMeta,
+    HTMLMetadata,
+    OutputObserver,
+    LoggingObserver,
+    LocalStorageObserver,
+)
 from harambe_core.parser.expression import ExpressionEvaluator
-from playwright.async_api import (
-    ElementHandle,
-    Page,
-)
-from playwright.async_api import (
-    TimeoutError as PlaywrightTimeoutError,
-)
-
-from harambe.contrib import WebHarness, playwright_harness
 
 
 class AsyncScraper(Protocol):
     """
-    Protocol that all classed based scrapers should implement.
+    Protocol that all class based scrapers should implement.
     Note that scrapers in harambe should be functions, not classes.
     """
 
@@ -75,11 +74,14 @@ class AsyncScraper(Protocol):
 
 class SDK:
     """
-    A web scraping SDK with a number of useful methods and features for:
-    - Saving data and validating it following a specific schema
+    As part of code generation, Reworkd generates code in its own custom SDK called [Harambe](https://github.com/reworkd/harambe).
+    Harambe is web scraping SDK with a number of useful methods and features for:
+    - Saving data and validating that the data follows a specific schema
     - Enqueuing (and automatically formatting) urls
-    - De-duplicating data, urls, etc
+    - De-duplicating saved data, urls, etc
     - Effectively handling classic web scraping problems like pagination, pdfs, downloads, etc
+
+    These methods, what they do, how they work, and some examples of how to use them will be highlighted below.
     """
 
     def __init__(
@@ -120,7 +122,7 @@ class SDK:
         """
         Save scraped data and validate its type matches the current schema
 
-        :param data: one or more dictionaries of data to save
+        :param data: Rows of data (as dictionaries) to save
         :raises SchemaValidationError: If any of the saved data does not match the provided schema
         :example:
             >>> await sdk.save_data({ "title": "example", "description": "another_example" })
@@ -131,9 +133,11 @@ class SDK:
             )
 
         source_url = self.page.url
+        base_url = await self._compute_base_url(source_url)
+
         for d in data:
             if self._validator is not None:
-                d = self._validator.validate(d, base_url=source_url)
+                d = self._validator.validate(d, base_url=base_url)
             d["__url"] = source_url
             await self._notify_observers("on_save_data", d)
 
@@ -147,7 +151,7 @@ class SDK:
         Enqueue url(s) to be scraped later.
 
         :param urls: urls to enqueue
-        :param context: additional context to pass to the next run of the next stage/url. Typically just data that is only available on the current page but required in the schema.
+        :param context: additional context to pass to the next run of the next stage/url. Typically just data that is only available on the current page but required in the schema. Only use this when some data is available on this page, but not on the page that is enqueued.
         :param options: job level options to pass to the next stage/url
 
         :example:
@@ -157,17 +161,28 @@ class SDK:
         context = context or {}
         options = options or {}
         context["__url"] = self.page.url
+        base_url = await self._compute_base_url(self.page.url)
 
         for url in urls:
             if inspect.isawaitable(url):
                 url = await url
 
-            normalized_url = (
-                normalize_url(url, self.page.url) if hasattr(self.page, "url") else url
-            )
+            normalized_url = normalize_url(url, base_url) if base_url else url
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options
             )
+
+    @single_value_cache("__base_url_cache")
+    async def _compute_base_url(self, current_url: str) -> URL:
+        maybe_base_url = await self.page.query_selector("base")
+        if not maybe_base_url:
+            return current_url
+
+        base_url = await maybe_base_url.get_attribute("href")
+        if not base_url:
+            return current_url
+
+        return normalize_url(base_url, current_url)
 
     async def paginate(
         self,
@@ -180,8 +195,9 @@ class SDK:
             - A direct link to the next page
             - An element with hrefs to the next page
             - An element to click on to get to the next page
+
         And call `sdk.paginate` at the end of your scrape function. The element will automatically be used to paginate the site and run the scraping code against all pages
-        Pagination will conclude once all pages have been reached.
+        Pagination will conclude once all pages are reached no next page element is found.
 
         This method should ALWAYS be used for pagination instead of manual for loops and if statements.
 
@@ -190,9 +206,9 @@ class SDK:
 
         :example:
             >>> async def pager():
-            ...     return await page.query_selector("div.pagination > .pager.next")
-            ...
-            ... await sdk.paginate(pager)
+            >>>     return await page.query_selector("div.pagination > .pager.next")
+            >>>
+            >>> await sdk.paginate(pager)
         """
         try:
             next_page = await get_next_page_element()
@@ -243,7 +259,7 @@ class SDK:
         :param resource_type: the type of resource to capture
         :param timeout: the time to wait for the new page to open (in ms)
         :return url: the url of the captured resource or None if no match was found
-        :raises ValueError: if more than one request matches
+        :raises ValueError: if more than one page is created by the click event
         """
         async with ResourceRequestHandler(
             self.page, resource_type=resource_type, timeout=timeout
@@ -310,7 +326,7 @@ class SDK:
         :raises ValueError: If the specified selector doesn't match any element.
         :example:
             >>> meta = await sdk.capture_html(selector="div.content")
-            ... await sdk.save_data({"name": meta["filename"], "text": meta["text"], "download_url": meta["url"]})
+            >>> await sdk.save_data({"name": meta["filename"], "text": meta["text"], "download_url": meta["url"]})
         """
         html, text = await self._get_html(
             selector,
@@ -374,7 +390,7 @@ class SDK:
         :return DownloadMeta: A typed dict containing the download metadata such as the `url` and `filename`
         :example:
             >>> meta = await sdk.capture_pdf()
-            ... await sdk.save_data({"file_name": meta["filename"], "download_url": meta["url"]})
+            >>> await sdk.save_data({"file_name": meta["filename"], "download_url": meta["url"]})
         """
         await self.page.wait_for_timeout(
             1000
@@ -625,7 +641,10 @@ class SDK:
         :return: the decorated function
         """
         if not observer:
-            observer = [LocalStorageObserver(domain, stage), LoggingObserver()]
+            observer = [
+                LocalStorageObserver(FileDataTracker(domain=domain, stage=stage)),
+                LoggingObserver(),
+            ]
         if not isinstance(observer, list):
             observer = [observer]
 

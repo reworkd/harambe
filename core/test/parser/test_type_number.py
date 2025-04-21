@@ -21,6 +21,7 @@ class _TestModel(BaseModel):
         ("-1,234.56", -1234.56),
         ("0.1", 0.1),
         (".1", 0.1),
+        (15604980646, 15604980646),
     ],
 )
 def test_flexible_float_success(input_value, expected_output):

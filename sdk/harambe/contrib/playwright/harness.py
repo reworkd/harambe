@@ -40,6 +40,8 @@ async def playwright_harness(
     enable_clipboard: bool = False,
     launch_args: Sequence[str] = (),
     extensions: Sequence[str] = (),
+    attach_to_existing_context: bool = False,
+    attach_to_existing_page: bool = False,
     **__: Any,
 ) -> AsyncGenerator[PageFactory, None]:
     """
@@ -108,15 +110,19 @@ async def playwright_harness(
             ]
         }
 
-        ctx = await browser.new_context(
-            viewport=viewport or DEFAULT_VIEWPORT,
-            ignore_https_errors=True,
-            user_agent=await compute_user_agent(user_agent),
-            proxy=proxy_from_url(proxy) if proxy else None,
-            permissions=["clipboard-read", "clipboard-write"]
-            if enable_clipboard
-            else None,
-            storage_state=storage_state,
+        ctx = (
+            browser.contexts[-1]
+            if attach_to_existing_context and browser.contexts
+            else await browser.new_context(
+                viewport=viewport or DEFAULT_VIEWPORT,
+                ignore_https_errors=True,
+                user_agent=await compute_user_agent(user_agent),
+                proxy=proxy_from_url(proxy) if proxy else None,
+                permissions=["clipboard-read", "clipboard-write"]
+                if enable_clipboard
+                else None,
+                storage_state=storage_state,
+            )
         )
 
         ctx.set_default_timeout(default_timeout)
@@ -131,7 +137,12 @@ async def playwright_harness(
             await ctx.route("**/*", UnnecessaryResourceHandler().handle)
 
         async def page_factory(*_: Any, **__: Any) -> PlaywrightPage:
-            page = await ctx.new_page()
+            page = (
+                ctx.pages[-1]
+                if attach_to_existing_page and ctx.pages
+                else await ctx.new_page()
+            )
+
             if on_new_page:
                 await on_new_page(page)
             if stealth:

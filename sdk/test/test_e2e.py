@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
-from harambe.observer import InMemoryObserver
 from harambe.types import BrowserType
 from harambe_core.errors import GotoError
+from harambe_core.observer import InMemoryObserver
 
 
 @pytest.fixture(scope="module")
@@ -118,6 +118,32 @@ async def test_enqueue_data_with_context(server, observer):
     assert len(observer.urls) == 1
     assert observer.urls[0][0] == f"{server}/adam/?page=55"
     assert observer.urls[0][1] == {"__url": f"{server}/", "last": "Watkins"}
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
+    url = f"{server}/meta"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.enqueue("tags/tag_base.asp")
+        await sdk.save_data({"url": "tags/tag_base.asp"})
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={"url": {"type": "url"}},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
+
+    assert len(observer.urls) == 1
+    assert observer.urls[0][0] == f"https://www.w3schools.com/tags/tag_base.asp"
+    assert observer.urls[0][1] == {"__url": url}
+
+    assert len(observer.data) == 1
+    assert observer.data[0]["url"] == "https://www.w3schools.com/tags/tag_base.asp"
+    assert observer.data[0]["__url"] == url
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
@@ -247,9 +273,9 @@ async def test_regulations(server, observer, harness):
 
     assert not observer.data
     assert len(observer.urls) == 3
-    assert observer.urls[0][0] == f"{server}/regulations/act/"
-    assert observer.urls[1][0] == f"{server}/regulations/regulations/"
-    assert observer.urls[2][0] == f"{server}/regulations/guidelines/"
+    assert observer.urls[0][0] == f"https://npra.gov.gh/regulations/act/"
+    assert observer.urls[1][0] == f"https://npra.gov.gh/regulations/regulations/"
+    assert observer.urls[2][0] == f"https://npra.gov.gh/regulations/guidelines/"
     assert observer.urls[0][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[1][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[2][1] == {"__url": f"{server}/regulations"}
@@ -705,3 +731,35 @@ async def test_403_status_on_goto_with_custom_callback(
     assert len(observer.data) == 1
     assert observer.data[0]["key"] == "this shouldn't be saved if GotoError is raised"
     assert observer.data[0]["__url"] == url
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_substring_after(server, observer, harness):
+    string = "123"
+    delimiter = "1"
+    expected = "23"
+
+    async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
+        await sdk.save_data({"data": string})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/solicitation",
+        headless=True,
+        harness=harness,
+        schema={
+            "data": {
+                "type": "string",
+            },
+            "substring": {
+                "type": "string",
+                "description": "",
+                "expression": f'SUBSTRING_AFTER(data, "{delimiter}")',
+            },
+        },
+        observer=observer,
+    )
+
+    assert len(observer.data) == 1
+    assert observer.data[0]["data"] == string
+    assert observer.data[0]["substring"] == expected

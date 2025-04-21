@@ -13,6 +13,14 @@ class ParserTypeUrl:
     @staticmethod
     def validate_type(base_url: Optional[str]) -> Callable[[str], str]:
         def _validate_type(url: str) -> str:
-            return normalize_url(url, base_url)
+            url = normalize_url(url, base_url)
+            ParserTypeUrl._validate_tld(url)
+            return url
 
         return _validate_type
+
+    @staticmethod
+    def _validate_tld(url: str) -> None:
+        domain = url.split(".")
+        if len(domain) < 2:
+            raise ValueError(f"Url does not have a valid TLD")

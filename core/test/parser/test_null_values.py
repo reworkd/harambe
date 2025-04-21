@@ -134,6 +134,41 @@ def test_pydantic_schema_validation_success(data: Dict[str, Any]):
     [
         {"group": "Team", "members": [{}]},
         {
+            "group": "",
+            "members": [
+                {
+                    "name": "",
+                    "age": None,
+                },
+            ],
+        },
+    ],
+)
+def test_with_empty_objects(data):
+    schema = {
+        "group": {"type": "string"},
+        "members": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "age": {"type": "integer"},
+                },
+            },
+        },
+    }
+
+    with pytest.raises(SchemaValidationError):
+        validator = SchemaParser(schema)
+        validator.validate(data, base_url="http://example.com")
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"group": "Team", "members": [{"name": None, "age": None}]},
+        {
             "group": "Team",
             "members": [
                 {
@@ -157,7 +192,7 @@ def test_pydantic_schema_validation_success(data: Dict[str, Any]):
         },
     ],
 )
-def test_with_emtpy_objects(data):
+def test_with_objects(data):
     schema = {
         "group": {"type": "string"},
         "members": {
@@ -172,9 +207,9 @@ def test_with_emtpy_objects(data):
         },
     }
 
-    with pytest.raises(SchemaValidationError):
-        validator = SchemaParser(schema)
-        validator.validate(data, base_url="http://example.com")
+    validator = SchemaParser(schema)
+    res = validator.validate(data, base_url="http://example.com")
+    assert res["group"] == "Team"
 
 
 @pytest.mark.parametrize(
@@ -198,21 +233,25 @@ def test_with_empty_literals(strings):
         validator.validate({"strings": strings}, base_url="http://example.com")
 
 
-def test_nullable_object():
+@pytest.mark.parametrize("url", ["", None])
+def test_nullable_object(url):
     schema = {
         "name": {"type": "string"},
         "age": {"type": "integer"},
         "address": {"type": "object", "properties": {"street": {"type": "string"}}},
+        "profile_url": {"type": "url"},
     }
     data = {
         "name": "Adam",
         "age": 29,
         "address": None,
+        "profile_url": url,
     }
 
     validator = SchemaParser(schema)
     res = validator.validate(data, base_url="http://example.com")
     assert res["address"] is None
+    assert res["profile_url"] is None
 
 
 def test_nullable_object_sub_schema():

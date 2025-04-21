@@ -1,13 +1,17 @@
+import json
 from typing import Any, Optional
 
 from bs4 import BeautifulSoup, Tag
-import json
 
 # noinspection PyProtectedMember
 from curl_cffi.requests import AsyncSession, HeaderTypes, Response
 from harambe.contrib.soup.tracing import Tracer
-from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectable
-from harambe.contrib.types import ResponseWithStatus
+from harambe.contrib.types import (
+    AbstractElementHandle,
+    AbstractPage,
+    Selectable,
+    ResponseWithStatus,
+)
 
 
 class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
@@ -48,9 +52,6 @@ class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
 
 
 class SoupPage(AbstractPage[SoupElementHandle]):
-    _soup: BeautifulSoup
-    _url: str
-
     def __init__(
         self,
         session: AsyncSession,
@@ -61,6 +62,7 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         self._extra_headers = extra_headers
         self._tracer = tracer
         self._url = "about:blank"
+        self._soup = BeautifulSoup("", "html.parser")
 
     @property
     def tracing(self) -> Tracer:
