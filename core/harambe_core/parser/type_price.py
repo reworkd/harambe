@@ -11,14 +11,16 @@ from harambe_core.parser.type_currency import ParserTypeCurrency
 # this will capture only the amount
 number_pattern = re.compile(r"-?.?\d[\d,-\.]*")
 
+PriceOutputType = dict[
+    Literal["currency", "raw_currency", "amount", "raw_price"],
+    Optional[Union[str, float]],
+]
+
 
 class ParserTypePrice:
     def __new__(cls, required: bool = True) -> Any:
         validator = BeforeValidator(cls.validate_price)
-        base = dict[
-            Literal["currency", "raw_currency", "amount", "raw_price"],
-            Optional[Union[str, float]],
-        ]
+        base = PriceOutputType
 
         return Annotated[
             base if required else base | None,
@@ -28,12 +30,7 @@ class ParserTypePrice:
     @staticmethod
     def validate_price(
         value: Union[str, float, int, None],
-    ) -> Optional[
-        dict[
-            Literal["currency", "raw_currency", "amount", "raw_price"],
-            Optional[Union[str, float]],
-        ]
-    ]:
+    ) -> Optional[PriceOutputType]:
         if isinstance(value, (float, int)):
             return {
                 "currency": None,
@@ -51,7 +48,7 @@ class ParserTypePrice:
             return None
         # not using price.amount because it does not handle negative amounts yet
         price = Price.fromstring(value_str)
-        currency_code = ParserTypePrice._identify_currency(price.currency)
+        currency_code = ParserTypePrice._get_currency_code(price.currency)
         return {
             "currency": currency_code,
             "raw_currency": price.currency,
@@ -64,11 +61,11 @@ class ParserTypePrice:
         return str(value).strip().lower() in PRICE_NOT_AVAILABLE_PHRASES
 
     @staticmethod
-    def _identify_currency(value: str) -> Optional[str]:
+    def _get_currency_code(value: str) -> Optional[str]:
         if not value:
             return None
-        for symbol, currency_code in CURRENCY_MAP.items():
-            if symbol.upper() == value.upper():
+        for key, currency_code in CURRENCY_MAP.items():
+            if key.upper() == value.upper():
                 return currency_code
         return None
 
