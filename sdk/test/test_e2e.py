@@ -1,9 +1,11 @@
+import asyncio
 from pathlib import Path
 from typing import cast
 
 import pytest
 from aiohttp import web
 from bs4 import BeautifulSoup
+
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.types import BrowserType
@@ -776,3 +778,54 @@ async def test_substring_after(server, observer, harness):
     assert len(observer.data) == 1
     assert observer.data[0]["data"] == string
     assert observer.data[0]["substring"] == expected
+
+
+async def test_sdk_log_method_playwright(server, observer, capsys):
+    """Test SDK.log with playwright harness which supports browser console logging."""
+    url = f"{server}/table"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        # Log various types of data
+        await asyncio.sleep(2)
+        await sdk.log("Simple string message")
+        await sdk.log("Multiple", "arguments", 123, "with", "different", "types")
+        await sdk.log("Object with attributes:", {"name": "test", "value": 42})
+        await asyncio.sleep(5)
+        # Save data to verify the test ran
+        await sdk.save_data({"completed": True})
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=playwright_harness,
+        observer=observer,
+    )
+
+    # Verify the scraper ran successfully
+    assert len(observer.data) == 1
+    assert observer.data[0]["completed"] is True
+
+    # Check that log messages were printed to stderr
+    captured = capsys.readouterr().out
+    assert "Simple string message" in captured
+    assert "Multiple arguments 123 with different types" in captured
+    assert "Object with attributes: {'name': 'test', 'value': 42}" in captured
+
+
+async def test_sdk_log_method_soup(server, observer):
+    url = f"{server}/table"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.log("Simple message")
+
+    with pytest.raises(AttributeError):
+        await SDK.run(
+            scraper=scraper,
+            url=url,
+            schema={},
+            headless=True,
+            harness=soup_harness,
+            observer=observer,
+        )
