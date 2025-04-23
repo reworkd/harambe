@@ -2,34 +2,12 @@ import re
 from typing import Any
 
 from pydantic import BeforeValidator
-from typing_extensions import Annotated
+from typing_extensions import Annotated, deprecated
 
-price_not_available_phrases = [
-    "price not available",
-    "unavailable price",
-    "price upon request",
-    "contact for price",
-    "request a quote",
-    "call for price",
-    "check price in store",
-    "price tbd (to be determined)",
-    "price not disclosed",
-    "out of stock",
-    "sold out",
-    "pricing not provided",
-    "not priced",
-    "currently unavailable",
-    "n/a (not available)",
-    "ask for pricing",
-    "see details for price",
-    "price coming soon",
-    "temporarily unavailable",
-    "price hidden",
-    "tdb",
-    "n/a",
-]
+from harambe_core.parser.constants import PRICE_NOT_AVAILABLE_PHRASES
 
 
+@deprecated("Use ParserTypePrice instead, this is deprecated pending removal")
 class ParserTypeCurrency:
     def __new__(cls) -> Any:
         return Annotated[float | None, BeforeValidator(cls.validate_currency)]
@@ -41,7 +19,7 @@ class ParserTypeCurrency:
 
         value = str(value).strip()
 
-        if value.lower() in price_not_available_phrases:
+        if value.lower() in PRICE_NOT_AVAILABLE_PHRASES:
             return None
 
         cleaned_value = re.sub(r"[^\d.,-]", "", value)

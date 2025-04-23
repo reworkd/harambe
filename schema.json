@@ -12,6 +12,7 @@
         "float",
         "boolean",
         "currency",
+        "price",
         "enum"
       ]
     },
@@ -50,6 +51,7 @@
             "float",
             "boolean",
             "currency",
+            "price",
             "enum"
           ]
         },
