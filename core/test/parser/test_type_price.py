@@ -1,6 +1,7 @@
 import pytest
-from harambe_core.parser.type_price import ParserTypePrice
 from pydantic import BaseModel, ValidationError
+
+from harambe_core.parser.type_price import ParserTypePrice
 
 
 class _TestModel(BaseModel):
@@ -288,3 +289,19 @@ def test_price_success(input_value, expected_output):
 def test_price_failure(input_value):
     with pytest.raises(ValidationError):
         _TestModel(value=input_value)
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["", None, "          \n "],
+)
+def test_required_price(value):
+    class RequiredModel(BaseModel):
+        value: ParserTypePrice(required=True)
+
+    with pytest.raises(ValidationError):
+        RequiredModel(value=value)
+
+    model = RequiredModel(value="$100")
+    assert model.value["amount"] == 100.0
+    assert model.value["currency"] == "USD"

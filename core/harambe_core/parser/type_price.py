@@ -9,7 +9,7 @@ from harambe_core.parser.constants import CURRENCY_MAP, PRICE_NOT_AVAILABLE_PHRA
 from harambe_core.parser.type_currency import ParserTypeCurrency
 
 # this will capture only the amount
-number_pattern = re.compile(r"-?.?\d[\d,-\.]*")
+NUMBER_PATTERN = re.compile(r"-?.?\d[\d,-\.]*")
 
 PriceOutputType = dict[
     Literal["currency", "raw_currency", "amount", "raw_price"],
@@ -39,13 +39,16 @@ class ParserTypePrice:
                 "raw_price": str(value),
             }
 
-        if not value or ParserTypePrice._is_price_not_available(value):
+        if not value or not (value_str := str(value).strip()):
             return None
 
-        value_str = str(value).strip()
-        amount = ParserTypePrice._extract_amount(value_str)
-        if amount is None:
+        if ParserTypePrice._is_price_not_available(value_str):
             return None
+
+        amount = ParserTypePrice._extract_amount(value_str)
+        if not isinstance(amount, (float, int)):
+            return amount
+
         # not using price.amount because it does not handle negative amounts yet
         price = Price.fromstring(value_str)
         currency_code = ParserTypePrice._get_currency_code(price.currency)
@@ -57,21 +60,23 @@ class ParserTypePrice:
         }
 
     @staticmethod
-    def _is_price_not_available(value: Union[str, float, int]) -> bool:
-        return str(value).strip().lower() in PRICE_NOT_AVAILABLE_PHRASES
+    def _is_price_not_available(value: str) -> bool:
+        return value.lower() in PRICE_NOT_AVAILABLE_PHRASES
 
     @staticmethod
     def _get_currency_code(value: str) -> Optional[str]:
         if not value:
             return None
+
         for key, currency_code in CURRENCY_MAP.items():
             if key.upper() == value.upper():
                 return currency_code
+
         return None
 
     @staticmethod
-    def _extract_amount(value: str) -> Optional[float]:
-        match = number_pattern.findall(value)
+    def _extract_amount(value: str) -> float | None | Any:
+        match = NUMBER_PATTERN.findall(value)
 
         if len(match) != 1:
             raise ValueError("Multiple price amounts found")

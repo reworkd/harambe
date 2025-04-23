@@ -7,7 +7,7 @@ from typing_extensions import Annotated, deprecated
 from harambe_core.parser.constants import PRICE_NOT_AVAILABLE_PHRASES
 
 
-@deprecated("Use ParserTypePrice instead, this will be removed in v1.0.0")
+@deprecated("Use ParserTypePrice instead, this is deprecated pending removal")
 class ParserTypeCurrency:
     def __new__(cls) -> Any:
         return Annotated[float | None, BeforeValidator(cls.validate_currency)]
