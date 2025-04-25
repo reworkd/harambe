@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import cast
 
 import pytest
 from aiohttp import web
@@ -7,9 +6,10 @@ from bs4 import BeautifulSoup
 
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
-from harambe.types import BrowserType
+from harambe.instrumentation import HarambeInstrumentation, InMemoryExporter
 from harambe_core.errors import GotoError
 from harambe_core.observer import InMemoryObserver
+from .matchers import assert_partial_object_in
 
 
 @pytest.fixture(scope="module")
@@ -48,9 +48,16 @@ def observer():
     return InMemoryObserver()
 
 
-@pytest.mark.parametrize("browser_type", ["chromium", "firefox", "webkit"])
+@pytest.fixture
+def instrumentation():
+    exporter = InMemoryExporter()
+    instrument = HarambeInstrumentation().add_exporter(exporter.export).instrument()
+    yield exporter
+    instrument.un_instrument()
+
+
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_save_data(server, observer, harness, browser_type):
+async def test_save_data(server, observer, harness, instrumentation: InMemoryExporter):
     url = f"{server}/table"
 
     async def scraper(sdk: SDK, *args, **kwargs):
@@ -64,14 +71,12 @@ async def test_save_data(server, observer, harness, browser_type):
                 {"fruit": await fruit.inner_text(), "price": await price.inner_text()}
             )
 
-    browser_type = cast(BrowserType, browser_type)
-    await SDK.run(
+    sdk = await SDK.run(
         scraper=scraper,
         url=url,
         schema={},
         headless=True,
         harness=harness,
-        browser_type=browser_type,
         observer=observer,
     )
 
@@ -83,6 +88,25 @@ async def test_save_data(server, observer, harness, browser_type):
 
     assert not observer.urls
     assert not observer.files
+
+    page_cls = sdk.page.__class__.__name__
+    assert_partial_object_in(
+        instrumentation.events,
+        {"method": f"{page_cls}.goto", "args": ["http://127.0.0.1:8081/table"]},
+    )
+
+    assert_partial_object_in(
+        instrumentation.events,
+        {
+            "method": f"{page_cls}.query_selector_all",
+            "args": ["tbody > tr"],
+        },
+    )
+
+    assert_partial_object_in(
+        instrumentation.events,
+        {"method": f"SDK.save_data", "args": ["{'fruit': 'Apple', 'price': '1.00'}"]},
+    )
 
 
 async def test_enqueue_data(server, observer):

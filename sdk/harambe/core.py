@@ -115,7 +115,6 @@ class SDK:
             observer = [observer]
 
         self._observers = observer
-        self._deduper = DuplicateHandler()
         self._deduper = deduper if deduper else DuplicateHandler()
 
     async def save_data(self, *data: ScrapeResult) -> None:
