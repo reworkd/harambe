@@ -1,7 +1,6 @@
-# tests/test_matchers.py
-
 import pytest
-from sdk.test.matchers import assert_partial_object_in
+
+from .matchers import assert_partial_object_in
 
 
 def test_assert_partial_object_in_with_matching_object():
