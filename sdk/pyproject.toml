@@ -18,6 +18,7 @@ dependencies = [
     "ua-generator==1.0.5",
     "markdownify==0.14.1",
     "setuptools>=73.0.0",
+    "wrapt>=1.17.2",
 ]
 
 [tool.uv]

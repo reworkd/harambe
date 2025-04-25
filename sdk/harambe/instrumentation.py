@@ -1,18 +1,12 @@
 import abc
-
 from datetime import datetime
 from time import perf_counter
+from typing import Callable, TypedDict, NotRequired, Type, Any, Awaitable, Self
 
-import functools
-
-import types
-from typing import Callable, Coroutine, Any, TypedDict, NotRequired, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from harambe import SDK
+import wrapt
 
 
-class SdkCall(TypedDict):
+class FunctionCall(TypedDict):
     timestamp: float
     method: str
     args: list[str]
@@ -21,49 +15,116 @@ class SdkCall(TypedDict):
     result: NotRequired[str]
 
 
+Exporter = Callable[[FunctionCall], Awaitable[None]]
+
+
+class InMemoryExporter:
+    def __init__(self):
+        self.events = []
+
+    async def export(self, events) -> None:
+        self.events.append(events)
+
+
 class HarambeInstrumentation(abc.ABC):
+    __WRAPPED_FUNCTIONS = dict()
 
-    def instrument(self, sdk: "SDK") -> None:
-        self._instrument_function(sdk.enqueue)
-        self._instrument_function(sdk.save_data)
-        self._instrument_function(sdk.save_cookies)
-        self._instrument_function(sdk.save_local_storage)
-        self._instrument_function(sdk.capture_pdf)
-        self._instrument_function(sdk.capture_url)
-        self._instrument_function(sdk.capture_html)
-        self._instrument_function(sdk.capture_download)
+    PLAYWRIGHT_METHODS_TO_INSTRUMENT = [
+        "click",
+        "goto",
+        "query_selector",
+        "query_selector_all",
+        "wait_for_selector",
+        "wait_for_load_state",
+        "wait_for_timeout",
+        "screenshot",
+        "evaluate"
+    ]
 
-    @abc.abstractmethod
-    def sink(self, event: SdkCall) -> None:
-        raise NotImplementedError()
+    SOUP_METHODS_TO_INSTRUMENT = [
+        "goto",
+        "query_selector",
+        "query_selector_all",
+    ]
 
-    def _instrument_function(self, func: Callable[..., Coroutine[Any, Any, Any]]):
-        sdk = func.__self__
-        method_name = func.__name__
+    SDK_METHODS_TO_INSTRUMENT = [
+        "enqueue",
+        "save_data",
+        "save_cookies",
+        "save_local_storage",
+        "capture_pdf",
+        "capture_url",
+        "capture_html",
+        "capture_download",
+    ]
 
-        @functools.wraps(func)
-        async def wrapped(_func_self: "SDK", *args, **kwargs):
-            event: SdkCall = {
+    def __init__(self):
+        self._exporters = []
+
+    def add_exporter(self, exporter: Exporter) -> Self:
+        self._exporters.append(exporter)
+        return self
+
+    async def export(self, event: FunctionCall) -> None:
+        for exporter in self._exporters:
+            await exporter(event)
+
+    def instrument(self) -> Self:
+        from playwright.async_api import Page
+        from harambe.contrib.soup.impl import SoupPage
+        from harambe import SDK
+
+        for method_name in self.PLAYWRIGHT_METHODS_TO_INSTRUMENT:
+            self._wrap_function(Page, method_name)
+
+        for method_name in self.SOUP_METHODS_TO_INSTRUMENT:
+            self._wrap_function(SoupPage, method_name)
+
+        for method_name in self.SDK_METHODS_TO_INSTRUMENT:
+            self._wrap_function(SDK, method_name)
+
+        return self
+
+    @staticmethod
+    def un_instrument() -> None:
+        for (target, method_name), func in HarambeInstrumentation.__WRAPPED_FUNCTIONS.items():
+            setattr(target, method_name, func)
+
+        HarambeInstrumentation.__WRAPPED_FUNCTIONS = dict()
+
+    def _wrap_function(self, target: Type[Any], method_name: str):
+        target_name = target.__name__
+
+        if HarambeInstrumentation.__WRAPPED_FUNCTIONS.get((target, method_name)):
+            print("Already instrumented: ", target_name + "." + method_name)
+            return
+
+        HarambeInstrumentation.__WRAPPED_FUNCTIONS[(target, method_name)] = getattr(target, method_name)
+
+        async def _wrapper(func, _instance, args, kwargs):
+            event: FunctionCall = {
                 "timestamp": datetime.now().timestamp(),
-                "method": method_name,
-                "args": [repr(a) for a in args],
+                "method": f"{target_name}.{method_name}",
+                "args": [str(a) for a in args],
                 "kwargs": {k: repr(v) for k, v in kwargs.items()},
             }
 
             exc, result = None, None
             start = perf_counter()
+
             try:
-                result = await func(*args, **kwargs)  # Don't pass self as it's already bound
+                result = await func(*args, **kwargs)
                 event["result"] = repr(result)
+
             except Exception as e:
-                event["result"], exc = repr(e), e
+                event["result"] = repr(e)
+                exc = e
 
             event["execution_time"] = perf_counter() - start
-            self.sink(event)
+            await self.export(event)
 
             if exc:
                 raise exc
             return result
 
-        # bind the wrapper back onto the *instance* so it gets self properly
-        setattr(sdk, method_name, types.MethodType(wrapped, sdk))
+        wrapt.wrap_function_wrapper(target, method_name, _wrapper)

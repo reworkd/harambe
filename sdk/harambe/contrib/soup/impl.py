@@ -58,11 +58,12 @@ class SoupPage(AbstractPage[SoupElementHandle]):
         session: AsyncSession,
         extra_headers: Optional[HeaderTypes] = None,
         tracer: Tracer = Tracer(),
+        url: str = "about:blank",
     ) -> None:
         self._session = session
         self._extra_headers = extra_headers
         self._tracer = tracer
-        self._url = "about:blank"
+        self._url = url
         self._soup = BeautifulSoup("", "html.parser")
 
     @property

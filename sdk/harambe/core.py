@@ -35,7 +35,6 @@ from harambe.handlers import (
     ResourceType,
 )
 from harambe.html_converter import HTMLConverterType, get_html_converter
-from harambe.instrumentation import HarambeInstrumentation
 from harambe.pagination import DuplicateHandler
 from harambe.tracker import FileDataTracker
 from harambe.types import (
