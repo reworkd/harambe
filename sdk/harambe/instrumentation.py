@@ -38,7 +38,7 @@ class HarambeInstrumentation(abc.ABC):
         "wait_for_load_state",
         "wait_for_timeout",
         "screenshot",
-        "evaluate"
+        "evaluate",
     ]
 
     SOUP_METHODS_TO_INSTRUMENT = [
@@ -87,7 +87,10 @@ class HarambeInstrumentation(abc.ABC):
 
     @staticmethod
     def un_instrument() -> None:
-        for (target, method_name), func in HarambeInstrumentation.__WRAPPED_FUNCTIONS.items():
+        for (
+            target,
+            method_name,
+        ), func in HarambeInstrumentation.__WRAPPED_FUNCTIONS.items():
             setattr(target, method_name, func)
 
         HarambeInstrumentation.__WRAPPED_FUNCTIONS = dict()
@@ -99,7 +102,9 @@ class HarambeInstrumentation(abc.ABC):
             print("Already instrumented: ", target_name + "." + method_name)
             return
 
-        HarambeInstrumentation.__WRAPPED_FUNCTIONS[(target, method_name)] = getattr(target, method_name)
+        HarambeInstrumentation.__WRAPPED_FUNCTIONS[(target, method_name)] = getattr(
+            target, method_name
+        )
 
         async def _wrapper(func, _instance, args, kwargs):
             event: FunctionCall = {

@@ -23,12 +23,18 @@ def exporter():
 
 @pytest.fixture(
     params=[
-        Page(impl_obj=AsyncMock(url="https://example.com", query_selector=AsyncMock(return_value=None))),
-        SoupPage(session=AsyncMock(), url="https://example.com")
+        Page(
+            impl_obj=AsyncMock(
+                url="https://example.com", query_selector=AsyncMock(return_value=None)
+            )
+        ),
+        SoupPage(session=AsyncMock(), url="https://example.com"),
     ]
 )
 def sdk(request, exporter):
-    instrumentation = HarambeInstrumentation().add_exporter(exporter.export).instrument()
+    instrumentation = (
+        HarambeInstrumentation().add_exporter(exporter.export).instrument()
+    )
     yield SDK(page=request.param)
     instrumentation.un_instrument()
 
@@ -54,6 +60,7 @@ async def test_successful_method_call(sdk, exporter):
     assert event["timestamp"] == 857808000.0
     assert event["execution_time"] == 1.0
 
+
 async def test_method_call_with_exception(sdk, exporter):
     with pytest.raises(ValueError) as e:
         await sdk.capture_html("div.content")
@@ -61,7 +68,7 @@ async def test_method_call_with_exception(sdk, exporter):
     # Verify the event was recorded
     assert len(exporter.events) == 2
     page_cls = sdk.page.__class__.__name__
-    assert exporter.events[0]["method"]== f"{page_cls}.query_selector"
+    assert exporter.events[0]["method"] == f"{page_cls}.query_selector"
     assert exporter.events[0]["result"] == "None"
 
     event = exporter.events[1]
@@ -69,10 +76,11 @@ async def test_method_call_with_exception(sdk, exporter):
     assert event["args"] == ["div.content"]
     assert event["kwargs"] == {}
     assert (
-            event["result"] == "ValueError('Element not found for selector: div.content')"
+        event["result"] == "ValueError('Element not found for selector: div.content')"
     )
     assert event["timestamp"] == 857808000.0
     assert event["execution_time"] == 1.0
+
 
 async def test_method_call_with_return_value(sdk, exporter):
     sdk.page.pdf = AsyncMock(return_value=b"pdf")
@@ -91,6 +99,7 @@ async def test_method_call_with_return_value(sdk, exporter):
     assert event["kwargs"] == {}
     assert event["result"] == str(expected_result)
     assert event["timestamp"] == 857808000.0
+
 
 async def test_method_with_args_and_kwargs(sdk, exporter):
     await sdk.enqueue(

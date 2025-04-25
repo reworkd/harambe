@@ -90,21 +90,23 @@ async def test_save_data(server, observer, harness, instrumentation: InMemoryExp
     assert not observer.files
 
     page_cls = sdk.page.__class__.__name__
-    assert_partial_object_in(instrumentation.events, {
-        "method": f"{page_cls}.goto",
-        "args": ["http://127.0.0.1:8081/table"]
-    })
+    assert_partial_object_in(
+        instrumentation.events,
+        {"method": f"{page_cls}.goto", "args": ["http://127.0.0.1:8081/table"]},
+    )
 
-    assert_partial_object_in(instrumentation.events, {
-        "method": f"{page_cls}.query_selector_all",
-        "args": ["tbody > tr"],
-    })
+    assert_partial_object_in(
+        instrumentation.events,
+        {
+            "method": f"{page_cls}.query_selector_all",
+            "args": ["tbody > tr"],
+        },
+    )
 
-    assert_partial_object_in(instrumentation.events, {
-        "method": f"SDK.save_data",
-        "args": ["{'fruit': 'Apple', 'price': '1.00'}"]
-    })
-
+    assert_partial_object_in(
+        instrumentation.events,
+        {"method": f"SDK.save_data", "args": ["{'fruit': 'Apple', 'price': '1.00'}"]},
+    )
 
 
 async def test_enqueue_data(server, observer):
@@ -455,13 +457,13 @@ async def test_save_local_storage(server, observer, harness):
         ({"key1": "value1", "key2": 2}, '{"key1": "value1", "key2": 2}'),
         # Nested structure
         (
-                {"list": [1, 2, {"nested": "value"}]},
-                '{"list": [1, 2, {"nested": "value"}]}',
+            {"list": [1, 2, {"nested": "value"}]},
+            '{"list": [1, 2, {"nested": "value"}]}',
         ),
     ],
 )
 async def test_load_local_storage(
-        server, observer, harness, test_value, expected_value
+    server, observer, harness, test_value, expected_value
 ):
     local_storage_entry_1 = {
         "domain": "asim-shrestha.com",
@@ -713,8 +715,8 @@ async def test_with_locators(server, observer, harness):
     assert observer.data[0]["solicitation_id"] == "6100062375"
     assert observer.data[0]["title"] == "23SW SGL 111 Conn Road"
     assert (
-            observer.data[0]["description"]
-            == "The State of Pennsylvania is seeking proposals for IT services"
+        observer.data[0]["description"]
+        == "The State of Pennsylvania is seeking proposals for IT services"
     )
     assert observer.data[0]["status"] == "Open"
     assert len(observer.data[0]["attachments"]) == 4
@@ -742,7 +744,7 @@ async def test_403_status_on_goto_with_default_callback(server, observer, harnes
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 @pytest.mark.parametrize("goto_error_cb", ["custom"])
 async def test_403_status_on_goto_with_custom_callback(
-        server, observer, harness, goto_error_cb
+    server, observer, harness, goto_error_cb
 ):
     url = f"{server}/403"
 
