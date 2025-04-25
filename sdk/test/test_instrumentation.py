@@ -13,7 +13,7 @@ from harambe.instrumentation import HarambeInstrumentation, InMemoryExporter
 def patch_perf_counter_and_datetime(mocker):
     mocker.patch("harambe.instrumentation.perf_counter", side_effect=[0.0, 1.0] * 100)
     dt = mocker.patch("harambe.instrumentation.datetime")
-    dt.now.return_value = datetime.datetime(1997, 3, 8)
+    dt.now.return_value = datetime.datetime(1997, 3, 8, tzinfo=datetime.UTC)
 
 
 @pytest.fixture
@@ -50,14 +50,14 @@ async def test_successful_method_call(sdk, exporter):
     assert event["args"] == ["base"]
     assert event["kwargs"] == {}
     assert event["result"] == "None"
-    assert event["timestamp"] == 857808000.0
+    assert event["timestamp"] == 857779200.0
 
     event = exporter.events[1]
     assert event["method"] == "SDK.save_data"
     assert event["args"] == ["{'test': 'data'}"]
     assert event["kwargs"] == {}
     assert event["result"] == "None"
-    assert event["timestamp"] == 857808000.0
+    assert event["timestamp"] == 857779200.0
     assert event["execution_time"] == 1.0
 
 
@@ -78,7 +78,7 @@ async def test_method_call_with_exception(sdk, exporter):
     assert (
         event["result"] == "ValueError('Element not found for selector: div.content')"
     )
-    assert event["timestamp"] == 857808000.0
+    assert event["timestamp"] == 857779200.0
     assert event["execution_time"] == 1.0
 
 
@@ -98,7 +98,7 @@ async def test_method_call_with_return_value(sdk, exporter):
     assert event["args"] == []
     assert event["kwargs"] == {}
     assert event["result"] == str(expected_result)
-    assert event["timestamp"] == 857808000.0
+    assert event["timestamp"] == 857779200.0
 
 
 async def test_method_with_args_and_kwargs(sdk, exporter):
@@ -121,5 +121,5 @@ async def test_method_with_args_and_kwargs(sdk, exporter):
         "options": "{'waitUntil': 'load'}",
     }
     assert event["result"] == "None"
-    assert event["timestamp"] == 857808000.0
+    assert event["timestamp"] == 857779200.0
     assert event["execution_time"] == 1.0
