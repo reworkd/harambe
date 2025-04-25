@@ -1,6 +1,6 @@
 [project]
 name = "harambe-sdk"
-version = "0.74.0"
+version = "0.75.0"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = [
     { name = "Adam Watkins", email = "adam@reworkd.ai" }
@@ -8,7 +8,7 @@ authors = [
 requires-python = ">=3.11,<4.0"
 readme = "README.md"
 dependencies = [
-    "harambe_core==0.74.0",
+    "harambe_core==0.75.0",
     "playwright==1.47.0",
     "beautifulsoup4==4.12.3",
     "requests==2.32.3",
