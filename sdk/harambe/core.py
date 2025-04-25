@@ -561,6 +561,19 @@ class SDK:
             async with session.head(normalize_url(url, self.page.url)) as response:
                 return response.headers.get("Content-Type", "")
 
+    async def log(self, *args):
+        """
+        Log a message via both `print` and `console.log` if a browser is running
+        Concatenates all arguments with spaces.
+
+        Args:
+            *args: Values to log (will be concatenated)
+        """
+        message = " ".join(str(arg) for arg in args)
+
+        print(message)
+        await self.page.evaluate(f"console.log('{message.replace("'", "\\'")}')")
+
     @staticmethod
     async def run_from_file(
         scraper: AsyncScraperType,
