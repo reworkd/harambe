@@ -1,4 +1,7 @@
-def assert_partial_object_in(collection, partial_obj):
+from typing import Collection, Any
+
+
+def assert_partial_object_in(collection: Collection, partial_obj: dict[str, Any]):
     if not isinstance(collection, list):
         collection = list(collection)
 

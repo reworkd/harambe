@@ -22,7 +22,7 @@ class InMemoryExporter:
     def __init__(self):
         self.events = []
 
-    async def export(self, events) -> None:
+    async def export(self, events: FunctionCall) -> None:
         self.events.append(events)
 
 
