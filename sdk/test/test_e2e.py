@@ -4,6 +4,7 @@ from typing import cast
 import pytest
 from aiohttp import web
 from bs4 import BeautifulSoup
+
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.types import BrowserType
@@ -776,3 +777,45 @@ async def test_substring_after(server, observer, harness):
     assert len(observer.data) == 1
     assert observer.data[0]["data"] == string
     assert observer.data[0]["substring"] == expected
+
+
+async def test_sdk_log_method_playwright(server, observer, capsys):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.log("Simple string message")
+        await sdk.log("Multiple", "arguments", 123, "with", "different", "types")
+        await sdk.log("Object with attributes:", {"name": "test", "value": 42})
+
+        await sdk.save_data({"completed": True})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/table",
+        schema={},
+        headless=True,
+        harness=playwright_harness,
+        observer=observer,
+    )
+
+    # Verify the scraper ran successfully
+    assert len(observer.data) == 1
+    assert observer.data[0]["completed"] is True
+
+    captured = capsys.readouterr().out
+    assert "Simple string message" in captured
+    assert "Multiple arguments 123 with different types" in captured
+    assert "Object with attributes: {'name': 'test', 'value': 42}" in captured
+
+
+async def test_sdk_log_method_soup(server, observer):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.log("Simple message")
+
+    with pytest.raises(AttributeError):
+        await SDK.run(
+            scraper=scraper,
+            url=f"{server}/table",
+            schema={},
+            headless=True,
+            harness=soup_harness,
+            observer=observer,
+        )
