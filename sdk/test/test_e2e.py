@@ -152,7 +152,7 @@ async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
         await sdk.enqueue("tags/tag_base.asp")
         await sdk.save_data({"url": "tags/tag_base.asp"})
         await sdk.save_data(
-            {"url": f"{server}/tags/tag_base.asp"}, url="tags/tag_base4.asp"
+            {"url": f"{server}/tags/tag_base.asp"}, source_url="tags/tag_base4.asp"
         )
 
     await SDK.run(
@@ -860,16 +860,16 @@ async def test_save_data_with_url(server, observer, harness):
         title1 = (await (await page.query_selector("title")).inner_text()).strip()
         await sdk.save_data({"title": title1})
 
-        await sdk.save_data({"title": title1 + "1"}, url=f"{page.url}/1")
+        await sdk.save_data({"title": title1 + "1"}, source_url=f"{page.url}/1")
 
         await page.goto(f"{server}/table")
         title2 = (await (await page.query_selector("title")).inner_text()).strip()
         await sdk.save_data({"title": title2})
 
-        await sdk.save_data({"title": title2 + "2"}, url=f"{page.url}/2")
+        await sdk.save_data({"title": title2 + "2"}, source_url=f"{page.url}/2")
 
         # deduped
-        await sdk.save_data({"title": title2}, url=f"{page.url}/3")
+        await sdk.save_data({"title": title2}, source_url=f"{page.url}/3")
 
     await SDK.run(
         scraper=scraper,
