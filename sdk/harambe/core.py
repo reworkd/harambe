@@ -135,13 +135,14 @@ class SDK:
                 "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
             )
 
-        source_url = url if url is not None else self.page.url
-        base_url = await self._compute_base_url(source_url)
+        source_url = url or self.page.url
+        base_url = await self._compute_base_url(self.page.url)
+        normalized_url = normalize_url(source_url, base_url)
 
         for d in data:
             if self._validator is not None:
                 d = self._validator.validate(d, base_url=base_url)
-            d["__url"] = source_url
+            d["__url"] = normalized_url
             await self._notify_observers("on_save_data", d)
 
     async def enqueue(
@@ -170,22 +171,22 @@ class SDK:
             if inspect.isawaitable(url):
                 url = await url
 
-            normalized_url = normalize_url(url, base_url) if base_url else url
+            normalized_url = normalize_url(url, base_url)
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options
             )
 
     @single_value_cache("__base_url_cache")
-    async def _compute_base_url(self, current_url: str) -> URL:
+    async def _compute_base_url(self, page_url: str) -> URL:
         maybe_base_url = await self.page.query_selector("base")
         if not maybe_base_url:
-            return current_url
+            return page_url
 
         base_url = await maybe_base_url.get_attribute("href")
         if not base_url:
-            return current_url
+            return page_url
 
-        return normalize_url(base_url, current_url)
+        return normalize_url(base_url, page_url)
 
     async def paginate(
         self,

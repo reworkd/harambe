@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 from aiohttp import web
 from bs4 import BeautifulSoup
-
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.instrumentation import HarambeInstrumentation, InMemoryExporter
@@ -152,6 +151,9 @@ async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("tags/tag_base.asp")
         await sdk.save_data({"url": "tags/tag_base.asp"})
+        await sdk.save_data(
+            {"url": f"{server}/tags/tag_base.asp"}, url="tags/tag_base4.asp"
+        )
 
     await SDK.run(
         scraper=scraper,
@@ -166,9 +168,11 @@ async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
     assert observer.urls[0][0] == f"https://www.w3schools.com/tags/tag_base.asp"
     assert observer.urls[0][1] == {"__url": url}
 
-    assert len(observer.data) == 1
+    assert len(observer.data) == 2
     assert observer.data[0]["url"] == "https://www.w3schools.com/tags/tag_base.asp"
     assert observer.data[0]["__url"] == url
+    assert observer.data[1]["url"] == f"{server}/tags/tag_base.asp"
+    assert observer.data[1]["__url"] == "https://www.w3schools.com/tags/tag_base4.asp"
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
