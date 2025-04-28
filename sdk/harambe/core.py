@@ -119,25 +119,27 @@ class SDK:
         self._observers = observer
         self._deduper = deduper if deduper else DuplicateHandler()
 
-    async def save_data(self, *data: ScrapeResult, url: Optional[str] = None) -> None:
+    async def save_data(
+        self, *data: ScrapeResult, source_url: Optional[str] = None
+    ) -> None:
         """
         Save scraped data and validate its type matches the current schema
 
         :param data: Rows of data (as dictionaries) to save
-        :param url: Optional URL to associate with the data, defaults to current page URL
+        :param source_url: Optional URL to associate with the data, defaults to current page URL. Only use this if the source of the data is different than the current page when the data is saved
         :raises SchemaValidationError: If any of the saved data does not match the provided schema
         :example:
             >>> await sdk.save_data({ "title": "example", "description": "another_example" })
-            >>> await sdk.save_data({ "title": "example", "description": "another_example" }, url="https://www.example.com/product/example_id")
+            >>> await sdk.save_data({ "title": "example", "description": "another_example" }, source_url="https://www.example.com/product/example_id")
         """
         if len(data) == 1 and isinstance(data[0], list):
             raise TypeError(
                 "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
             )
 
-        source_url = url or self.page.url
+        url = source_url or self.page.url
         base_url = await self._compute_base_url(self.page.url)
-        normalized_url = normalize_url(source_url, base_url)
+        normalized_url = normalize_url(url, base_url)
 
         for d in data:
             if self._validator is not None:
