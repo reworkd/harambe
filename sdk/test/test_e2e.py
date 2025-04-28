@@ -631,7 +631,7 @@ async def test_capture_html_table(server, observer, harness):
     url = f"{server}/table"
 
     async def scraper(sdk: SDK, *args, **kwargs):
-        text_html_metadata = await sdk.capture_html(html_converter_type="text")
+        text_html_metadata = await sdk.capture_html("body", html_converter_type="text")
         await sdk.save_data({"text": text_html_metadata["text"]})
 
     await SDK.run(
