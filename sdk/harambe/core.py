@@ -11,17 +11,31 @@ from typing import (
     List,
     Optional,
     Protocol,
+    Tuple,
     Union,
     Unpack,
     cast,
-    Tuple,
 )
 
 import aiohttp
 from bs4 import BeautifulSoup, Doctype
+from harambe_core import Schema, SchemaParser
+from harambe_core.errors import default_error_callback
+from harambe_core.normalize_url import normalize_url
+from harambe_core.observer import (
+    DownloadMeta,
+    HTMLMetadata,
+    LocalStorageObserver,
+    LoggingObserver,
+    ObservationTrigger,
+    OutputObserver,
+)
+from harambe_core.parser.expression import ExpressionEvaluator
 from playwright.async_api import (
     ElementHandle,
     Page,
+)
+from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
@@ -41,26 +55,14 @@ from harambe.types import (
     URL,
     AsyncScraperType,
     Context,
+    Cookie,
     HarnessOptions,
+    LocalStorage,
     Options,
     ScrapeResult,
     SetupType,
     Stage,
-    Cookie,
-    LocalStorage,
 )
-from harambe_core import SchemaParser, Schema
-from harambe_core.errors import default_error_callback
-from harambe_core.normalize_url import normalize_url
-from harambe_core.observer import (
-    ObservationTrigger,
-    DownloadMeta,
-    HTMLMetadata,
-    OutputObserver,
-    LoggingObserver,
-    LocalStorageObserver,
-)
-from harambe_core.parser.expression import ExpressionEvaluator
 
 
 class AsyncScraper(Protocol):
@@ -117,21 +119,23 @@ class SDK:
         self._observers = observer
         self._deduper = deduper if deduper else DuplicateHandler()
 
-    async def save_data(self, *data: ScrapeResult) -> None:
+    async def save_data(self, *data: ScrapeResult, url: Optional[str] = None) -> None:
         """
         Save scraped data and validate its type matches the current schema
 
         :param data: Rows of data (as dictionaries) to save
+        :param url: Optional URL to associate with the data, defaults to current page URL
         :raises SchemaValidationError: If any of the saved data does not match the provided schema
         :example:
             >>> await sdk.save_data({ "title": "example", "description": "another_example" })
+            >>> await sdk.save_data({ "title": "example", "description": "another_example" }, url="https://www.example.com/product/example_id")
         """
         if len(data) == 1 and isinstance(data[0], list):
             raise TypeError(
                 "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
             )
 
-        source_url = self.page.url
+        source_url = url if url is not None else self.page.url
         base_url = await self._compute_base_url(source_url)
 
         for d in data:
