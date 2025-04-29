@@ -3,12 +3,12 @@ from pathlib import Path
 import pytest
 from aiohttp import web
 from bs4 import BeautifulSoup
-
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
 from harambe.instrumentation import HarambeInstrumentation, InMemoryExporter
 from harambe_core.errors import GotoError
 from harambe_core.observer import InMemoryObserver
+
 from .matchers import assert_partial_object_in
 
 
@@ -151,6 +151,9 @@ async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("tags/tag_base.asp")
         await sdk.save_data({"url": "tags/tag_base.asp"})
+        await sdk.save_data(
+            {"url": f"{server}/tags/tag_base.asp"}, source_url="tags/tag_base4.asp"
+        )
 
     await SDK.run(
         scraper=scraper,
@@ -165,9 +168,11 @@ async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
     assert observer.urls[0][0] == f"https://www.w3schools.com/tags/tag_base.asp"
     assert observer.urls[0][1] == {"__url": url}
 
-    assert len(observer.data) == 1
+    assert len(observer.data) == 2
     assert observer.data[0]["url"] == "https://www.w3schools.com/tags/tag_base.asp"
     assert observer.data[0]["__url"] == url
+    assert observer.data[1]["url"] == f"{server}/tags/tag_base.asp"
+    assert observer.data[1]["__url"] == "https://www.w3schools.com/tags/tag_base4.asp"
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
@@ -626,7 +631,7 @@ async def test_capture_html_table(server, observer, harness):
     url = f"{server}/table"
 
     async def scraper(sdk: SDK, *args, **kwargs):
-        text_html_metadata = await sdk.capture_html(html_converter_type="text")
+        text_html_metadata = await sdk.capture_html("body", html_converter_type="text")
         await sdk.save_data({"text": text_html_metadata["text"]})
 
     await SDK.run(
@@ -843,3 +848,47 @@ async def test_sdk_log_method_soup(server, observer):
             harness=soup_harness,
             observer=observer,
         )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_save_data_with_url(server, observer, harness):
+    url = f"{server}/solicitation"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+
+        title1 = (await (await page.query_selector("title")).inner_text()).strip()
+        await sdk.save_data({"title": title1})
+
+        await sdk.save_data({"title": title1 + "1"}, source_url=f"{page.url}/1")
+
+        await page.goto(f"{server}/table")
+        title2 = (await (await page.query_selector("title")).inner_text()).strip()
+        await sdk.save_data({"title": title2})
+
+        await sdk.save_data({"title": title2 + "2"}, source_url=f"{page.url}/2")
+
+        # deduped
+        await sdk.save_data({"title": title2}, source_url=f"{page.url}/3")
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
+
+    first_url = f"{server}/solicitation"
+    second_url = f"{server}/table"
+
+    assert len(observer.data) == 4
+    assert observer.data[0]["title"] == "PA - eMarketplace"
+    assert observer.data[0]["__url"] == first_url
+    assert observer.data[1]["title"] == "PA - eMarketplace1"
+    assert observer.data[1]["__url"] == f"{first_url}/1"
+    assert observer.data[2]["title"] == "Table Page"
+    assert observer.data[2]["__url"] == second_url
+    assert observer.data[3]["title"] == "Table Page2"
+    assert observer.data[3]["__url"] == f"{second_url}/2"

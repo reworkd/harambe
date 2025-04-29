@@ -11,17 +11,31 @@ from typing import (
     List,
     Optional,
     Protocol,
+    Tuple,
     Union,
     Unpack,
     cast,
-    Tuple,
 )
 
 import aiohttp
 from bs4 import BeautifulSoup, Doctype
+from harambe_core import Schema, SchemaParser
+from harambe_core.errors import default_error_callback
+from harambe_core.normalize_url import normalize_url
+from harambe_core.observer import (
+    DownloadMeta,
+    HTMLMetadata,
+    LocalStorageObserver,
+    LoggingObserver,
+    ObservationTrigger,
+    OutputObserver,
+)
+from harambe_core.parser.expression import ExpressionEvaluator
 from playwright.async_api import (
     ElementHandle,
     Page,
+)
+from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
 )
 
@@ -41,26 +55,14 @@ from harambe.types import (
     URL,
     AsyncScraperType,
     Context,
+    Cookie,
     HarnessOptions,
+    LocalStorage,
     Options,
     ScrapeResult,
     SetupType,
     Stage,
-    Cookie,
-    LocalStorage,
 )
-from harambe_core import SchemaParser, Schema
-from harambe_core.errors import default_error_callback
-from harambe_core.normalize_url import normalize_url
-from harambe_core.observer import (
-    ObservationTrigger,
-    DownloadMeta,
-    HTMLMetadata,
-    OutputObserver,
-    LoggingObserver,
-    LocalStorageObserver,
-)
-from harambe_core.parser.expression import ExpressionEvaluator
 
 
 class AsyncScraper(Protocol):
@@ -117,27 +119,32 @@ class SDK:
         self._observers = observer
         self._deduper = deduper if deduper else DuplicateHandler()
 
-    async def save_data(self, *data: ScrapeResult) -> None:
+    async def save_data(
+        self, *data: ScrapeResult, source_url: Optional[str] = None
+    ) -> None:
         """
         Save scraped data and validate its type matches the current schema
 
         :param data: Rows of data (as dictionaries) to save
+        :param source_url: Optional URL to associate with the data, defaults to current page URL. Only use this if the source of the data is different than the current page when the data is saved
         :raises SchemaValidationError: If any of the saved data does not match the provided schema
         :example:
             >>> await sdk.save_data({ "title": "example", "description": "another_example" })
+            >>> await sdk.save_data({ "title": "example", "description": "another_example" }, source_url="https://www.example.com/product/example_id")
         """
         if len(data) == 1 and isinstance(data[0], list):
             raise TypeError(
                 "`SDK.save_data` should be called with one dict at a time, not a list of dicts."
             )
 
-        source_url = self.page.url
-        base_url = await self._compute_base_url(source_url)
+        url = source_url or self.page.url
+        base_url = await self._compute_base_url(self.page.url)
+        normalized_url = normalize_url(url, base_url)
 
         for d in data:
             if self._validator is not None:
                 d = self._validator.validate(d, base_url=base_url)
-            d["__url"] = source_url
+            d["__url"] = normalized_url
             await self._notify_observers("on_save_data", d)
 
     async def enqueue(
@@ -166,22 +173,22 @@ class SDK:
             if inspect.isawaitable(url):
                 url = await url
 
-            normalized_url = normalize_url(url, base_url) if base_url else url
+            normalized_url = normalize_url(url, base_url)
             await self._notify_observers(
                 "on_queue_url", normalized_url, context, options
             )
 
     @single_value_cache("__base_url_cache")
-    async def _compute_base_url(self, current_url: str) -> URL:
+    async def _compute_base_url(self, page_url: str) -> URL:
         maybe_base_url = await self.page.query_selector("base")
         if not maybe_base_url:
-            return current_url
+            return page_url
 
         base_url = await maybe_base_url.get_attribute("href")
         if not base_url:
-            return current_url
+            return page_url
 
-        return normalize_url(base_url, current_url)
+        return normalize_url(base_url, page_url)
 
     async def paginate(
         self,
