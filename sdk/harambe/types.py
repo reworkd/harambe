@@ -9,6 +9,7 @@ from typing import (
 )
 
 from playwright.async_api import ViewportSize
+from playwright.async_api import Page
 
 # noinspection PyUnresolvedReferences
 from harambe_core.types import LocalStorage, Cookie, URL, Context, Options, ScrapeResult
@@ -17,6 +18,7 @@ Stage = Literal["category", "listing", "detail"]
 AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # type: ignore # noqa: F821
 SetupType = Callable[["SDK"], Awaitable[None]]  # type: ignore # noqa: F821
 Callback = Callable[..., Awaitable[None]]
+PageCallback = Callable[[Page], Awaitable[None]]
 BrowserType = Literal["chromium", "firefox", "webkit"]
 
 
@@ -49,7 +51,7 @@ class HarnessOptions(TypedDict, total=False):
     disable_go_to_url: bool
     on_start: Optional[Callback]
     on_end: Optional[Callback]
-    on_new_page: Optional[Callback]
+    on_new_page: Optional[PageCallback]
     launch_args: Sequence[str]
     extensions: Sequence[str]
     attach_to_existing_context: bool
