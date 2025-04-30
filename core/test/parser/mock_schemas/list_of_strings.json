@@ -5,5 +5,8 @@
     "items": {
       "type": "string"
     }
+  },
+  "other_field": {
+    "type": "string"
   }
 }

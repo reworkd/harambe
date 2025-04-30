@@ -1,7 +1,6 @@
 import pytest
-from pydantic import BaseModel, ValidationError
-
 from harambe_core.parser.type_currency import ParserTypeCurrency
+from pydantic import BaseModel, ValidationError
 
 
 class _TestModel(BaseModel):
@@ -36,6 +35,9 @@ class _TestModel(BaseModel):
         ("Starting At 12.99", 12.99),
         ("From 399.99", 399.99),
         ("0.0004 $", 0.0004),
+        ("€23,19", 23.19),
+        ("48,99   €", 48.99),
+        ("€\xa026,49", 26.49),
         ("Price Not Available", None),
         ("Unavailable Price", None),
         ("Price Upon Request", None),

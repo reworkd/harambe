@@ -62,6 +62,10 @@ def test_evaluate_from_array(evaluator):
         == "adameve"
     )
     assert evaluator.evaluate("names[-1]", {"names": ["adam", "eve"]}) == "eve"
+    assert (
+        evaluator.evaluate("CONCAT_WS('<3', names)", {"names": ["adam", "eve"]})
+        == "adam<3eve"
+    )
 
 
 def test_evaluate_function_chain(evaluator):
@@ -124,3 +128,53 @@ def test_register_custom_function():
 
     with pytest.raises(ValueError, match="Unknown function: CUSTOM"):
         evaluator2.evaluate("CUSTOM(a, b)", {"a": 10, "b": 20})
+
+
+def test_evaluate_reserved__pydantic_keyword():
+    evaluator = ExpressionEvaluator()
+
+    assert (
+        evaluator.evaluate("CONCAT('model_config', ' ', 'model_dump')", {})
+        == "model_config model_dump"
+    )
+    assert (
+        evaluator.evaluate(
+            "CONCAT(model_config, ' ', model_dump)",
+            {
+                "harambe_reserved_model_config": "hello",
+                "harambe_reserved_model_dump": "world",
+            },
+        )
+        == "hello world"
+    )
+
+
+@pytest.mark.parametrize(
+    "expression,context,expected",
+    [
+        ("SUBSTRING_AFTER('hello-world', '-')", {}, "world"),  # Basic usage
+        (
+            "SUBSTRING_AFTER('hello-world', '/')",  # When delimiter is not found
+            {},
+            "hello-world",
+        ),
+        (
+            "SUBSTRING_AFTER(CONCAT('hello-', 'world'), '-')",  # With sub evaluations
+            {},
+            "world",
+        ),
+        (
+            "SUBSTRING_AFTER('path/to/file.txt', '/')",  # Multiple delimiters, should only take first occurrence
+            {},
+            "to/file.txt",
+        ),
+        ("SUBSTRING_AFTER('hello-', '-')", {}, ""),  # Empty result
+    ],
+)
+def test_substring_after(evaluator, expression, context, expected):
+    assert evaluator.evaluate(expression, context) == expected
+
+
+def test_substring_after_empty_delimiter(evaluator):
+    with pytest.raises(ValueError, match="requires a non-empty delimiter"):
+        evaluator.evaluate("SUBSTRING_AFTER('hello-world', '')", {})

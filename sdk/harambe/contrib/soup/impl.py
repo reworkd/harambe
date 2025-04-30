@@ -1,12 +1,18 @@
+import json
 from typing import Any, Optional
 
 from bs4 import BeautifulSoup, Tag
 
 # noinspection PyProtectedMember
 from curl_cffi.requests import AsyncSession, HeaderTypes
+
 from harambe.contrib.soup.tracing import Tracer
-from harambe.contrib.types import AbstractElementHandle, AbstractPage, Selectable
-from harambe.contrib.types import ResponseWithStatus
+from harambe.contrib.types import (
+    AbstractElementHandle,
+    AbstractPage,
+    Selectable,
+    ResponseWithStatus,
+)
 
 
 class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
@@ -47,19 +53,18 @@ class SoupElementHandle(AbstractElementHandle, Selectable["SoupElementHandle"]):
 
 
 class SoupPage(AbstractPage[SoupElementHandle]):
-    _soup: BeautifulSoup
-    _url: str
-
     def __init__(
         self,
         session: AsyncSession,
         extra_headers: Optional[HeaderTypes] = None,
         tracer: Tracer = Tracer(),
+        url: str = "about:blank",
     ) -> None:
         self._session = session
         self._extra_headers = extra_headers
         self._tracer = tracer
-        self._url = "about:blank"
+        self._url = url
+        self._soup = BeautifulSoup("", "html.parser")
 
     @property
     def tracing(self) -> Tracer:
@@ -83,6 +88,43 @@ class SoupPage(AbstractPage[SoupElementHandle]):
 
         class SoupResponseWithStatus:
             status: int = res.status_code
+            headers: dict[str, str] = res.headers
+
+        return SoupResponseWithStatus()
+
+    async def post(
+        self,
+        url: str,
+        data: dict[str, Any],
+        headers: Optional[HeaderTypes] = None,
+        **kwargs: Any,
+    ) -> Any:
+        res = await self._session.post(
+            url,
+            headers=headers or self._extra_headers,
+            data=json.dumps(data),
+            impersonate="chrome",
+            **kwargs,
+        )
+        if self._tracer:
+            self._tracer.log_request(res)
+
+        self._url = res.url
+        content_type = res.headers.get("Content-Type", "")
+
+        if "application/json" in content_type:
+
+            class SoupResponseWithStatus:
+                status: int = res.status_code
+                body: dict[str, Any] = res.json()
+
+            return SoupResponseWithStatus()
+
+        self._soup = BeautifulSoup(res.text, "html.parser")
+
+        class SoupResponseWithStatus:
+            status: int = res.status_code
+            body: str = res.text
 
         return SoupResponseWithStatus()
 

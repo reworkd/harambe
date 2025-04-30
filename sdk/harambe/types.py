@@ -10,11 +10,9 @@ from typing import (
 
 from playwright.async_api import ViewportSize
 
-Enum = str
-URL = str
-ScrapeResult = dict[str, Any]
-Context = dict[str, Any]
-Options = dict[str, Any]
+# noinspection PyUnresolvedReferences
+from harambe_core.types import LocalStorage, Cookie, URL, Context, Options, ScrapeResult
+
 Stage = Literal["category", "listing", "detail"]
 AsyncScraperType = Callable[["SDK", URL, Context], Awaitable[None]]  # type: ignore # noqa: F821
 SetupType = Callable[["SDK"], Awaitable[None]]  # type: ignore # noqa: F821
@@ -32,26 +30,6 @@ class SetCookieParam(TypedDict, total=False):
     httpOnly: Optional[bool]
     secure: Optional[bool]
     sameSite: Optional[Literal["Lax", "None", "Strict"]]
-
-
-class Cookie(TypedDict):
-    name: str
-    value: str
-    domain: str
-    path: str
-    expires: int | float
-    size: int
-    httpOnly: bool
-    secure: bool
-    session: bool
-    sameSite: str
-
-
-class LocalStorage(TypedDict):
-    domain: str
-    path: str | None
-    key: str
-    value: str
 
 
 class HarnessOptions(TypedDict, total=False):
@@ -72,4 +50,7 @@ class HarnessOptions(TypedDict, total=False):
     on_start: Optional[Callback]
     on_end: Optional[Callback]
     on_new_page: Optional[Callback]
+    launch_args: Sequence[str]
     extensions: Sequence[str]
+    attach_to_existing_context: bool
+    attach_to_existing_page: bool

@@ -12,6 +12,7 @@
         "float",
         "boolean",
         "currency",
+        "price",
         "enum"
       ]
     },
@@ -50,6 +51,7 @@
             "float",
             "boolean",
             "currency",
+            "price",
             "enum"
           ]
         },
@@ -64,6 +66,12 @@
         },
         "expression": {
           "type": "string"
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "items": {
           "$ref": "#/definitions/field"
@@ -169,6 +177,20 @@
                 "expression"
               ]
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "enum"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "variants"
+            ]
           }
         }
       ],

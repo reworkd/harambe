@@ -1,6 +1,6 @@
 [project]
 name = "harambe-sdk"
-version = "0.59.1"
+version = "0.77.1"
 description = "Data extraction SDK for Playwright 🐒🍌"
 authors = [
     { name = "Adam Watkins", email = "adam@reworkd.ai" }
@@ -8,7 +8,7 @@ authors = [
 requires-python = ">=3.11,<4.0"
 readme = "README.md"
 dependencies = [
-    "harambe_core==0.59.1",
+    "harambe_core==0.77.1",
     "playwright==1.47.0",
     "beautifulsoup4==4.12.3",
     "requests==2.32.3",
@@ -18,15 +18,17 @@ dependencies = [
     "ua-generator==1.0.5",
     "markdownify==0.14.1",
     "setuptools>=73.0.0",
+    "wrapt>=1.17.2",
 ]
 
 [tool.uv]
 dev-dependencies = [
-    "ruff==0.8.4",
+    "ruff==0.11.5",
     "mypy==1.11.1",
     "pytest==8.3.4",
     "pytest-cov==4.1.0",
     "pytest-asyncio==0.21.2",
+    "pytest-mock==3.14.0",
 ]
 
 [tool.uv.sources]

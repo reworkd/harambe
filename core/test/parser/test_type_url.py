@@ -95,6 +95,10 @@ def test_pydantic_type_url_validate_type_success(url, base_url_, expected):
             "mailto:info@example.com",
             "https://example.com",
         ),
+        (
+            "https://wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==",  # ❌ Invalid URL
+            "https://example.com",
+        ),
     ],
 )
 def test_pydantic_type_url_validate_type_error(url, base_url_):

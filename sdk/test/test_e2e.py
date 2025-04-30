@@ -1,15 +1,15 @@
 from pathlib import Path
-from typing import cast
 
 import pytest
 from aiohttp import web
 from bs4 import BeautifulSoup
-from harambe.observer import InMemoryObserver
-from harambe.types import BrowserType
-from harambe_core.errors import GotoError
-
 from harambe import SDK
 from harambe.contrib import playwright_harness, soup_harness
+from harambe.instrumentation import HarambeInstrumentation, InMemoryExporter
+from harambe_core.errors import GotoError
+from harambe_core.observer import InMemoryObserver
+
+from .matchers import assert_partial_object_in
 
 
 @pytest.fixture(scope="module")
@@ -48,12 +48,18 @@ def observer():
     return InMemoryObserver()
 
 
-@pytest.mark.parametrize("browser_type", ["chromium", "firefox", "webkit"])
+@pytest.fixture
+def instrumentation():
+    exporter = InMemoryExporter()
+    instrument = HarambeInstrumentation().add_exporter(exporter.export).instrument()
+    yield exporter
+    instrument.un_instrument()
+
+
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
-async def test_save_data(server, observer, harness, browser_type):
+async def test_save_data(server, observer, harness, instrumentation: InMemoryExporter):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
 
@@ -65,14 +71,13 @@ async def test_save_data(server, observer, harness, browser_type):
                 {"fruit": await fruit.inner_text(), "price": await price.inner_text()}
             )
 
-    browser_type = cast(BrowserType, browser_type)
-    await SDK.run(
+    sdk = await SDK.run(
         scraper=scraper,
         url=url,
         schema={},
         headless=True,
         harness=harness,
-        browser_type=browser_type,
+        observer=observer,
     )
 
     assert len(observer.data) == 3
@@ -84,14 +89,34 @@ async def test_save_data(server, observer, harness, browser_type):
     assert not observer.urls
     assert not observer.files
 
+    page_cls = sdk.page.__class__.__name__
+    assert_partial_object_in(
+        instrumentation.events,
+        {"method": f"{page_cls}.goto", "args": ["http://127.0.0.1:8081/table"]},
+    )
+
+    assert_partial_object_in(
+        instrumentation.events,
+        {
+            "method": f"{page_cls}.query_selector_all",
+            "args": ["tbody > tr"],
+        },
+    )
+
+    assert_partial_object_in(
+        instrumentation.events,
+        {"method": f"SDK.save_data", "args": ["{'fruit': 'Apple', 'price': '1.00'}"]},
+    )
+
 
 async def test_enqueue_data(server, observer):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("?page=1")
         await sdk.enqueue("/terms", "https://reworkd.ai")
 
-    await SDK.run(scraper=scraper, url=server, schema={}, headless=True)
+    await SDK.run(
+        scraper=scraper, url=server, schema={}, headless=True, observer=observer
+    )
 
     assert not observer.data
     assert len(observer.urls) == 3
@@ -106,16 +131,66 @@ async def test_enqueue_data(server, observer):
 
 
 async def test_enqueue_data_with_context(server, observer):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.enqueue("/adam/?page=55", context={"last": "Watkins"})
 
-    await SDK.run(scraper=scraper, url=server, schema={}, headless=True)
+    await SDK.run(
+        scraper=scraper, url=server, schema={}, headless=True, observer=observer
+    )
 
     assert not observer.data
     assert len(observer.urls) == 1
     assert observer.urls[0][0] == f"{server}/adam/?page=55"
     assert observer.urls[0][1] == {"__url": f"{server}/", "last": "Watkins"}
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_base_url_with_base_tag_in_metadata(server, observer, harness):
+    url = f"{server}/meta"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.enqueue("tags/tag_base.asp")
+        await sdk.save_data({"url": "tags/tag_base.asp"})
+        await sdk.save_data(
+            {"url": f"{server}/tags/tag_base.asp"}, source_url="tags/tag_base4.asp"
+        )
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={"url": {"type": "url"}},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
+
+    assert len(observer.urls) == 1
+    assert observer.urls[0][0] == f"https://www.w3schools.com/tags/tag_base.asp"
+    assert observer.urls[0][1] == {"__url": url}
+
+    assert len(observer.data) == 2
+    assert observer.data[0]["url"] == "https://www.w3schools.com/tags/tag_base.asp"
+    assert observer.data[0]["__url"] == url
+    assert observer.data[1]["url"] == f"{server}/tags/tag_base.asp"
+    assert observer.data[1]["__url"] == "https://www.w3schools.com/tags/tag_base4.asp"
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_enqueue_no_goto_url(observer, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.enqueue("https://reworkd.ai", context={"last": "Watkins"})
+
+    await SDK.run(
+        scraper=scraper,
+        url="https://example.com",
+        schema={},
+        headless=True,
+        disable_go_to_url=True,
+        harness=harness,
+        observer=observer,
+    )
+    assert len(observer.urls) == 1
+    assert observer.urls[0][0] == "https://reworkd.ai"
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
@@ -138,7 +213,6 @@ async def test_enqueue_coro(server, observer, harness):
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_paginate(server, observer, harness):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         await sdk.save_data({"content": await page.content()})
@@ -155,6 +229,7 @@ async def test_paginate(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 2
@@ -167,7 +242,6 @@ async def test_paginate(server, observer, harness):
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_narcotics(server, observer, harness):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs) -> None:
         page = sdk.page
         await page.wait_for_selector("div#ds-content")
@@ -193,6 +267,7 @@ async def test_narcotics(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 1
@@ -205,7 +280,6 @@ async def test_narcotics(server, observer, harness):
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_regulations(server, observer, harness):
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs) -> None:
         page = sdk.page
         await page.wait_for_selector("table.table.mb-0.table-hover.table-striped")
@@ -223,13 +297,14 @@ async def test_regulations(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert not observer.data
     assert len(observer.urls) == 3
-    assert observer.urls[0][0] == f"{server}/regulations/act/"
-    assert observer.urls[1][0] == f"{server}/regulations/regulations/"
-    assert observer.urls[2][0] == f"{server}/regulations/guidelines/"
+    assert observer.urls[0][0] == f"https://npra.gov.gh/regulations/act/"
+    assert observer.urls[1][0] == f"https://npra.gov.gh/regulations/regulations/"
+    assert observer.urls[2][0] == f"https://npra.gov.gh/regulations/guidelines/"
     assert observer.urls[0][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[1][1] == {"__url": f"{server}/regulations"}
     assert observer.urls[2][1] == {"__url": f"{server}/regulations"}
@@ -239,7 +314,6 @@ async def test_regulations(server, observer, harness):
 async def test_text_content(server, observer, harness):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         content = await page.text_content("table")
@@ -248,17 +322,24 @@ async def test_text_content(server, observer, harness):
         table = await page.query_selector("table")
         await sdk.save_data({"table_content": await table.text_content()})
 
-    await SDK.run(scraper=scraper, url=url, schema={}, headless=True, harness=harness)
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
     assert len(observer.data) == 2
 
     assert observer.data[0]["page_content"] == observer.data[1]["table_content"]
     for text in ["Apple", "Orange", "Banana"]:
-        assert (
-            text in observer.data[0]["page_content"]
-        ), f"{text} not in {observer.data[0]['page_content']}"
-        assert (
-            text in observer.data[1]["table_content"]
-        ), f"{text} not in {observer.data[1]['table_content']}"
+        assert text in observer.data[0]["page_content"], (
+            f"{text} not in {observer.data[0]['page_content']}"
+        )
+        assert text in observer.data[1]["table_content"], (
+            f"{text} not in {observer.data[1]['table_content']}"
+        )
 
 
 @pytest.mark.parametrize("harness", [soup_harness])
@@ -305,6 +386,20 @@ async def test_currency_validator(server, harness):
     )
 
 
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_price_validator(server, harness):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.save_data({"price": "$1,9999.00"})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/table",
+        schema={"price": {"type": "price"}},
+        headless=True,
+        harness=harness,
+    )
+
+
 @pytest.mark.parametrize("harness", [soup_harness])
 async def test_disable_go_to_url_bug(server, harness):
     async def scraper(sdk: SDK, *args, **kwargs):
@@ -330,7 +425,7 @@ async def test_save_local_storage(server, observer, harness):
         "value": "test",
     }
 
-    @SDK.scraper(local_storage_entry["domain"], "detail", observer=observer)
+    @SDK.scraper(local_storage_entry["domain"], "detail")
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         # Save test local storage key value pair
@@ -346,6 +441,7 @@ async def test_save_local_storage(server, observer, harness):
         headless=True,
         harness=harness,
         schema={},
+        observer=observer,
     )
 
     assert len(observer.local_storage) == 1
@@ -388,7 +484,6 @@ async def test_load_local_storage(
         "value": test_value,
     }
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         page = sdk.page
         page_local_storage = await page.evaluate("localStorage")
@@ -401,10 +496,10 @@ async def test_load_local_storage(
         harness=harness,
         schema={},
         local_storage=[local_storage_entry_1, local_storage_entry_2],
+        observer=observer,
     )
 
     assert len(observer.data) == 1
-    print(observer.data)
     assert observer.data[0]["local_storage"] == {
         local_storage_entry_1["key"]: expected_value,
         local_storage_entry_2["key"]: expected_value,
@@ -420,7 +515,6 @@ async def test_reset_local_storage(server, observer, harness):
         "value": "test_value",
     }
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
         page = sdk.page
         await page.evaluate("localStorage.clear();")
@@ -435,6 +529,7 @@ async def test_reset_local_storage(server, observer, harness):
         harness=harness,
         schema={},
         local_storage=[local_storage_entry, local_storage_entry],
+        observer=observer,
     )
 
     assert len(observer.data) == 1
@@ -447,7 +542,6 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     replaced_element = '<div id="reworkd">Replaced Text</div>'
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         full_html_metadata = await sdk.capture_html()
         await sdk.save_data(full_html_metadata)
@@ -469,6 +563,7 @@ async def test_capture_html_with_different_options(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 3
@@ -507,7 +602,6 @@ async def test_capture_html_with_different_options(server, observer, harness):
 async def test_capture_html_conversion_types(server, observer, harness):
     url = f"{server}/heading"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         markdown_html_metadata = await sdk.capture_html()
         await sdk.save_data({"text": markdown_html_metadata["text"]})
@@ -521,6 +615,7 @@ async def test_capture_html_conversion_types(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 2
@@ -535,9 +630,8 @@ async def test_capture_html_conversion_types(server, observer, harness):
 async def test_capture_html_table(server, observer, harness):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
-        text_html_metadata = await sdk.capture_html(html_converter_type="text")
+        text_html_metadata = await sdk.capture_html("body", html_converter_type="text")
         await sdk.save_data({"text": text_html_metadata["text"]})
 
     await SDK.run(
@@ -546,6 +640,7 @@ async def test_capture_html_table(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 1
@@ -565,7 +660,6 @@ async def test_capture_html_table(server, observer, harness):
 async def test_capture_html_element_not_found(server, observer, harness):
     url = f"{server}/table"
 
-    @SDK.scraper("test", "detail", observer=observer)
     async def scraper(sdk: SDK, *args, **kwargs):
         with pytest.raises(ValueError):
             await sdk.capture_html("#missing .selector .lies .adam-watkins")
@@ -576,6 +670,7 @@ async def test_capture_html_element_not_found(server, observer, harness):
         schema={},
         headless=True,
         harness=harness,
+        observer=observer,
     )
 
     assert len(observer.data) == 0
@@ -661,7 +756,7 @@ async def test_403_status_on_goto_with_custom_callback(
     async def scrape(sdk: SDK, current_url, context) -> None:
         await sdk.save_data({"key": "this shouldn't be saved if GotoError is raised"})
 
-    async def custom_error_handler(url, status_code):
+    async def custom_error_handler(url, status_code, *args):
         print(f"Handled {status_code} for {url} gracefully.")
 
     error_callback = custom_error_handler
@@ -672,10 +767,128 @@ async def test_403_status_on_goto_with_custom_callback(
         schema={},
         context={"status": "Open"},
         observer=observer,
-        callback=error_callback,
+        goto_error_handler=error_callback,
     )
 
     # Ensure data is saved when error is handled (either with custom or no callback)
     assert len(observer.data) == 1
     assert observer.data[0]["key"] == "this shouldn't be saved if GotoError is raised"
     assert observer.data[0]["__url"] == url
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_substring_after(server, observer, harness):
+    string = "123"
+    delimiter = "1"
+    expected = "23"
+
+    async def scraper(sdk: SDK, current_url: str, *args, **kwargs):
+        await sdk.save_data({"data": string})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/solicitation",
+        headless=True,
+        harness=harness,
+        schema={
+            "data": {
+                "type": "string",
+            },
+            "substring": {
+                "type": "string",
+                "description": "",
+                "expression": f'SUBSTRING_AFTER(data, "{delimiter}")',
+            },
+        },
+        observer=observer,
+    )
+
+    assert len(observer.data) == 1
+    assert observer.data[0]["data"] == string
+    assert observer.data[0]["substring"] == expected
+
+
+async def test_sdk_log_method_playwright(server, observer, capsys):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.log("Simple string message")
+        await sdk.log("Multiple", "arguments", 123, "with", "different", "types")
+        await sdk.log("Object with attributes:", {"name": "test", "value": 42})
+
+        await sdk.save_data({"completed": True})
+
+    await SDK.run(
+        scraper=scraper,
+        url=f"{server}/table",
+        schema={},
+        headless=True,
+        harness=playwright_harness,
+        observer=observer,
+    )
+
+    # Verify the scraper ran successfully
+    assert len(observer.data) == 1
+    assert observer.data[0]["completed"] is True
+
+    captured = capsys.readouterr().out
+    assert "Simple string message" in captured
+    assert "Multiple arguments 123 with different types" in captured
+    assert "Object with attributes: {'name': 'test', 'value': 42}" in captured
+
+
+async def test_sdk_log_method_soup(server, observer):
+    async def scraper(sdk: SDK, *args, **kwargs):
+        await sdk.log("Simple message")
+
+    with pytest.raises(AttributeError):
+        await SDK.run(
+            scraper=scraper,
+            url=f"{server}/table",
+            schema={},
+            headless=True,
+            harness=soup_harness,
+            observer=observer,
+        )
+
+
+@pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
+async def test_save_data_with_url(server, observer, harness):
+    url = f"{server}/solicitation"
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        page = sdk.page
+
+        title1 = (await (await page.query_selector("title")).inner_text()).strip()
+        await sdk.save_data({"title": title1})
+
+        await sdk.save_data({"title": title1 + "1"}, source_url=f"{page.url}/1")
+
+        await page.goto(f"{server}/table")
+        title2 = (await (await page.query_selector("title")).inner_text()).strip()
+        await sdk.save_data({"title": title2})
+
+        await sdk.save_data({"title": title2 + "2"}, source_url=f"{page.url}/2")
+
+        # deduped
+        await sdk.save_data({"title": title2}, source_url=f"{page.url}/3")
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
+
+    first_url = f"{server}/solicitation"
+    second_url = f"{server}/table"
+
+    assert len(observer.data) == 4
+    assert observer.data[0]["title"] == "PA - eMarketplace"
+    assert observer.data[0]["__url"] == first_url
+    assert observer.data[1]["title"] == "PA - eMarketplace1"
+    assert observer.data[1]["__url"] == f"{first_url}/1"
+    assert observer.data[2]["title"] == "Table Page"
+    assert observer.data[2]["__url"] == second_url
+    assert observer.data[3]["title"] == "Table Page2"
+    assert observer.data[3]["__url"] == f"{second_url}/2"

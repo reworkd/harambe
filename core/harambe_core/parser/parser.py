@@ -1,15 +1,16 @@
-from typing import Any, List, Optional, Type, Self
+from typing import Any, List, Optional, Self, Type
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     ValidationError,
     create_model,
-    ConfigDict,
     model_validator,
 )
 
 from harambe_core.errors import SchemaValidationError
+from harambe_core.parser.constants import RESERVED_PREFIX
 from harambe_core.parser.expression import ExpressionEvaluator
 from harambe_core.parser.type_currency import ParserTypeCurrency
 from harambe_core.parser.type_date import ParserTypeDate
@@ -17,10 +18,10 @@ from harambe_core.parser.type_email import ParserTypeEmail
 from harambe_core.parser.type_enum import ParserTypeEnum
 from harambe_core.parser.type_number import ParserTypeNumber
 from harambe_core.parser.type_phone_number import ParserTypePhoneNumber
+from harambe_core.parser.type_price import ParserTypePrice
 from harambe_core.parser.type_string import ParserTypeString
 from harambe_core.parser.type_url import ParserTypeUrl
-from harambe_core.types import Schema
-from harambe_core.types import SchemaFieldType
+from harambe_core.types import Schema, SchemaFieldType
 
 
 class SchemaParser:
@@ -48,10 +49,10 @@ class SchemaParser:
     def validate(self, data: dict[str, Any], base_url: str) -> dict[str, Any]:
         # Set these values here for convenience to avoid passing them around. A bit hacky
         self.field_types = self._get_field_types(base_url)
-        model = self._schema_to_pydantic_model(self.schema)
+        model = self._schema_to_pydantic_model(self.schema, is_root=True)
 
         try:
-            res = model(**data).model_dump()
+            res = model(**data).model_dump(by_alias=True)
             if self._pk_expression:
                 res["$primary_key"] = self.evaluator.evaluate(self._pk_expression, res)
             return res
@@ -72,6 +73,7 @@ class SchemaParser:
             "float": ParserTypeNumber,
             "double": ParserTypeNumber,
             "currency": ParserTypeCurrency(),
+            "price": ParserTypePrice,
             "email": ParserTypeEmail,
             "enum": ParserTypeEnum,
             "array": list,
@@ -95,6 +97,7 @@ class SchemaParser:
             return self._schema_to_pydantic_model(
                 items_info.get("properties", {}),
                 model_name=f"{model_name}Object",
+                is_root=False,
             )
 
         if item_type == "array":
@@ -107,12 +110,21 @@ class SchemaParser:
 
         # Every enum has its own unique variants
         if item_type == "enum":
-            return self._get_type(item_type, required=True)(items_info["variants"])
+            return self._get_type(item_type, required=True)(
+                *items_info["variants"], required=True
+            )
+
+        if item_type == "price":
+            return self._get_type(item_type, required=True)(required=True)
 
         return self._get_type(item_type, required=True)
 
     def _schema_to_pydantic_model(
-        self, schema: Schema, model_name: str = "DynamicModel", required: bool = True
+        self,
+        schema: Schema,
+        model_name: str = "DynamicModel",
+        required: bool = True,
+        is_root: bool = True,
     ) -> Type[BaseModel]:
         """
         Convert a JSON schema to a Pydantic model dynamically. All fields are optional
@@ -124,15 +136,28 @@ class SchemaParser:
             if field_name == "__config__":
                 continue
 
+            field_serialization_alias = None
+            if field_name.startswith("model_"):
+                field_serialization_alias = field_name
+                field_name = RESERVED_PREFIX + field_name
+
             field_description = field_info.get("description", None)
             field_type = field_info.get("type")
-            field = Field(..., description=field_description)
+            field_required = field_info.get("required", False)
+            field = Field(
+                ...,
+                description=field_description,
+                alias=field_serialization_alias,
+                serialization_alias=field_serialization_alias,
+                min_length=1 if field_type == "array" and field_required else None,
+            )
 
             if field_type == "object":
                 python_type = self._schema_to_pydantic_model(
                     field_info.get("properties", {}) or {},
                     model_name=f"{model_name}{field_name.capitalize()}",
-                    required=field_info.get("required", False),
+                    required=field_required,
+                    is_root=False,
                 )
             elif field_type == "array":
                 python_type = List[  # type: ignore
@@ -143,22 +168,30 @@ class SchemaParser:
                 ]
             elif field_type == "enum":
                 python_type = self._get_type(field_type, required=True)(
-                    field_info["variants"]
+                    *field_info["variants"], required=field_required
+                )
+            elif field_type == "price":
+                python_type = self._get_type(field_type, required=True)(
+                    required=field_required
                 )
             elif expression := field_info.get("expression"):
                 python_type = self._get_type(field_type, required=False)
-                field = Field(default=None, description=field_description)
+                field = Field(
+                    default=None,
+                    description=field_description,
+                    serialization_alias=field_serialization_alias,
+                )
                 computed_fields[field_name] = expression
             else:
-                python_type = self._get_type(
-                    field_type, required=field_info.get("required")
-                )
+                python_type = self._get_type(field_type, required=field_required)
 
             fields[field_name] = (python_type, field)
 
         config: ConfigDict = {"extra": "forbid", "str_strip_whitespace": True}
         config.update(schema.get("__config__", {}))
-        base_model = base_model_factory(config, computed_fields, self.evaluator)
+        base_model = base_model_factory(
+            config, computed_fields, self.evaluator, is_root
+        )
         new_model = create_model(model_name, __base__=base_model, **fields)
 
         if not required:
@@ -176,7 +209,10 @@ class SchemaParser:
 
 
 def base_model_factory(
-    config: ConfigDict, computed_fields: dict[str, str], evaluator: ExpressionEvaluator
+    config: ConfigDict,
+    computed_fields: dict[str, str],
+    evaluator: ExpressionEvaluator,
+    is_root: bool = True,
 ) -> Type[BaseModel]:
     class PreValidatedBaseModel(BaseModel):
         model_config: ConfigDict = config
@@ -186,6 +222,9 @@ def base_model_factory(
         @classmethod
         def pre_validate(cls, values: Any) -> Any:
             def trim_and_nullify(value: Any) -> Any:
+                """
+                Trims whitespace from strings and converts empty strings to None
+                """
                 if isinstance(value, str):
                     value = value.strip()
                     if not value:
@@ -204,9 +243,10 @@ def base_model_factory(
                 res = evaluator.evaluate(expression, self)
                 setattr(self, field, res)
 
-            if _all_fields_empty(self.model_dump()):
+            # Only check for empty fields at the root level
+            if is_root and _all_fields_empty(self.model_dump()):
                 raise SchemaValidationError(
-                    message="All fields are null or empty.",
+                    message=f"All fields are null or empty. data={self.model_dump()}",
                 )
 
             return self
@@ -216,8 +256,8 @@ def base_model_factory(
 
 def _all_fields_empty(data: dict[str, Any]) -> bool:
     """
-    Recursively check if all fields in the data are either None or empty.
-    This includes handling nested dictionaries and lists.
+    Check if all fields in the base object are either None or empty recursively.
+    This does not get called for individual fields in the base object.
     """
 
     def is_empty(value: Any) -> bool:
