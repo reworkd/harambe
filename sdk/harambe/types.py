@@ -73,4 +73,3 @@ class HarnessOptions(TypedDict, total=False):
     on_end: Optional[Callback]
     on_new_page: Optional[Callback]
     extensions: Sequence[str]
-    disable_service_workers: bool
