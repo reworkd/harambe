@@ -13,7 +13,7 @@ dependencies = [
     "beautifulsoup4==4.12.3",
     "requests==2.32.3",
     "playwright-stealth==1.0.6",
-    "aiohttp==3.10.10",
+    "aiohttp==3.11.0b0",
     "curl-cffi==0.7.3",
     "ua-generator==1.0.5",
     "markdownify==0.14.1",
