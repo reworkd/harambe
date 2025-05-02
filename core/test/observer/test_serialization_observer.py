@@ -50,7 +50,7 @@ def test_on_queue_url(observer, published_events):
 def test_on_download(observer, published_events):
     content = b"Hello World!"
     download_meta = asyncio.run(
-        observer.on_download("http://files.example.com", "test.txt", content)
+        observer.on_download("http://files.example.com", "test.txt", content, "path")
     )
     assert len(published_events) == 1
     assert published_events[0] == {
@@ -59,6 +59,7 @@ def test_on_download(observer, published_events):
             "download_url": "http://files.example.com",
             "filename": "test.txt",
             "content": "Hello World!",
+            "path": "path",
         },
     }
     assert download_meta["url"] == f"http://files.example.com/{quote('test.txt')}"
