@@ -155,6 +155,7 @@ CURRENCY_MAP = {
     "VND": "VND",
     "YER": "YER",
     "ZWD": "ZWD",
+    "GEL": "GEL",
     "$": "USD",
     "€": "EUR",
     "£": "GBP",
@@ -227,4 +228,5 @@ CURRENCY_MAP = {
     "ƒ": "ANG",
     "Rp": "IDR",
     "S": "SOS",
+    "₾": "GEL",
 }
