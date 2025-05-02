@@ -35,7 +35,7 @@ class SerializationObserver(OutputObserver):
         self._publish(payload)
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes, path: str
     ) -> "DownloadMeta":
         payload: Payload = {
             "type": "on_download",
@@ -43,6 +43,7 @@ class SerializationObserver(OutputObserver):
                 "download_url": download_url,
                 "filename": filename,
                 "content": content.decode("utf-8"),
+                "path": path,
             },
         }
 
@@ -51,6 +52,7 @@ class SerializationObserver(OutputObserver):
         return {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
+            "path": path,
         }
 
     async def on_paginate(self, next_url: str) -> None:
