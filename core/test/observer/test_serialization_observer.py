@@ -59,6 +59,7 @@ def test_on_download(observer, published_events):
             "download_url": "http://files.example.com",
             "filename": "test.txt",
             "content": "Hello World!",
+            "path": "path",
         },
     }
     assert download_meta["url"] == f"http://files.example.com/{quote('test.txt')}"
