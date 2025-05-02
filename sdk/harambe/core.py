@@ -296,6 +296,7 @@ class SDK:
         async with self.page.expect_download(timeout=timeout) as download_info:
             await clickable.click()
         download = await download_info.value
+        path = await download.path()
 
         # Create a temporary file to save the download
         with tempfile.NamedTemporaryFile() as temp_file:
@@ -308,6 +309,7 @@ class SDK:
             override_url if override_url else download.url,
             override_filename if override_filename else download.suggested_filename,
             content,
+            path,
             check_duplication=False,
         )
         return res[0]
