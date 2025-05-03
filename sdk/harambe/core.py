@@ -348,6 +348,7 @@ class SDK:
             download_url=self.page.url,
             filename=f"{str(uuid.uuid4())}.html",
             content=html.encode("utf-8"),
+            path="",
             check_duplication=False,
         )
 
@@ -406,7 +407,7 @@ class SDK:
         pdf_content = await self.page.pdf()
         file_name = PAGE_PDF_FILENAME
         res = await self._notify_observers(
-            "on_download", self.page.url, file_name, pdf_content
+            "on_download", self.page.url, file_name, pdf_content, ""
         )
         return res[0]
 

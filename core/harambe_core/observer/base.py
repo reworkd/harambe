@@ -16,7 +16,7 @@ class OutputObserver(Protocol):
 
     @abstractmethod
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes, path: str
     ) -> "DownloadMeta":
         raise NotImplementedError()
 

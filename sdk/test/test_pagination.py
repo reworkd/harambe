@@ -63,10 +63,10 @@ async def test_stop_pagination_observer_duplicate_url_error(duplicate_handler):
 
 async def test_stop_pagination_observer_duplicate_download_error(duplicate_handler):
     unduplicated = duplicate_handler.on_download(
-        "https://example.com", "foo.txt", b"foo"
+        "https://example.com", "foo.txt", b"foo", ""
     )
     duplicate_handler.on_paginate("https://example.com/page2")
-    duplicated = duplicate_handler.on_download("https://example.com", "foo.txt", b"foo")
+    duplicated = duplicate_handler.on_download("https://example.com", "foo.txt", b"foo", "")
 
     assert not unduplicated and duplicated
     assert duplicate_handler.get_number_of_pages() == 2
@@ -140,9 +140,9 @@ async def test_duplicate_data_without_pagination(duplicate_handler):
     )
 
     un_duplicated = duplicate_handler.on_download(
-        "https://example.com", "foo.txt", b"foo"
+        "https://example.com", "foo.txt", b"foo", ""
     )
-    duplicated = duplicate_handler.on_download("https://example.com", "foo.txt", b"foo")
+    duplicated = duplicate_handler.on_download("https://example.com", "foo.txt", b"foo", "")
     assert not un_duplicated and duplicated
     assert duplicate_handler.get_current_page_info() == PageInfo(
         page=1, total_rows=6, duplicated_rows=3

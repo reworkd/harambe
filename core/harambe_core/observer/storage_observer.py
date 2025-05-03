@@ -40,7 +40,7 @@ class LocalStorageObserver(OutputObserver):
         self._tracker.save_data({"url": url, "context": context, "options": options})
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes, path: str
     ) -> DownloadMeta:
         data: DownloadMeta = {
             "url": f"{download_url}/{quote(filename)}",

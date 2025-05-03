@@ -15,7 +15,7 @@ class LoggingObserver(OutputObserver):
         print(f"Enqueuing: {url} with context {context} and options {options}")
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes, path: str
     ) -> "DownloadMeta":
         print(f"Downloading file: {filename}")
         return {
