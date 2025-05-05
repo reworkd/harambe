@@ -21,7 +21,7 @@ class InMemoryObserver(OutputObserver):
         self._urls.append((url, context, options))
 
     async def on_download(
-        self, download_url: str, filename: str, content: bytes
+        self, download_url: str, filename: str, content: bytes, path: str
     ) -> "DownloadMeta":
         self._files.append((filename, content))
         return {

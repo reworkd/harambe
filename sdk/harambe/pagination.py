@@ -57,7 +57,9 @@ class DuplicateHandler:
         return self._add_data(url)
 
     # noinspection PyTypeChecker
-    def on_download(self, download_url: str, filename: str, content: bytes) -> bool:
+    def on_download(
+        self, download_url: str, filename: str, content: bytes, path: str
+    ) -> bool:
         return self._add_data((download_url, filename))
 
     def should_continue(self, strict: bool = False) -> bool:
