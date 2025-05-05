@@ -14,6 +14,7 @@ ObservationTrigger = Literal[
 class DownloadMeta(TypedDict):
     url: str
     filename: str
+    path: str
 
 
 class HTMLMetadata(DownloadMeta):

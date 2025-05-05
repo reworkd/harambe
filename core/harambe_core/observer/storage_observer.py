@@ -45,6 +45,7 @@ class LocalStorageObserver(OutputObserver):
         data: DownloadMeta = {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
+            "path": path,
         }
         self._tracker.save_data(data)  # type: ignore
         return data

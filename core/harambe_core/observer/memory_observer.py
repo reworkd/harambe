@@ -27,6 +27,7 @@ class InMemoryObserver(OutputObserver):
         return {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
+            "path": path,
         }
 
     async def on_paginate(self, next_url: str) -> None:
