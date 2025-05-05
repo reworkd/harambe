@@ -90,6 +90,7 @@ async def test_method_call_with_return_value(sdk, exporter):
     expected_result = {
         "url": "https://example.com/reworkd_page_pdf.pdf",
         "filename": "reworkd_page_pdf.pdf",
+        "path": ""
     }
     assert result == expected_result
 
