@@ -897,8 +897,6 @@ async def test_save_data_with_url(server, observer, harness):
 @pytest.mark.parametrize("harness", [playwright_harness])
 async def test_capture_download_return_value(server, observer, harness):
     url = f"{server}/download"
-    observer = InMemoryObserver()
-
     captured_meta = None
 
     async def scraper(sdk: SDK, *args, **kwargs):
