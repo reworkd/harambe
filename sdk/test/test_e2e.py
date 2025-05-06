@@ -571,7 +571,6 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     assert len(observer.data) == 3
 
-    # Verify full document capture
     doc_data = observer.data[0]
     assert doc_data["html"].startswith("<!DOCTYPE html>")
     assert doc_data["html"].count("<!DOCTYPE html>") == 1
@@ -580,11 +579,9 @@ async def test_capture_html_with_different_options(server, observer, harness):
     assert replaced_element not in doc_data["html"]
     assert "Apple" in doc_data["text"]
 
-    # Verify download fields all available
     assert doc_data["url"]
     assert doc_data["filename"]
 
-    # Verify table capture with exclusion
     table_data = observer.data[1]
     assert table_data["html"].startswith("<!DOCTYPE html>")
     assert table_data["html"].count("<!DOCTYPE html>") == 1
@@ -599,6 +596,14 @@ async def test_capture_html_with_different_options(server, observer, harness):
     assert "<thead" not in replaced_head_data["html"]
     assert replaced_element in replaced_head_data["html"]
     assert "Replaced Text" in replaced_head_data["text"]
+
+    assert len(observer.paths) >= 3, (
+        f"Expected at least 3 path values, got {len(observer.paths)}"
+    )
+
+    html_paths = observer.paths[:3]
+    for i, path in enumerate(html_paths):
+        assert path == "", f"Path {i + 1} is not empty: '{path}'"
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
@@ -677,48 +682,6 @@ async def test_capture_html_element_not_found(server, observer, harness):
     )
 
     assert len(observer.data) == 0
-
-
-@pytest.mark.parametrize("harness", [playwright_harness])
-async def test_capture_html_empty_path(server, observer, harness):
-    url = f"{server}/test-page"
-
-    path_values = []
-    original_on_download = observer.on_download
-
-    async def path_tracking_on_download(
-        download_url, filename, content, path, **kwargs
-    ):
-        path_values.append(path)
-        return await original_on_download(
-            download_url, filename, content, path, **kwargs
-        )
-
-    observer.on_download = path_tracking_on_download
-
-    async def scraper(sdk: SDK, *args, **kwargs):
-        await sdk.capture_html()
-        await sdk.capture_html("body")
-        await sdk.capture_html(exclude_selectors=["script"])
-
-    try:
-        await SDK.run(
-            scraper=scraper,
-            url=url,
-            schema={},
-            headless=True,
-            harness=harness,
-            observer=observer,
-        )
-
-        assert len(path_values) >= 3, (
-            f"Expected at least 3 calls to on_download, got {len(path_values)}"
-        )
-        for i, path in enumerate(path_values):
-            assert path == "", f"Path for call {i + 1} was not empty, got: '{path}'"
-
-    finally:
-        observer.on_download = original_on_download
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
