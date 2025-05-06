@@ -900,6 +900,7 @@ async def test_capture_download_return_value(server, observer, harness):
     observer = InMemoryObserver()
 
     captured_meta = None
+
     async def scraper(sdk: SDK, *args, **kwargs):
         nonlocal captured_meta
         page = sdk.page
@@ -920,5 +921,7 @@ async def test_capture_download_return_value(server, observer, harness):
     assert "filename" in captured_meta, "Missing 'filename' key in DownloadMeta"
     assert "path" in captured_meta, "Missing 'path' key in DownloadMeta"
 
-    assert captured_meta["filename"] == "example.txt", "Incorrect filename in DownloadMeta"
+    assert captured_meta["filename"] == "example.txt", (
+        "Incorrect filename in DownloadMeta"
+    )
     assert captured_meta["path"], "Empty path in DownloadMeta"
