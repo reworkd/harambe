@@ -296,7 +296,7 @@ class SDK:
         async with self.page.expect_download(timeout=timeout) as download_info:
             await clickable.click()
         download = await download_info.value
-        path = await download.path()
+        path = str(await download.path())
 
         # Create a temporary file to save the download
         with tempfile.NamedTemporaryFile() as temp_file:

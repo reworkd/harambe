@@ -542,7 +542,10 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     replaced_element = '<div id="reworkd">Replaced Text</div>'
 
+    full_html_metadata = None
+
     async def scraper(sdk: SDK, *args, **kwargs):
+        nonlocal full_html_metadata
         full_html_metadata = await sdk.capture_html()
         await sdk.save_data(full_html_metadata)
 
@@ -568,7 +571,6 @@ async def test_capture_html_with_different_options(server, observer, harness):
 
     assert len(observer.data) == 3
 
-    # Verify full document capture
     doc_data = observer.data[0]
     assert doc_data["html"].startswith("<!DOCTYPE html>")
     assert doc_data["html"].count("<!DOCTYPE html>") == 1
@@ -577,11 +579,9 @@ async def test_capture_html_with_different_options(server, observer, harness):
     assert replaced_element not in doc_data["html"]
     assert "Apple" in doc_data["text"]
 
-    # Verify download fields all available
     assert doc_data["url"]
     assert doc_data["filename"]
 
-    # Verify table capture with exclusion
     table_data = observer.data[1]
     assert table_data["html"].startswith("<!DOCTYPE html>")
     assert table_data["html"].count("<!DOCTYPE html>") == 1
@@ -596,6 +596,14 @@ async def test_capture_html_with_different_options(server, observer, harness):
     assert "<thead" not in replaced_head_data["html"]
     assert replaced_element in replaced_head_data["html"]
     assert "Replaced Text" in replaced_head_data["text"]
+
+    assert len(observer.paths) >= 3, (
+        f"Expected at least 3 path values, got {len(observer.paths)}"
+    )
+
+    html_paths = observer.paths[:3]
+    for i, path in enumerate(html_paths):
+        assert path == "", f"Path {i + 1} is not empty: '{path}'"
 
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
@@ -892,3 +900,34 @@ async def test_save_data_with_url(server, observer, harness):
     assert observer.data[2]["__url"] == second_url
     assert observer.data[3]["title"] == "Table Page2"
     assert observer.data[3]["__url"] == f"{second_url}/2"
+
+
+@pytest.mark.parametrize("harness", [playwright_harness])
+async def test_capture_download_return_value(server, observer, harness):
+    url = f"{server}/download"
+    captured_meta = None
+
+    async def scraper(sdk: SDK, *args, **kwargs):
+        nonlocal captured_meta
+        page = sdk.page
+        link = await page.query_selector("a#download-link")
+        captured_meta = await sdk.capture_download(link)
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
+
+    assert captured_meta is not None, "No metadata returned from capture_download"
+    assert "url" in captured_meta, "Missing 'url' key in DownloadMeta"
+    assert "filename" in captured_meta, "Missing 'filename' key in DownloadMeta"
+    assert "path" in captured_meta, "Missing 'path' key in DownloadMeta"
+
+    assert captured_meta["filename"] == "example.txt", (
+        "Incorrect filename in DownloadMeta"
+    )
+    assert captured_meta["path"], "Empty path in DownloadMeta"

@@ -13,6 +13,7 @@ class InMemoryObserver(OutputObserver):
         self._files: List[Tuple[str, bytes]] = []
         self._cookies: List[Cookie] = []
         self._local_storage: List[LocalStorage] = []
+        self._paths: List[str] = []
 
     async def on_save_data(self, data: dict[str, Any]) -> None:
         self._data.append(data)
@@ -24,9 +25,11 @@ class InMemoryObserver(OutputObserver):
         self, download_url: str, filename: str, content: bytes, path: str
     ) -> "DownloadMeta":
         self._files.append((filename, content))
+        self._paths.append(path)
         return {
             "url": f"{download_url}/{quote(filename)}",
             "filename": filename,
+            "path": path,
         }
 
     async def on_paginate(self, next_url: str) -> None:
@@ -52,6 +55,10 @@ class InMemoryObserver(OutputObserver):
     @property
     def files(self) -> List[Tuple[str, bytes]]:
         return self._files
+
+    @property
+    def paths(self) -> List[str]:
+        return self._paths
 
     @property
     def cookies(self) -> List[Cookie]:
