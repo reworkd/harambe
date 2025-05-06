@@ -543,6 +543,7 @@ async def test_capture_html_with_different_options(server, observer, harness):
     replaced_element = '<div id="reworkd">Replaced Text</div>'
 
     full_html_metadata = None
+
     async def scraper(sdk: SDK, *args, **kwargs):
         nonlocal full_html_metadata
         full_html_metadata = await sdk.capture_html()
@@ -685,11 +686,16 @@ async def test_capture_html_empty_path(server, observer, harness):
     path_values = []
     original_on_download = observer.on_download
 
-    async def path_tracking_on_download(download_url, filename, content, path, **kwargs):
+    async def path_tracking_on_download(
+        download_url, filename, content, path, **kwargs
+    ):
         path_values.append(path)
-        return await original_on_download(download_url, filename, content, path, **kwargs)
+        return await original_on_download(
+            download_url, filename, content, path, **kwargs
+        )
 
     observer.on_download = path_tracking_on_download
+
     async def scraper(sdk: SDK, *args, **kwargs):
         await sdk.capture_html()
         await sdk.capture_html("body")
@@ -705,12 +711,15 @@ async def test_capture_html_empty_path(server, observer, harness):
             observer=observer,
         )
 
-        assert len(path_values) >= 3, f"Expected at least 3 calls to on_download, got {len(path_values)}"
+        assert len(path_values) >= 3, (
+            f"Expected at least 3 calls to on_download, got {len(path_values)}"
+        )
         for i, path in enumerate(path_values):
             assert path == "", f"Path for call {i + 1} was not empty, got: '{path}'"
 
     finally:
         observer.on_download = original_on_download
+
 
 @pytest.mark.parametrize("harness", [playwright_harness, soup_harness])
 async def test_with_locators(server, observer, harness):
