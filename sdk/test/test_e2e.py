@@ -892,3 +892,33 @@ async def test_save_data_with_url(server, observer, harness):
     assert observer.data[2]["__url"] == second_url
     assert observer.data[3]["title"] == "Table Page2"
     assert observer.data[3]["__url"] == f"{second_url}/2"
+
+
+@pytest.mark.parametrize("harness", [playwright_harness])
+async def test_capture_download_return_value(server, observer, harness):
+    url = f"{server}/download"
+    observer = InMemoryObserver()
+
+    captured_meta = None
+    async def scraper(sdk: SDK, *args, **kwargs):
+        nonlocal captured_meta
+        page = sdk.page
+        link = await page.query_selector("a#download-link")
+        captured_meta = await sdk.capture_download(link)
+
+    await SDK.run(
+        scraper=scraper,
+        url=url,
+        schema={},
+        headless=True,
+        harness=harness,
+        observer=observer,
+    )
+
+    assert captured_meta is not None, "No metadata returned from capture_download"
+    assert "url" in captured_meta, "Missing 'url' key in DownloadMeta"
+    assert "filename" in captured_meta, "Missing 'filename' key in DownloadMeta"
+    assert "path" in captured_meta, "Missing 'path' key in DownloadMeta"
+
+    assert captured_meta["filename"] == "example.txt", "Incorrect filename in DownloadMeta"
+    assert captured_meta["path"], "Empty path in DownloadMeta"
