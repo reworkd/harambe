@@ -106,12 +106,17 @@ class HarambeInstrumentation(abc.ABC):
             target, method_name
         )
 
+        def _is_bytes_like(v: Any) -> bool:
+            return isinstance(v, (bytes, bytearray, memoryview))
+
         async def _wrapper(func, _instance, args, kwargs):
             event: FunctionCall = {
                 "timestamp": datetime.now().timestamp(),
                 "method": f"{target_name}.{method_name}",
-                "args": [str(a) for a in args],
-                "kwargs": {k: repr(v) for k, v in kwargs.items()},
+                "args": [str(a) for a in args if not _is_bytes_like(a)],
+                "kwargs": {
+                    k: repr(v) for k, v in kwargs.items() if not _is_bytes_like(v)
+                },
             }
 
             exc, result = None, None
