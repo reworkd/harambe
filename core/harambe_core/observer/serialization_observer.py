@@ -1,3 +1,4 @@
+import base64
 from typing import Any, Callable, TypeVar, TypedDict
 from urllib.parse import quote
 
@@ -37,12 +38,14 @@ class SerializationObserver(OutputObserver):
     async def on_download(
         self, download_url: str, filename: str, content: bytes, path: str
     ) -> "DownloadMeta":
+        encoded_content = base64.b64encode(content).decode("ascii")
+
         payload: Payload = {
             "type": "on_download",
             "data": {
                 "download_url": download_url,
                 "filename": filename,
-                "content": content.decode("utf-8"),
+                "content": encoded_content,
                 "path": path,
             },
         }
