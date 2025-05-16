@@ -38,7 +38,7 @@ class SerializationObserver(OutputObserver):
     async def on_download(
         self, download_url: str, filename: str, content: bytes, path: str
     ) -> "DownloadMeta":
-        encoded_content = base64.b64encode(content).decode("ascii")
+        encoded_content = "base64:" + base64.b64encode(content).decode("ascii")
 
         payload: Payload = {
             "type": "on_download",
