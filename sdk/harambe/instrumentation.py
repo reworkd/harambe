@@ -132,7 +132,7 @@ class HarambeInstrumentation(abc.ABC):
 
             try:
                 result = await func(*args, **kwargs)
-                event["result"] = _safe_repr(result)  # ← UTF-8-safe
+                event["result"] = _safe_repr(result)
 
             except Exception as e:
                 event["result"] = _safe_repr(e)

@@ -26,7 +26,7 @@ async def test_json_observer(capsys):
     captured = capsys.readouterr()
     assert (
         captured.out
-        == '{"type": "on_download", "data": {"download_url": "https://www.example.com", "filename": "example.html", "content": "content", "path": "path"}}\n'
+        == '{"type": "on_download", "data": {"download_url": "https://www.example.com", "filename": "example.html", "content": "base64:Y29udGVudA==", "path": "path"}}\n'
     )
     assert captured.err == ""
 

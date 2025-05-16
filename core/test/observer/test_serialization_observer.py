@@ -58,7 +58,7 @@ def test_on_download(observer, published_events):
         "data": {
             "download_url": "http://files.example.com",
             "filename": "test.txt",
-            "content": "Hello World!",
+            "content": "base64:SGVsbG8gV29ybGQh",
             "path": "path",
         },
     }
