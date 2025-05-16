@@ -95,7 +95,6 @@ class HarambeInstrumentation(abc.ABC):
 
         HarambeInstrumentation.__WRAPPED_FUNCTIONS = dict()
 
-
     def _wrap_function(self, target: Type[Any], method_name: str):
         target_name = target.__name__
 
@@ -116,8 +115,7 @@ class HarambeInstrumentation(abc.ABC):
                 "method": f"{target_name}.{method_name}",
                 "args": [str(a) for a in args if not _is_bytes_like(a)],
                 "kwargs": {
-                    k: repr(v) for k, v in kwargs.items()
-                    if not _is_bytes_like(v)
+                    k: repr(v) for k, v in kwargs.items() if not _is_bytes_like(v)
                 },
             }
 
