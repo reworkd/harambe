@@ -106,12 +106,25 @@ class HarambeInstrumentation(abc.ABC):
             target, method_name
         )
 
+        def _is_bytes_like(v: Any) -> bool:
+            return isinstance(v, (bytes, bytearray, memoryview))
+
+        def _safe_repr(v: Any) -> str:
+            if _is_bytes_like(v):
+                return f"<{type(v).__name__} len={len(v)}>"
+            try:
+                return repr(v)
+            except Exception as e:
+                return f"<unrepr-able: {e!s}>"
+
         async def _wrapper(func, _instance, args, kwargs):
             event: FunctionCall = {
                 "timestamp": datetime.now().timestamp(),
                 "method": f"{target_name}.{method_name}",
-                "args": [str(a) for a in args],
-                "kwargs": {k: repr(v) for k, v in kwargs.items()},
+                "args": [str(a) for a in args if not _is_bytes_like(a)],
+                "kwargs": {
+                    k: repr(v) for k, v in kwargs.items() if not _is_bytes_like(v)
+                },
             }
 
             exc, result = None, None
@@ -119,10 +132,10 @@ class HarambeInstrumentation(abc.ABC):
 
             try:
                 result = await func(*args, **kwargs)
-                event["result"] = repr(result)
+                event["result"] = _safe_repr(result)  # ← UTF-8-safe
 
             except Exception as e:
-                event["result"] = repr(e)
+                event["result"] = _safe_repr(e)
                 exc = e
 
             event["execution_time"] = perf_counter() - start
