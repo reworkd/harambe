@@ -11,7 +11,7 @@ dependencies = [
     "harambe_core==0.77.5",
     "playwright==1.47.0",
     "beautifulsoup4==4.12.3",
-    "requests==2.32.3",
+    "requests==2.32.4",
     "playwright-stealth==1.0.6",
     "aiohttp==3.10.10",
     "curl-cffi==0.7.3",
